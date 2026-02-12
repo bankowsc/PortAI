@@ -49,7 +49,6 @@ def:pub app -> any {
 
     can with [isLoggedIn] entry {
         if isLoggedIn {
-            # NOTE THIS IS WHERE ILL MAKE IT LOAD MY GRID FOR LATER YIPEEEEEEEE
             # fetchTodos();
             # fetchMealPlan();
             # # BEGIN NEWS LOAD

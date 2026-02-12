@@ -1,4 +1,4 @@
-"""TaskFlow - A multi-user todo app with AI meal planning."""
+"""PortAI - Ai for NCAA fans."""
 
 cl {
     import from frontend { app as ClientApp }
@@ -55,20 +55,18 @@ node NewsArticle {
 
 # --- News Walkers ---
 
-walker:priv GenerateNews {
+walker:priv GenerateNewsWalker {
     has school: str;
+
     
     can generate with `root entry {
         # Call LLM to generate news story
+        # visit [-->];
+
+        # print("This prints to Jac runtime console 4");
         news = generate_news_story(self.school);
-        # news = NewsStory(
-        #     headline="Test Headline",
-        #     summary="Test summary.",
-        #     content="Test content.",
-        #     source="ESPN",
-        #     date="February 11, 2026"
-        # );
-        
+        # print("This prints to Jac runtime console 5");
+
         # Create news article node
         new_article = here ++> NewsArticle(
             id=str(uuid4()),
