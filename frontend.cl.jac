@@ -22,6 +22,8 @@ import from .components.NewsCard { NewsCard }
 #     # END NEWS WALKERS
 # }
 
+# sv import from main { get_current_user, update_favorites }
+
 def:pub app -> any {
     has isLoggedIn: bool = False,
         checkingAuth: bool = True,
@@ -46,12 +48,7 @@ def:pub app -> any {
 
     can with [isLoggedIn] entry {
         if isLoggedIn {
-            # NOTE THIS IS WHERE ILL MAKE IT LOAD MY GRID FOR LATER YIPEEEEEEEE
-            # fetchTodos();
-            # fetchMealPlan();
-            # # BEGIN NEWS LOAD
-            # fetchNews();
-            # # END NEWS LOAD
+            # loadUserData();
         }
     }
 
@@ -62,10 +59,14 @@ def:pub app -> any {
     def handleLogout -> None;
     async def handleSubmit(e: any) -> None;
 
+    
     # BEGIN NEWS METHODS
 
     # END NEWS METHODS
 
+    # async def loadUserData -> None;
+
+    # async def toggleFavorite(team: str) -> None;
 
     
     if checkingAuth {
@@ -117,10 +118,21 @@ def:pub app -> any {
                                 {(
                                     <div>
                                         <ul className="dropdown-menu">
-                                            <li>{("⭐" if "Michigan" in favorites else "☆")} Michigan</li>
-                                            <li>{("⭐" if "Michigan State" in favorites else "☆")} Michigan State</li>
-                                            <li>{("⭐" if "Ohio State" in favorites else "☆")} Ohio State</li>
-                                            <li>{("⭐" if "Indiana" in favorites else "☆")} Indiana</li>
+                                            <li onClick={lambda -> None { toggleFavorite("Michigan"); }}>
+                                                {("⭐" if "Michigan" in favorites else "☆")} Michigan
+                                            </li>
+
+                                            <li onClick={lambda -> None { toggleFavorite("Michigan State"); }}>
+                                                {("⭐" if "Michigan State" in favorites else "☆")} Michigan State
+                                            </li>
+
+                                            <li onClick={lambda -> None { toggleFavorite("Ohio State"); }}>
+                                                {("⭐" if "Ohio State" in favorites else "☆")} Ohio State
+                                            </li>
+
+                                            <li onClick={lambda -> None { toggleFavorite("Indiana"); }}>
+                                                {("⭐" if "Indiana" in favorites else "☆")} Indiana
+                                            </li>
                                         </ul>
                                     </div>
                                     

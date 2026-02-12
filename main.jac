@@ -45,3 +45,40 @@ def generate_news_story(school: str) -> NewsStory by llm();
 
 
 # --- News Walkers ---
+node User {
+    has username: str;
+    has favorite_words: list = [];
+}
+
+# walker get_current_user {
+#     can with Root entry {
+#         current_name = visitor;
+
+#         for u in here --> User {
+#             if u.username == current_name {
+#                 report u;
+#                 return;
+#             }
+#         }
+
+#         new_user = User(username=current_name);
+#         here ++> new_user;
+#         report new_user;
+#     }
+# }
+
+# walker update_favorites {
+#     has new_favorites: list;
+
+#     can with Root entry {
+#         current_name = visitor;
+
+#         for u in here --> User {
+#             if u.username == current_name {
+#                 u.favorite_words = self.new_favorites;
+#                 report {"status": "updated"};
+#                 return;
+#             }
+#         }
+#     }
+# }

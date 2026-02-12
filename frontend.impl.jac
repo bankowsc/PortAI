@@ -17,6 +17,21 @@ impl app.toggleDropdown -> None {
     }
 }
 
+# impl toggleFavorite(team: str) -> None {
+#     if team in favorites {
+#         favorites = [t for t in favorites if t != team];
+#     } else {
+#         favorites = favorites + [team];
+#     }
+
+#     await update_favorites(new_favorites=favorites);
+# }
+
+# impl loadUserData -> None {
+#     user = await get_current_user();
+#     favorites = user.favorite_words;
+# }
+
 # Above is maybe bad
 
 impl app.toggleTheme -> None {
