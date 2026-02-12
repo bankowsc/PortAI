@@ -4,62 +4,18 @@
 
 # ... (keep all your existing implementations)
 
-# BEGIN NEWS IMPLEMENTATIONS
 
-impl app.fetchNews -> None {
-    result = await root spawn ListNews();
-    self.newsArticles = result.reports[0] if result.reports else [];
-}
-
-impl app.generateNews -> None {
-    if not schoolInput.trim() { return; }
-
-    newsLoading = True;
-
-    result = await root spawn GenerateNews(school=schoolInput);
-
-    if result.reports and result.reports.length > 0 {
-        article = result.reports[0];
-        newsArticles = [article].concat(newsArticles);
-    }
-
-    schoolInput = "";
-    newsLoading = False;
-}
-# impl app.generateNews -> None {
-#     if not self.schoolInput.trim() { return; }
-
-#     self.newsLoading = True;
-
-#     result = await root spawn GenerateNews(school=self.schoolInput);
-
-#     if result.reports and result.reports.length > 0 {
-#         article = result.reports[0];
-#         self.newsArticles = [article].concat(self.newsArticles);
-#     }
-
-
-#     self.schoolInput = "";
-#     self.newsLoading = False;
-# }
-
-impl app.deleteNewsArticle(articleId: str) -> None {
-    root spawn DeleteNews(article_id=articleId);
-    self.newsArticles = self.newsArticles.filter(
-        lambda a: any -> bool { return a.id != articleId; }
-    );
-}
-
-impl app.handleNewsKeyPress(e: any) -> None {
-    if e.key == "Enter" {
-        self.generateNews();
+impl app.toggleDropdown -> None {
+    if not showDropdown {
+        showDropdown = True;
+        # Do stuff
+        
+    } else {
+        showDropdown = False;
+        # More stuff
+        
     }
 }
-
-
-
-# END NEWS IMPLEMENTATIONS
-
 
 # Above is maybe bad
 

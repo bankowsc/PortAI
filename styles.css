@@ -1270,3 +1270,144 @@ html.light .btn-theme-toggle {
     background: rgba(255, 255, 255, 0.1);
     color: rgba(255, 255, 255, 0.9);
 }
+
+
+
+
+
+/*Extra Dropdown DARK mode */
+
+.dark .dropdown-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.dark .btn-dropdown {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border: 1px solid rgba(200, 80, 50, 0.25);
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.9);
+    transition: all 0.2s ease;
+}
+
+.dark .btn-dropdown:hover {
+    background: rgba(200, 80, 50, 0.15);
+    border-color: rgba(200, 80, 50, 0.4);
+}
+
+.dark .dropdown-button div {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.dark .dropdown-menu {
+    position: absolute;
+    top: 110%;
+    left: 0;
+    min-width: 160px;
+    padding: 0.5rem 0;
+    margin-top: 0.4rem;
+
+    background: rgba(25, 20, 20, 0.98);
+    border: 1px solid rgba(200, 80, 50, 0.25);
+    border-radius: 12px;
+
+    list-style: none;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(6px);
+
+    z-index: 100;
+}
+
+.dark .dropdown-menu li {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.dark .dropdown-menu li:hover {
+    background: rgba(200, 80, 50, 0.15);
+    color: #ffffff;
+}
+
+.dark .dropdown-arrow {
+    font-size: 0.7rem;
+    opacity: 0.7;
+}
+
+
+
+/* Extra Dropdown LIGHT mode */
+
+.light .dropdown-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.light .btn-dropdown {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    background: rgba(0, 0, 0, 0.05);
+    color: #111827;
+    transition: all 0.2s ease;
+}
+
+.light .btn-dropdown:hover {
+    background: rgba(200, 80, 50, 0.1);
+    border-color: rgba(200, 80, 50, 0.3);
+}
+
+.light .dropdown-menu {
+    position: absolute;
+    top: 110%;
+    left: 0;
+    min-width: 160px;
+    padding: 0.5rem 0;
+    margin-top: 0.4rem;
+
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+
+    list-style: none;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(6px);
+
+    z-index: 100;
+}
+
+.light .dropdown-menu li {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    color: #111827;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.light .dropdown-menu li:hover {
+    background: rgba(200, 80, 50, 0.12);
+}
+
+.light .dropdown-arrow {
+    font-size: 0.7rem;
+    opacity: 0.7;
+}
+

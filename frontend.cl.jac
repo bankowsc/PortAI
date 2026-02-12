@@ -15,13 +15,12 @@ import from .components.NewsCard { NewsCard }
 # END NEWS IMPORT
 
 
-sv import from main {
-    # , ListTodos, ToggleTodo, DeleteTodo,
-    # GenerateShoppingList, ListMealPlan, ClearMealPlan,
-    # BEGIN NEWS WALKERS
-    GenerateNews, ListNews, DeleteNews
-    # END NEWS WALKERS
-}
+# sv import from main {
+#     # , ListTodos, ToggleTodo, DeleteTodo,
+#     # GenerateShoppingList, ListMealPlan, ClearMealPlan,
+#     # BEGIN NEWS WALKERS
+#     # END NEWS WALKERS
+# }
 
 def:pub app -> any {
     has isLoggedIn: bool = False,
@@ -32,14 +31,12 @@ def:pub app -> any {
         error: str = "",
         loading: bool = False,
         theme: str = "dark",
+        showDropdown: bool = False,
 
-        # BEGIN NEWS STATE
-        schoolInput: str = "",
-        newsArticles: list = [],
-        newsLoading: bool = False;
-        # END NEWS STATE
+        favorites: list = ["Michigan", "Michigan State"]; # TODO ITS NOT PICKING THESE UP
 
     def toggleTheme -> None;
+    def toggleDropdown -> None;
 
     can with entry {
         isLoggedIn = jacIsLoggedIn();
@@ -64,13 +61,9 @@ def:pub app -> any {
     async def handleSignup -> None;
     def handleLogout -> None;
     async def handleSubmit(e: any) -> None;
-    # def handleTodoKeyPress(e: any) -> None;
 
     # BEGIN NEWS METHODS
-    async def fetchNews -> None;
-    async def generateNews -> None;
-    async def deleteNewsArticle(articleId: str) -> None;
-    async def handleNewsKeyPress(e: any) -> None;
+
     # END NEWS METHODS
 
 
@@ -113,60 +106,28 @@ def:pub app -> any {
                                 Sign Out
                             </button>
                         </div>
+
+                            <div className="dropdown-button">
+                                <button
+                                    onClick={lambda -> None { toggleDropdown(); }}
+                                    className="btn-dropdown">
+                                    Favorites
+                                </button>
+
+                                {(
+                                    <div>
+                                        <ul className="dropdown-menu">
+                                            <li>{("⭐" if "Michigan" in favorites else "☆")} Michigan</li>
+                                            <li>{("⭐" if "Michigan State" in favorites else "☆")} Michigan State</li>
+                                            <li>{("⭐" if "Ohio State" in favorites else "☆")} Ohio State</li>
+                                            <li>{("⭐" if "Indiana" in favorites else "☆")} Indiana</li>
+                                        </ul>
+                                    </div>
+                                    
+                                    if showDropdown else ""
+                                )}
+                            </div>
                     </div>
-
-
-                    <div className="card">
-                        <h2 className="panel-title">NCAA News Generator</h2>
-                        <p className="panel-subtitle">
-                            Generate AI news stories about your favorite NCAA school
-                        </p>
-                        <div className="add-row">
-                            <input
-                                type="text"
-                                value={schoolInput}
-                                onChange={lambda e: any -> None { schoolInput = e.target.value; }}
-                                onKeyPress={handleNewsKeyPress}
-                                placeholder="e.g. Michigan Wolverines"
-                                className="todo-input"
-                            />
-                            <button
-                                onClick={lambda -> None { generateNews(); }}
-                                disabled={newsLoading}
-                                className="btn-generate"
-                            >
-                                {("Generating..." if newsLoading else "Generate News")}
-                            </button>
-                        </div>
-                        
-                        <div className="news-container">
-                            {(
-                                <div className="loading-message">
-                                    <div className="generating-spinner"></div>
-                                    Generating news story...
-                                </div>
-                            ) if newsLoading else (
-                                <div>
-                                    {(
-                                        <div className="empty-message">
-                                            Enter a school name above to generate news.
-                                        </div>
-                                    ) if newsArticles.length == 0 else (
-                                        <div>
-                                            {[
-                                                <NewsCard
-                                                    key={article.id}
-                                                    article={article}
-                                                    onDelete={deleteNewsArticle}
-                                                /> for article in newsArticles
-                                            ]}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
                 </div>
 
                 <div className="bottom-line">
