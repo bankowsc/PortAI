@@ -67,7 +67,7 @@ node User {
 #     }
 # }
 
-# walker update_favorites {
+# walker:pub update_favorites {
 #     has new_favorites: list;
 
 #     can with Root entry {

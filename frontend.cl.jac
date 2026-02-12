@@ -34,11 +34,45 @@ def:pub app -> any {
         loading: bool = False,
         theme: str = "dark",
         showDropdown: bool = False,
+        # favorites: list = ["Michigan", "Michigan State"],
+        teams: list = [
+            "Air Force", "Akron", "Alabama", "Appalachian State", "Arizona",
+            "Arizona State", "Arkansas", "Arkansas State", "Army", "Auburn",
+            "Ball State", "Baylor", "Boise State", "Boston College", "Bowling Green",
+            "Buffalo", "BYU", "California", "Central Michigan", "Charlotte",
+            "Cincinnati", "Clemson", "Coastal Carolina", "Colorado", "Colorado State",
+            "Connecticut", "Duke", "East Carolina", "Eastern Michigan", "FIU",
+            "Florida", "Florida Atlantic", "Florida State", "Fresno State", "Georgia",
+            "Georgia Southern", "Georgia State", "Georgia Tech", "Hawaii", "Houston",
+            "Illinois", "Indiana", "Iowa", "Iowa State", "Jacksonville State",
+            "James Madison", "Kansas", "Kansas State", "Kennesaw State", "Kent State",
+            "Kentucky", "Liberty", "Louisiana", "Louisiana Monroe", "Louisiana Tech",
+            "Louisville", "LSU", "Marshall", "Maryland", "Memphis", "Miami",
+            "Miami (OH)", "Michigan", "Michigan State", "Middle Tennessee", "Minnesota",
+            "Mississippi State", "Missouri", "Navy", "NC State", "Nebraska",
+            "Nevada", "New Mexico", "New Mexico State", "North Carolina", "North Texas",
+            "Northern Illinois", "Northwestern", "Notre Dame", "Ohio", "Ohio State",
+            "Oklahoma", "Oklahoma State", "Old Dominion", "Ole Miss", "Oregon",
+            "Oregon State", "Penn State", "Pittsburgh", "Purdue", "Rice",
+            "Rutgers", "Sam Houston", "San Diego State", "San Jose State", "SMU",
+            "South Alabama", "South Carolina", "South Florida", "Southern Miss", "Stanford",
+            "Syracuse", "TCU", "Temple", "Tennessee", "Texas", "Texas A&M",
+            "Texas State", "Texas Tech", "Toledo", "Troy", "Tulane", "Tulsa",
+            "UAB", "UCF", "UCLA", "UNLV", "USC", "Utah", "Utah State",
+            "UTEP", "UTSA", "Vanderbilt", "Virginia", "Virginia Tech", "Wake Forest",
+            "Washington", "Washington State", "West Virginia", "Western Kentucky",
+            "Western Michigan", "Wisconsin", "Wyoming"
+        ];
+        [favorites, setFavorites] = useState(["Michigan", "Michigan State", "Akron"]);
 
-        favorites: list = ["Michigan", "Michigan State"]; # TODO ITS NOT PICKING THESE UP
 
     def toggleTheme -> None;
     def toggleDropdown -> None;
+    async def toggleFavorite(team: str) -> None;
+
+    # PROBLEM HERE WANT UI TO CHANGE
+    
+
 
     can with entry {
         isLoggedIn = jacIsLoggedIn();
@@ -58,6 +92,7 @@ def:pub app -> any {
     async def handleSignup -> None;
     def handleLogout -> None;
     async def handleSubmit(e: any) -> None;
+    
 
     
     # BEGIN NEWS METHODS
@@ -66,7 +101,7 @@ def:pub app -> any {
 
     # async def loadUserData -> None;
 
-    # async def toggleFavorite(team: str) -> None;
+    
 
     
     if checkingAuth {
@@ -118,21 +153,12 @@ def:pub app -> any {
                                 {(
                                     <div>
                                         <ul className="dropdown-menu">
-                                            <li onClick={lambda -> None { toggleFavorite("Michigan"); }}>
-                                                {("⭐" if "Michigan" in favorites else "☆")} Michigan
-                                            </li>
-
-                                            <li onClick={lambda -> None { toggleFavorite("Michigan State"); }}>
-                                                {("⭐" if "Michigan State" in favorites else "☆")} Michigan State
-                                            </li>
-
-                                            <li onClick={lambda -> None { toggleFavorite("Ohio State"); }}>
-                                                {("⭐" if "Ohio State" in favorites else "☆")} Ohio State
-                                            </li>
-
-                                            <li onClick={lambda -> None { toggleFavorite("Indiana"); }}>
-                                                {("⭐" if "Indiana" in favorites else "☆")} Indiana
-                                            </li>
+                                            {[
+                                                <li onClick={lambda -> None { toggleFavorite(team); }}>
+                                                    {("⭐" if favorites.includes(team) else "☆ ")} {team}
+                                                </li>
+                                                for team in teams
+                                            ]}
                                         </ul>
                                     </div>
                                     

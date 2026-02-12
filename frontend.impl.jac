@@ -17,15 +17,28 @@ impl app.toggleDropdown -> None {
     }
 }
 
-# impl toggleFavorite(team: str) -> None {
-#     if team in favorites {
-#         favorites = [t for t in favorites if t != team];
-#     } else {
-#         favorites = favorites + [team];
-#     }
+impl app.toggleFavorite(team: str) -> None {
+    
+    console.log(team); 
+    if favorites.includes(team) {
+        console.log(
+            "removes"
+        );
+        index = favorites.indexOf(team);
+        console.log(index);
+        favorites.splice(index, 1);
+        console.log(favorites);
 
-#     await update_favorites(new_favorites=favorites);
-# }
+    } else {
+        console.log(
+            "add"
+        );
+        favorites.push(team);
+        console.log(favorites);
+    }
+
+    # await update_favorites(new_favorites=favorites);
+}
 
 # impl loadUserData -> None {
 #     user = await get_current_user();
