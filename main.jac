@@ -50,35 +50,96 @@ node User {
     has favorite_words: list = [];
 }
 
-# walker get_current_user {
-#     can with Root entry {
-#         current_name = visitor;
 
-#         for u in here --> User {
-#             if u.username == current_name {
-#                 report u;
-#                 return;
+# -- Player Walker
+
+# import:py csv;
+
+
+# walker get_transfer_news {
+#     can run with `root entry {
+#         results: list = [];
+        
+#         with open("/scraping/all_teams_transfer_portal_2026.csv", "r") as f {
+#             reader = csv.DictReader(f);
+#             for row in reader {
+#                 if row["to_school"] != "N/A" and row["status"] == "Committed" {
+#                     results.append({
+#                         "name": row["name"],
+#                         "position": row["position"],
+#                         "stars": row["stars"],
+#                         "from_school": row["from_school"],
+#                         "to_school": row["to_school"],
+#                         "profile_url": row["profile_url"]
+#                     });
+#                 }
+#                 if len(results) >= 10 {
+#                     break;
+#                 }
 #             }
 #         }
-
-#         new_user = User(username=current_name);
-#         here ++> new_user;
-#         report new_user;
+        
+#         report results;
 #     }
 # }
 
-# walker:pub update_favorites {
-#     has new_favorites: list;
 
-#     can with Root entry {
-#         current_name = visitor;
 
-#         for u in here --> User {
-#             if u.username == current_name {
-#                 u.favorite_words = self.new_favorites;
-#                 report {"status": "updated"};
-#                 return;
-#             }
+# walker example_walker {
+#     has transfer_data: list = [
+#         {
+#             "profile_url": "http://example.com/player1",
+#             "name": "Player One",
+#             "position": "Forward",
+#             "height": "6'5\"",
+#             "weight": "220 lbs",
+#             "stars": "4",
+#             "rating": "85",
+#             "from_school": "School A",
+#             "to_school": "School B",
+#             "status": "Active"
+#         },
+#         {
+#             "profile_url": "http://example.com/player2",
+#             "name": "Player Two",
+#             "position": "Guard",
+#             "height": "6'1\"",
+#             "weight": "190 lbs",
+#             "stars": "N/A",
+#             "rating": "78",
+#             "from_school": "School C",
+#             "to_school": "N/A",
+#             "status": "Inactive"
 #         }
+#     ];
+
+#     can build_transfer_cards with Root entry {
+#         cards = [
+#             <div className="transfer-card" key={player["profile_url"]}>
+#                 <div className="transfer-card-top">
+#                     <div className="player-name-row">
+#                         <span className="player-name">{player["name"]}</span>
+#                         <span className="player-position">{player["position"]}</span>
+#                     </div>
+#                     <div className="player-meta">
+#                         <span className="player-physical">{player["height"]} · {player["weight"]}</span>
+#                         <span className="player-stars">{player["stars"] != "N/A" ? "★" * int(player["stars"]) : ""}</span>
+#                         <span className="player-rating">{player["rating"]}</span>
+#                     </div>
+#                 </div>
+#                 <div className="transfer-route">
+#                     <span className="from-school">{player["from_school"]}</span>
+#                     <span className="arrow">→</span>
+#                     <span className="to-school">{player["to_school"]}</span>
+#                 </div>
+#                 <div className="transfer-card-bottom">
+#                     <span className={"status-badge status-" + player["status"].lower()}>{player["status"]}</span>
+#                     <a href={player["profile_url"]} target="_blank" className="profile-link">View Profile →</a>
+#                 </div>
+#             </div>
+#             for player in transfer_data if player["to_school"] != "N/A"
+#         ];
+
+#         report {"cards": cards};
 #     }
 # }
