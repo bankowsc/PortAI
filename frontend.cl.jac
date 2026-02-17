@@ -8,6 +8,8 @@ import "./styles.css";
 import from .components.AuthForm { AuthForm }
 import from .components.NewsCard { NewsCard }
 
+import from "react" { useState, useEffect }
+
 # import from .components.IngredientItem { IngredientItem }
 
 # BEGIN NEWS IMPORT
