@@ -40,6 +40,10 @@ impl app.toggleFavorite(team: str) -> None {
 
 }
 
+impl app.sendMessage -> None {
+    # TODo
+}
+
 # impl loadUserData -> None {
 #     user = await get_current_user();
 #     favorites = user.favorite_words;

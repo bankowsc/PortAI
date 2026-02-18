@@ -56,6 +56,8 @@ def:pub app -> any {
         theme: str = "dark",
         showDropdown: bool = False,
         # favorites: list = ["Michigan", "Michigan State"],
+        messages: list = ["test"],
+        user_input: "N/A",
         teams: list = [
             "Air Force", "Akron", "Alabama", "Appalachian State", "Arizona",
             "Arizona State", "Arkansas", "Arkansas State", "Army", "Auburn",
@@ -91,6 +93,7 @@ def:pub app -> any {
     def toggleTheme -> None;
     def toggleDropdown -> None;
     async def toggleFavorite(team: str) -> None;
+    async def sendMessage -> None;
 
     # PROBLEM HERE WANT UI TO CHANGE
     
@@ -194,35 +197,62 @@ def:pub app -> any {
                     </div>
                 </div>
 
-                <div className="transfer-news">
-                    <h2>Recent Transfers</h2>
-                    {
-                        [
-                            <div className="transfer-card" key={player["profile_url"]}>
-                                <div className="transfer-card-top">
-                                    <div className="player-name-row">
-                                        <span className="player-name">{player["name"]}</span>
-                                        <span className="player-position">{player["position"]}</span>
+                <div className="content-container">
+
+                    <div className="ai-container">
+                        <div className="chat-window">
+                            {[
+                                <div className={"chat-bubble " + msg["role"]}>
+                                    {msg["content"]}
+                                </div>
+                                for msg in messages
+                            ]}
+                        </div>
+
+                        <div className="chat-input-row">
+                            <input
+                                type="text"
+                                value={user_input}
+                                placeholder="Ask anything..."
+                            />
+                            <button onClick={sendMessage}>
+                                Send
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <div className="transfer-news">
+                        <h2>Recent Transfers</h2>
+                        {
+                            [
+                                <div className="transfer-card" key={player["profile_url"]}>
+                                    <div className="transfer-card-top">
+                                        <div className="player-name-row">
+                                            <span className="player-name">{player["name"]}</span>
+                                            <span className="player-position">{player["position"]}</span>
+                                        </div>
+                                        <div className="player-meta">
+                                            <span className="player-physical">{player["height"]} "  {player["weight"]}</span>
+                                            <span className="player-stars">{"★" if player["stars"] != "N/A" else ""}</span> # TODO <-- get the stars
+                                            <span className="player-rating">{player["rating"]}</span>
+                                        </div>
                                     </div>
-                                    <div className="player-meta">
-                                        <span className="player-physical">{player["height"]} "  {player["weight"]}</span>
-                                        <span className="player-stars">{"★" if player["stars"] != "N/A" else ""}</span> # TODO <-- get the stars
-                                        <span className="player-rating">{player["rating"]}</span>
+                                    <div className="transfer-route">
+                                        <span className="from-school">{player["from_school"]}</span>
+                                        <span className="arrow">→</span>
+                                        <span className="to-school">{player["to_school"]}</span>
+                                    </div>
+                                    <div className="transfer-card-bottom">
+                                        <span className={"status-badge status-" + player["status"].lower()}>{player["status"]}</span>
+                                        <a href={player["profile_url"]} target="_blank" className="profile-link">View Profile →</a>
                                     </div>
                                 </div>
-                                <div className="transfer-route">
-                                    <span className="from-school">{player["from_school"]}</span>
-                                    <span className="arrow">→</span>
-                                    <span className="to-school">{player["to_school"]}</span>
-                                </div>
-                                <div className="transfer-card-bottom">
-                                    <span className={"status-badge status-" + player["status"].lower()}>{player["status"]}</span>
-                                    <a href={player["profile_url"]} target="_blank" className="profile-link">View Profile →</a>
-                                </div>
-                            </div>
-                            for player in transfer_data # if player["to_school"] != "N/A"
-                        ]
-                    }
+                                for player in transfer_data # if player["to_school"] != "N/A"
+                            ]
+                        }
+                    </div>
+
                 </div>
 
                 <div className="bottom-line">
