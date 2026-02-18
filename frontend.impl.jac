@@ -5,17 +5,28 @@
 # ... (keep all your existing implementations)
 
 
-impl app.toggleDropdown -> None {
-    if not showDropdown {
-        showDropdown = True;
+impl app.toggleDropdownTeam -> None {
+    if not showDropdownTeam {
+        showDropdownTeam = True;
         # Do stuff
-        
     } else {
-        showDropdown = False;
+        showDropdownTeam = False;
         # More stuff
-        
     }
 }
+
+impl app.toggleDropdownFavorite -> None {
+    if not showDropdownFavorite {
+        setshowDropdownFavorite(True);
+        # showDropdownFavorite = True;
+        # Do stuff
+    } else {
+        setshowDropdownFavorite(False);
+        # showDropdownFavorite = False;
+        # More stuff
+    }
+}
+
 
 impl app.toggleFavorite(team: str) -> None {
     new_favorites: list = [];
@@ -33,6 +44,15 @@ impl app.toggleFavorite(team: str) -> None {
         );
     }
     setFavorites(new_favorites);
+
+    # DONT KNOW WHAT LANGUAGE WE ARE IN BUT NEITHER len() or .size or .length work 
+    # if len(new_favorites) == 0 {
+    #     if (showDropdownFavorite){
+    #         setshowDropdownFavorite(False);
+    #         console.log("inside 2");
+    #     }
+    #     console.log("inside 1");
+    # }
 
     console.log(
         new_favorites

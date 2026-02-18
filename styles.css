@@ -1284,6 +1284,14 @@ html.light .btn-theme-toggle {
     gap: 0.4rem;
 }
 
+.dark .dropdown-button-2 {
+    position: relative;
+    margin-left: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
 .dark .btn-dropdown {
     display: flex;
     align-items: center;
@@ -1360,6 +1368,15 @@ html.light .btn-theme-toggle {
     align-items: center;
     gap: 0.4rem;
 }
+
+.light .dropdown-button-2 {
+    position: relative;
+    margin-left: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
 
 .light .btn-dropdown {
     display: flex;
