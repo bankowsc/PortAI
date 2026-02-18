@@ -30,12 +30,13 @@ SLUG_OVERRIDES = {
 }
 
 
-def scrape_team(team_name, institution_key):
+def scrape_team(team_name, institution_key, season_year):
     if team_name in SLUG_OVERRIDES:
         slug = SLUG_OVERRIDES[team_name]
     else:
         slug = team_name.lower().replace(" ", "-").replace("(", "").replace(")", "").replace("&", "").replace(".", "")
-    url = f"https://247sports.com/college/{slug}/season/2026-football/transferportal/?institutionkey={institution_key}"
+    url = f"https://247sports.com/college/{slug}/season/{season_year}-football/transferportal/?institutionkey={institution_key}"
+
 
     try:
         response = requests.get(url, headers=HEADERS, timeout=15)
@@ -49,7 +50,12 @@ def scrape_team(team_name, institution_key):
 
     players = []
     for li in players_li:
-        player = {'team': team_name, 'institution_key': institution_key}
+        player = {
+            'team': team_name,
+            'institution_key': institution_key,
+            'season': season_year
+        }
+
 
         # Name
         name_elem = li.find('h3')
@@ -125,50 +131,66 @@ def main():
     print("247SPORTS ALL-TEAM TRANSFER PORTAL SCRAPER")
     print("=" * 70)
 
-    if MISSING_KEYS:
-        print(f"\nSkipping {len(MISSING_KEYS)} teams with no institution key:")
-        for t in MISSING_KEYS:
-            print(f"  - {t}")
+    seasons = list(range(2026, 2017, -1))  # 2026 → 2018
+    master_players = []
 
-    all_players = []
-    total_teams = len(TEAMS)
+    fieldnames = [
+        'season',
+        'team',
+        'institution_key',
+        'name',
+        'position',
+        'height',
+        'weight',
+        'stars',
+        'rating',
+        'status',
+        'from_school',
+        'to_school',
+        'profile_url'
+    ]
 
-    for i, (team_name, inst_key) in enumerate(TEAMS.items(), 1):
-        print(f"\n[{i}/{total_teams}] Scraping {team_name} (key: {inst_key})...")
-        players = scrape_team(team_name, inst_key)
-        print(f"  Found {len(players)} players")
-        all_players.extend(players)
+    for season_year in seasons:
+        print(f"\n{'=' * 60}")
+        print(f"SCRAPING SEASON {season_year}")
+        print(f"{'=' * 60}")
 
-        # Be polite to the server — small delay between requests
-        time.sleep(1.0)
+        season_players = []
+        total_teams = len(TEAMS)
 
-    print(f"\n{'=' * 70}")
-    print(f"DONE — Total players scraped: {len(all_players)}")
-    print(f"{'=' * 70}\n")
+        for i, (team_name, inst_key) in enumerate(TEAMS.items(), 1):
+            print(f"[{i}/{total_teams}] {team_name}")
 
-    if not all_players:
-        print("No players found. Exiting.")
-        return
+            players = scrape_team(team_name, inst_key, season_year)
+            print(f"  Found {len(players)} players")
 
-    # Save combined CSV
-    csv_filename = "all_teams_transfer_portal_2026.csv"
-    fieldnames = ['team', 'institution_key', 'name', 'position', 'height', 'weight',
-                  'stars', 'rating', 'status', 'from_school', 'to_school', 'profile_url']
+            season_players.extend(players)
+            time.sleep(1.0)
 
-    with open(csv_filename, 'w', newline='', encoding='utf-8') as f:
+        print(f"\nSeason {season_year} total players: {len(season_players)}")
+
+        # ✅ Save individual season CSV
+        season_filename = f"transfer_portal_{season_year}.csv"
+        with open(season_filename, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
+            writer.writeheader()
+            writer.writerows(season_players)
+
+        print(f"✓ Saved {season_filename}")
+
+        master_players.extend(season_players)
+
+    master_filename = "transfer_portal_247_all_seasons.csv"
+
+    with open(master_filename, 'w', newline='', encoding='utf-8') as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
         writer.writeheader()
-        writer.writerows(all_players)
+        writer.writerows(master_players)
 
-    print(f"✓ Saved to {csv_filename}")
-
-    # Summary by team
-    print(f"\nPlayers per team:")
-    team_counts = {}
-    for p in all_players:
-        team_counts[p['team']] = team_counts.get(p['team'], 0) + 1
-    for team, count in sorted(team_counts.items(), key=lambda x: x[1], reverse=True):
-        print(f"  {team}: {count}")
+    print(f"\n{'=' * 70}")
+    print(f"ALL DONE — Total players across all seasons: {len(master_players)}")
+    print(f"✓ Saved {master_filename}")
+    print(f"{'=' * 70}")
 
 
 if __name__ == "__main__":
