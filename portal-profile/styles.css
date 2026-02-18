@@ -1,0 +1,369 @@
+/* ─── BASIC THEME ─── */
+:root {
+  --bg: white;
+  --card: white;
+  --border: #e5e7eb;
+  --text: black;
+  --muted: #9aa3b2;
+  --accent: #2e6ef7;
+  --blue: #2e6ef7;
+  --green: #22c55e;
+  --red: #ef4444;
+  --radius: 8px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: sans-serif;
+  font-size: 14px;
+  min-height: 100vh;
+}
+
+.card, .sidebar, .right-panel {
+  border-radius: 12px;
+}
+
+body {
+  background: #f7f8fa;
+}
+
+#hint-img {
+    height: 10px;
+    width: 10px;
+}
+
+/* ─── LAYOUT ─── */
+.app-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr 0px; /* sidebar | main | AI panel */
+  grid-template-rows: 56px 1fr;
+  height: 100vh;
+  transition: grid-template-columns 0.3s ease;
+}
+
+.app-layout.ai-open {
+  grid-template-columns: 240px 1fr 320px;
+}
+
+/* Right panel hidden by default */
+.right-panel {
+  border-left: 1px solid var(--border);
+  padding: 16px;
+  background: var(--card);
+  grid-column: 3;
+  grid-row: 2;
+  overflow: hidden;
+  color: var(--text);
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+}
+
+/* Visible state */
+.app-layout.ai-open .right-panel {
+  transform: translateX(0);
+}
+
+.topbar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--card);
+}
+
+.sidebar {
+  background: #f9f9fa; /* subtle difference from main */
+  position: sticky;
+  top: 56px; /* below topbar */
+  height: calc(100vh - 56px);
+  margin-left: 5px;
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.filter-group {
+  margin-bottom: 20px;
+  margin-top: 5px;
+}
+
+.filter-label {
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.filter-select {
+  border: 1px solid #ccc;
+  transition: border 0.2s;
+}
+
+.filter-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 5px rgba(46, 110, 247, 0.3);
+}
+
+.main {
+  padding: 20px;
+  overflow-y: auto;
+  width: 100%;
+  grid-column: 2;
+  grid-row: 2;
+}
+
+/* ─── PROFILE ─── */
+
+.profile-header {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 700;
+  font-size: 24px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.toggle-ai button {
+  padding: 6px 12px;
+  border-radius: 9999px;
+  background: var(--blue);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggle-ai button:hover {
+  background: var(--green);
+}
+
+/* ─── CARD ─── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.favorites-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.player-card, .team-card, .position-card {
+  background: #fefefe;
+  border-radius: var(--radius);
+  border: 1px solid #ddd;
+  padding: 12px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 6px; /* space between elements */
+}
+
+.player-stats span,
+.team-stats span,
+.position-stats span {
+  display: block;  /* forces new line */
+  margin-bottom: 4px; /* optional spacing between lines */
+}
+
+.player-card:hover, .team-card:hover, .position-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+#follow-state {
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+#follow-state:hover {
+  color: var(--accent);
+}
+
+/* ─── TEXT ─── */
+.section-title {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ─── AI PANEL ─── */
+
+.ai-body {
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+  margin-bottom: 12px;
+}
+
+.ai-response {
+  margin-top: 12px;
+  background: #f1f5f9;
+  border-radius: var(--radius);
+  padding: 10px;
+}
+
+.ai-response-label {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.prompt-chip {
+  background: #e0e7ff;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 12px;
+  margin: 4px 4px 4px 0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.prompt-chip:hover {
+  background: var(--blue);
+  color: white;
+}
+
+.ai-badge {
+    font-weight: bold;
+}
+
+/* ─── BUTTONS ─── */
+.btn {
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: black;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-secondary {
+  background: var(--blue);
+  color: white;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.toggle {
+  width: 46px;
+  height: 24px;
+  background: #ccc;
+  border-radius: 999px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.toggle::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+}
+
+/* ON state */
+.toggle.on {
+  background: var(--blue);
+}
+
+.toggle.on::before {
+  transform: translateX(22px);
+}
+
+
+/* ─── SIMPLE TABS ─── */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+
+.tab {
+  padding: 8px 12px;
+  cursor: pointer;
+  color: var(--muted);
+}
+
+.tab.active {
+  color: var(--accent);
+  border-bottom: 2px solid var(--accent);
+}
+
+/* ─── LIST ITEMS ─── */
+.list-item {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.list-item:last-child {
+  border-bottom: none;
+}
+
+/* ─── FORM CONTROLS ─── */
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 8px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: white;
+  color: var(--text);
+  font-size: 14px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--blue);
+}
+
+/* ─── SIMPLE STATUS COLORS ─── */
+.text-green { color: var(--green); }
+.text-red { color: var(--red); }
+.text-blue { color: var(--blue); }

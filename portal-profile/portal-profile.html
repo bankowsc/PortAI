@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portal Insider — Profile</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="app-layout">
+
+  <!-- ─── TOPBAR ─── -->
+  <header class="topbar">
+    <div class="topbar-logo">
+      <div class="logo-dot"></div>
+      PortAI
+    </div>
+
+    <nav class="topbar-nav">
+      <button class="nav-pill active">My Profile</button>
+      <button class="nav-pill">Home</button>
+      <button class="nav-pill">Explore</button>
+      <button class="nav-pill">Watchlist</button>
+      <button class="nav-pill">Projections</button>
+    </nav>
+
+    <div class="season-label">Log Out</div>
+  </header>
+
+  <!-- ─── LEFT SIDEBAR ─── -->
+  <aside class="sidebar">
+    <div class="filter-title">Filters</div>
+
+    <div class="filter-group">
+      <label class="filter-label">Position</label>
+      <select class="filter-select">
+        <option>Select position</option>
+        <option>QB</option><option>RB</option><option>WR</option>
+        <option>TE</option><option>OL</option><option>DL</option>
+        <option>LB</option><option>DB</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Eligibility Remaining</label>
+      <div class="filter-options">
+        <label class="filter-option"><input type="radio" name="elig" checked> <span>Any</span></label>
+        <label class="filter-option"><input type="radio" name="elig"> <span>1+ year</span></label>
+        <label class="filter-option"><input type="radio" name="elig"> <span>2+ years</span></label>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">NIL Speculation</label>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-name">
+            Show NIL speculation / Mercenary View
+            <div class="toggle on"></div>
+          </div>
+          <div class="toggle-helper">
+            <img src="hint.png" id="hint-img">
+            Includes reported NIL interest and rumors.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-actions">
+      <button class="btn btn-primary">Apply Filters</button>
+      <button class="btn btn-ghost">Reset</button>
+    </div>
+  </aside>
+
+  <!-- ─── MAIN CONTENT ─── -->
+  <main class="main">
+
+    <!-- PROFILE HEADER -->
+    <div class="profile-header">
+      <div class="profile-avatar">DG</div>
+      <div class="profile-info">
+        <div class="profile-name">Davids & Goliath</div>
+        <div class="profile-team">
+          <div class="filter-group">
+            <label class="filter-label">Favorite Team</label>
+            <select class="filter-select">
+              <option><span class="team-badge">Michigan  · </span> <span class="conf-badge">Big Ten</span></option>
+              <option><span class="team-badge">Michigan State  · </span> <span class="conf-badge">Big Ten</span></option>
+              <option><span class="team-badge">Oregon State  · </span> <span class="conf-badge">Pac-12</span></option>
+            </select>
+            <span class="selected-team-badge"></span>
+            <span class="selected-conf-badge"></span>
+          </div>
+        </div>
+        <div class="toggle-ai">
+          <button id="ai-toggle-btn">Ask Portal AI</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PORTAL SNAPSHOT -->
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="section-title">Portal Snapshot</div>
+        </div>
+      </div>
+
+      <div class="snapshot-grid">
+        <div class="snapshot-stat">
+          <div class="stat-label">Incoming Transfers</div>
+          <div class="stat-value positive">+16</div>
+        </div>
+
+        <div class="snapshot-stat">
+          <div class="stat-label">Outgoing Transfers</div>
+          <div class="stat-value negative">−27</div>
+        </div>
+
+        <div class="snapshot-stat">
+          <div class="stat-label">Positions Upgraded</div>
+          <div class="stat-value neutral">OL, DB</div>
+        </div>
+
+        <div class="snapshot-stat stability">
+          <div class="stat-label">Roster Stability</div>
+          <div class="stat-value">62%</div>
+          <div class="stat-sub">
+            <img src="hint.png" id="hint-img">
+            Stability reflects returning starters and multi-year eligibility
+          </div>
+          <div class="stability-bar-bg">
+            <div class="stability-bar-fill"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAVORITES & FOLLOWINGS or WATCH HISTORY -->
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="section-title">Your Portal Watch</div>
+        </div>
+      </div>
+      <div class="favorites-grid">
+        <div class="player-card">
+          <div class="players-label">PLAYERS</div>
+          <div class="player-stats">
+            <span id="name-pos">Player Name · Position</span>
+            <span id="eligibility">X years of eligibility remaining</span>
+            <span id="previous">Previous: School</span>
+            <span id="status-badge">Entered Transfer Portal / Committed / Withdrew from Portal</span>
+            <span id="nil-risk">NIL Risk: Low / Medium / High</span>
+            <span id="follow-state">★ Following</span>
+          </div>
+        </div>
+
+        <div class="team-card">
+          <div class="team-label">TEAMS</div>
+          <div class="team-stats">
+            <span id="name">Michigan</span>
+            <span id="net-transfers">Net Transfers: -11</span>
+            <span id="dependency">Portal Dependency: Moderate</span>
+            <img src="hint.png" id="hint-img">
+            Based on transfers in vs. returning starters
+          </div>
+        </div>
+
+        <div class="position-card">
+          <div class="positions-label">POSITIONS</div>
+          <div class="position-stats">
+            <span id="pos">Offensive Line</span>
+            <span id="num-transfers">3 Transfers Added</span>
+            <span id="rating">Depth Rating: Improved</span>
+          </div>
+        </div>
+        </div>
+      </div>
+  </main>
+
+  <!-- ─── AI PANEL ─── -->
+  <div class="right-panel">
+    <div class="ai-panel-header">
+      <div class="ai-badge">AI Agent</div>
+      <div class="ai-title">Ask Portal Insider</div>
+    </div>
+
+    <div class="ai-body">
+      <button class="ex-prompt-chip">Did we actually get better at QB?</button>
+      <button class="prompt-chip">Who’s most likely to leave?</button>
+      <button class="prompt-chip">What would limiting transfers to once per career actually change?</button>
+      <button class="prompt-chip">Who’s playing in the upcomming bowl game?</button>
+      <button class="prompt-chip">Can you explain how the NCAA transfer portal works?</button>
+      <div class="ai-response">
+        <div class="ai-response-label">Portal Insider</div>
+        <div class="ai-response-text">
+          Based on returning snaps and eligibility, depth improved — but QB remains volatile.
+        </div>
+      </div>
+    </div>
+
+    <div class="ai-input-area">
+      <input class="ai-input" placeholder="Ask about a player or roster move…" />
+      <button class="ai-send">Send</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
