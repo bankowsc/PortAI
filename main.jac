@@ -47,7 +47,7 @@ def generate_news_story(school: str) -> NewsStory by llm();
 # --- News Walkers ---
 node User {
     has username: str;
-    has favorite_words: list = [];
+    has favorite_teams: list = [];
 }
 
 

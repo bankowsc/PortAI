@@ -45,8 +45,7 @@ impl app.toggleFavorite(team: str) -> None {
     }
     setFavorites(new_favorites);
 
-    # DONT KNOW WHAT LANGUAGE WE ARE IN BUT NEITHER len() or .size or .length work 
-    # if len(new_favorites) == 0 {
+    # if new_favorites.empty() {
     #     if (showDropdownFavorite){
     #         setshowDropdownFavorite(False);
     #         console.log("inside 2");

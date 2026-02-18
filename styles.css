@@ -1979,3 +1979,54 @@ html.light .btn-theme-toggle {
 .light .profile-link:hover {
     color: #d45a30;
 }
+
+/* Search Bar */
+
+.dark .search-bar,
+.light .search-bar {
+    margin-bottom: 0.75rem;
+}
+
+.dark .transfer-search {
+    width: 100%;
+    padding: 0.65rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(200, 80, 50, 0.25);
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+}
+
+.dark .transfer-search:focus {
+    border-color: rgba(200, 80, 50, 0.5);
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.dark .transfer-search::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.light .transfer-search {
+    width: 100%;
+    padding: 0.65rem 1rem;
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    color: #111827;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+}
+
+.light .transfer-search:focus {
+    border-color: rgba(200, 80, 50, 0.4);
+    background: #fdfcfc;
+}
+
+.light .transfer-search::placeholder {
+    color: rgba(0, 0, 0, 0.35);
+}
