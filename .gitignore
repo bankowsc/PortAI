@@ -21,3 +21,7 @@ node_modules/
 .jac/
 *.session
 *.session.*
+
+.env
+playwright_chrome_data
+scraper_state.json
