@@ -1,14 +1,8 @@
 """
-tester.py — Interactive integration test for TwitterScraper.
+tester.py — Interactive test for TwitterScraper.
 
 Usage:
     python tester.py
-
-Flow:
-    1. Launches the scraper (with credentials) inside an async context manager.
-    2. Scrapes every profile in PROFILES once on startup.
-    3. Drops into an interactive loop where you can enter a profile index
-       to re-check, or press 'q' to quit.
 
 Requirements:
     pip install playwright python-dotenv
@@ -18,13 +12,11 @@ Requirements:
 import asyncio
 import logging
 import os
-from time import sleep
 from pathlib import Path
 
 from dotenv import load_dotenv
 from profile_scraper import TwitterScraper
 
-# Load .env from the same directory as this script
 load_dotenv(Path(__file__).resolve().parent / ".env")
 
 logging.basicConfig(
@@ -34,21 +26,18 @@ logging.basicConfig(
 )
 logger = logging.getLogger("Tester")
 
-# ── Credentials (loaded from .env) ──────────────────────────────────────────
 TWITTER_USERNAME = os.getenv("TWITTER_USERNAME", "")
 TWITTER_PASSWORD = os.getenv("TWITTER_PASSWORD", "")
 
-# ── Profiles to monitor (fill these in) ─────────────────────────────────────
 PROFILES = [
     "https://x.com/PeteThamel",
     "https://x.com/Brett_McMurphy",
     "https://x.com/RossDellenger",
-    "https://x.com/BruceFeldmanCFB"
+    "https://x.com/BruceFeldmanCFB",
 ]
 
 
 def _print_menu() -> None:
-    """Prints the numbered profile list and prompt."""
     print("\n" + "═" * 50)
     print("PROFILES:")
     for i, url in enumerate(PROFILES):
@@ -61,24 +50,12 @@ async def main() -> None:
     async with TwitterScraper(
         username=TWITTER_USERNAME,
         password=TWITTER_PASSWORD,
-        headless=False,
     ) as scraper:
 
-        # ── Initial pass: scrape every profile once ──────────────────────
-        logger.info("Running initial scrape of all profiles...")
-        for url in PROFILES:
-            sleep(1)
-            await scraper.enqueue_profile(url)
-        await scraper.queue.join()
-        logger.info("Initial scrape complete.")
-
-        # ── Interactive loop ─────────────────────────────────────────────
         loop = asyncio.get_event_loop()
 
         while True:
             _print_menu()
-
-            # Read input without blocking the event loop
             user_input = await loop.run_in_executor(None, input, "> ")
             user_input = user_input.strip()
 
@@ -95,11 +72,9 @@ async def main() -> None:
                 print("Please enter a valid integer or 'q'.")
                 continue
 
-            await scraper.enqueue_profile(PROFILES[idx])
-            await scraper.queue.join()
-            logger.info(f"Finished checking {PROFILES[idx]}")
+            posts_json = await scraper.get_recent_posts(PROFILES[idx], n_posts=5)
+            print(f"\n{posts_json}")
 
-    # __aexit__ guarantees browser cleanup here
     logger.info("Done.")
 
 
