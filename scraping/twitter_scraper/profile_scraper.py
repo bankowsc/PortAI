@@ -162,9 +162,8 @@ class TwitterScraper:
     async def _authenticate(self) -> None:
         """Log in via cookies or manual flow.
 
-        X's login page often fails to render properly on the first load.
-        This method retries navigation up to 5 times until the login form
-        (or a logged-in indicator) actually appears.
+        First navigates to /home to detect valid session cookies.
+        Only shows the login page if not already authenticated.
         """
         if not self._browser_context:
             return
@@ -173,7 +172,19 @@ class TwitterScraper:
         try:
             logger.info("Checking authentication state...")
 
-            # ── Try loading the login page (with retries) ────────────────
+            # ── Step 1: Go to /home to check session cookies ─────────────
+            await page.goto(
+                "https://x.com/home",
+                wait_until="domcontentloaded",
+                timeout=60000,
+            )
+
+            if await self._is_logged_in(page):
+                logger.info("Already authenticated (session cookies valid).")
+                self._authenticated = True
+                return
+
+            # ── Step 2: Not logged in — load the login page ──────────────
             login_form_ready = False
             for attempt in range(1, 6):
                 try:
@@ -188,12 +199,6 @@ class TwitterScraper:
                     )
                     await self._human_delay(2.0, 4.0)
                     continue
-
-                # Already logged in from saved cookies?
-                if await self._is_logged_in(page):
-                    logger.info("Already authenticated (session cookies valid).")
-                    self._authenticated = True
-                    return
 
                 # Check whether the login form actually rendered
                 try:
