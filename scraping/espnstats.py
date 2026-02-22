@@ -23,14 +23,14 @@ import os
 # ── Config ────────────────────────────────────────────────────────────────────
 
 URLS = {
-    #"espn_passing_2024":   "https://www.espn.com/college-football/stats/player/_/season/2024",
-    #"espn_rushing_2024":   "https://www.espn.com/college-football/stats/player/_/stat/rushing/season/2024",
-    #"espn_receiving_2024": "https://www.espn.com/college-football/stats/player/_/stat/receiving/season/2024",
-    "espn_defense_2024":   "https://www.espn.com/college-football/stats/player/_/view/defense/season/2024",
-    #"espn_scoring_2024":   "https://www.espn.com/college-football/stats/player/_/view/scoring/season/2024",
-    "espn_returning_2024":   "https://www.espn.com/college-football/stats/player/_/view/special/season/2024",
-    "espn_kicking_2024":   "https://www.espn.com/college-football/stats/player/_/view/special/stat/kicking/season/2024",
-    "espn_punting_2024":   "https://www.espn.com/college-football/stats/player/_/view/special/stat/punting/season/2024",
+    "espn_passing_2018":   "https://www.espn.com/college-football/stats/player/_/season/2018",
+    "espn_rushing_2018":   "https://www.espn.com/college-football/stats/player/_/stat/rushing/season/2018",
+    "espn_receiving_2018": "https://www.espn.com/college-football/stats/player/_/stat/receiving/season/2018",
+    "espn_defense_2018":   "https://www.espn.com/college-football/stats/player/_/view/defense/season/2018",
+    "espn_scoring_2018":   "https://www.espn.com/college-football/stats/player/_/view/scoring/season/2018",
+    "espn_returning_2018":   "https://www.espn.com/college-football/stats/player/_/view/special/season/2018",
+    "espn_kicking_2018":   "https://www.espn.com/college-football/stats/player/_/view/special/stat/kicking/season/2018",
+    "espn_punting_2018":   "https://www.espn.com/college-football/stats/player/_/view/special/stat/punting/season/2018",
 }
 
 OUTPUT_DIR = "espn_cfb_stats"
