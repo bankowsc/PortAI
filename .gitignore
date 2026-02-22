@@ -25,3 +25,8 @@ node_modules/
 .env
 playwright_chrome_data
 scraper_state.json
+
+
+# PKL
+*.pkl
+
