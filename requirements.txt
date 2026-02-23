@@ -1,0 +1,16 @@
+# Web scraping
+beautifulsoup4==4.14.3
+requests==2.32.5
+selenium
+webdriver-manager
+playwright
+
+# Data processing
+numpy
+pandas
+scikit-learn
+joblib
+rapidfuzz
+
+# Environment / utilities
+python-dotenv==1.2.1
