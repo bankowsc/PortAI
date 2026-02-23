@@ -11,7 +11,7 @@ from sklearn.metrics import accuracy_score
 # LOAD MULTIPLE CSV FILES
 # ------------------------
 
-files = glob.glob("transfer_247_data/*.csv")
+files = glob.glob("transfer_247_data/transfer_portal_247_20*.csv")
 df_list = [pd.read_csv(file) for file in files]
 data = pd.concat(df_list, ignore_index=True)
 
@@ -20,7 +20,7 @@ data = pd.concat(df_list, ignore_index=True)
 # ------------------------
 
 # Remove useless columns
-data = data.drop(columns=["institution_key","profile_url", "name"])
+data = data.drop(columns=["institution_key","profile_url", "name", "status"])
 
 # Convert rating
 data["rating"] = data["rating"].replace("( N/A )", None)

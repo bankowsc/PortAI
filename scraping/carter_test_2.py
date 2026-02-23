@@ -14,15 +14,13 @@ model_columns = joblib.load("model_columns.pkl")
 # ------------------------
 
 new_player = {
-    "season": 2026,
-    "institution_key": 24085,
-    "position": "DE",
-    "height": "6'4\"",
-    "weight": "255 lbs",
+    "season": 2023,
+    "position": "TE",
+    "height": "6'6\"",
+    "weight": "251 lbs",
     "stars": 3,
-    "rating": 0.93,
-    "status": "Enrolled",
-    "from_school": "Utah"
+    "rating": 0.91,
+    "from_school": "Indiana"
 }
 
 df = pd.DataFrame([new_player])
@@ -51,9 +49,10 @@ df = pd.get_dummies(df)
 # MATCH TRAINING COLUMNS
 # ------------------------
 
-for col in model_columns:
-    if col not in df.columns:
-        df[col] = 0
+# for col in model_columns:
+#     if col not in df.columns:
+#         df[col] = 0
+df = df.reindex(columns=model_columns, fill_value=0)
 
 df = df[model_columns]
 
@@ -69,7 +68,7 @@ print("Predicted School:", prediction[0])
 # Top 3 schools
 import numpy as np
 
-top3_idx = np.argsort(probabilities[0])[-3:][::-1]
+top3_idx = np.argsort(probabilities[0])[-5:][::-1]
 top3_schools = model.classes_[top3_idx]
 top3_probs = probabilities[0][top3_idx]
 
