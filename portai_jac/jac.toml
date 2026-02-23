@@ -1,7 +1,7 @@
 [project]
-name = "my-todo-app"
+name = "portai"
 version = "1.0.0"
-description = "Jac client application: my-todo-app"
+description = "PortAI - Transfer Portal Intelligence (Jaseci Client)"
 entry-point = "main.jac"
 
 [dependencies]
@@ -19,3 +19,5 @@ watchdog = ">=3.0.0"
 base_route_app = "app"
 
 [plugins.client]
+
+[plugins.byllm]
