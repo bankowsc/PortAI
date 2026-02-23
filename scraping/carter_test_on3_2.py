@@ -6,21 +6,22 @@ import re
 # LOAD SAVED MODEL
 # ------------------------
 
-model = joblib.load("to_school_model.pkl")
-model_columns = joblib.load("model_columns.pkl")
+model = joblib.load("to_school_model_2.pkl")
+model_columns = joblib.load("model_columns_2.pkl")
 
 # ------------------------
 # CREATE TEST PLAYER
 # ------------------------
 
+# ,,Position,Year/Class,,Date Entered Portal,From Team,,Rating,High School,
+
 new_player = {
-    "season": 2024,
-    "position": "QB",
-    "height": "6'4\"",
-    "weight": "235 lbs",
-    "stars": 3,
-    "rating": 0.92,
-    "from_school": "Kansas State"
+    "Position": "QB",
+    "Year/Class": "SO",
+    "Date Entered Portal": "2/23/2026",
+    "From Team": "Notre Dame",
+    "Rating": 94.00,
+    "High School": "Saline",
 }
 
 df = pd.DataFrame([new_player])
@@ -29,18 +30,18 @@ df = pd.DataFrame([new_player])
 # CLEAN DATA SAME WAY
 # ------------------------
 
-# Convert height
-def convert_height(h):
-    match = re.match(r"(\d+)'(\d+)", h)
-    if match:
-        return int(match.group(1)) * 12 + int(match.group(2))
-    return None
+# # Convert height
+# def convert_height(h):
+#     match = re.match(r"(\d+)'(\d+)", h)
+#     if match:
+#         return int(match.group(1)) * 12 + int(match.group(2))
+#     return None
 
-df["height"] = df["height"].apply(convert_height)
+# df["height"] = df["height"].apply(convert_height)
 
-# Convert weight
-df["weight"] = df["weight"].str.replace(" lbs", "")
-df["weight"] = pd.to_numeric(df["weight"], errors="coerce")
+# # Convert weight
+# df["weight"] = df["weight"].str.replace(" lbs", "")
+# df["weight"] = pd.to_numeric(df["weight"], errors="coerce")
 
 # One-hot encode
 df = pd.get_dummies(df)
