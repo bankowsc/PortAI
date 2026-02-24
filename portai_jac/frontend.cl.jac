@@ -37,11 +37,14 @@ def:pub app -> JsxElement {
         teamsSearchFilter: str = "",
         teamsConferenceFilter: str = "all",
         teamsSortBy: str = "activity",
-        teamsActivityLevel: int = 0;
+        teamsActivityLevel: int = 0,
+        theme: str = "light";
 
     can with entry {
         isLoggedIn = jacIsLoggedIn();
         checkingAuth = False;
+        document.documentElement.className = theme;
+
     }
 
     can with [isLoggedIn] entry {
@@ -57,6 +60,16 @@ def:pub app -> JsxElement {
     async def handleSignup -> None;
     def handleLogout -> None;
     async def handleSubmit(e: any) -> None;
+
+    def toggleTheme -> None {
+    if theme == "dark" {
+        theme = "light";
+        document.documentElement.className = "light";
+    } else {
+        theme = "dark";
+        document.documentElement.className = "dark";
+    }
+}
 
     def handleNavigate(page: str) -> None {
         currentPage = page;
@@ -162,6 +175,9 @@ def:pub app -> JsxElement {
                 onLogout={handleLogout}
                 showUserMenu={showUserMenu}
                 onToggleUserMenu={handleToggleUserMenu}
+
+                theme={theme}
+                onToggleTheme={toggleTheme}
             />
             <div className="app-body">
                 <Sidebar

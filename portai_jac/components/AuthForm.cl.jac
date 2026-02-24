@@ -13,8 +13,7 @@ def:pub AuthForm(
     onSubmit: any,
     onToggleMode: any
 ) -> any {
-    return
-        <div className="login-page">
+    return <div className="login-page">
             <div className="login-hero">
                 <div className="login-hero-bg">
                     <div className="login-hero-circle-1"></div>

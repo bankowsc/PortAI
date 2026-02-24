@@ -8,7 +8,9 @@ def:pub Navigation(
     onNavigate: any,
     onLogout: any,
     showUserMenu: bool,
-    onToggleUserMenu: any
+    onToggleUserMenu: any,
+    theme: str,
+    onToggleTheme: any
 ) -> any {
     return
         <nav className="navbar">
@@ -19,6 +21,19 @@ def:pub Navigation(
                     <span className="navbar-logo-text">
                         Port<span className="accent">AI</span>
                     </span>
+                </div>
+
+                <div className="navbar-theme">
+                    <button
+                        onClick={onToggleTheme}
+                        className="btn-theme-toggle">
+                        <span className="theme-icon">
+                            {("🌙" if theme == "dark" else "☀️")}
+                        </span>
+                        <span className="theme-label">
+                            {("Dark" if theme == "dark" else "Light")}
+                        </span>
+                    </button>
                 </div>
 
                 <form className="navbar-search"
