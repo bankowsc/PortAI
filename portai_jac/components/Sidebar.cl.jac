@@ -2,6 +2,21 @@
 
 import from ..data.mock_data { mock_teams, default_favorite_team_ids }
 
+# RUN THESE TWO
+# jac add --npm @fortawesome/free-solid-svg-icons
+# npm install @fortawesome/react-fontawesome @fortawesome/fontawesome-svg-core
+import from '@fortawesome/react-fontawesome' { FontAwesomeIcon }
+import from '@fortawesome/free-solid-svg-icons' { 
+    faHouse, 
+    faUsers, 
+    faPerson, 
+    faStar, 
+    faRightLeft, 
+    faNewspaper, 
+    faChartBar, 
+    faMessage 
+}
+
 def:pub Sidebar(
     currentPage: str,
     collapsed: bool,
@@ -9,15 +24,25 @@ def:pub Sidebar(
     onNavigate: any,
     favoriteTeamIds: list
 ) -> any {
+    # has menu_items: list = [
+    #     {"icon": "🏠", "label": "Home", "page": "home"},
+    #     {"icon": "👥", "label": "Teams", "page": "teams"},
+    #     {"icon": "🧑", "label": "Players", "page": "players"},
+    #     {"icon": "⭐", "label": "Favorites", "page": "favorites"},
+    #     {"icon": "🔄", "label": "Transactions", "page": "transactions"},
+    #     {"icon": "📰", "label": "News", "page": "news"},
+    #     {"icon": "📊", "label": "Analytics", "page": "analytics"},
+    #     {"icon": "💬", "label": "Chat", "page": "chat"}
+    # ];
     has menu_items: list = [
-        {"icon": "🏠", "label": "Home", "page": "home"},
-        {"icon": "👥", "label": "Teams", "page": "teams"},
-        {"icon": "🧑", "label": "Players", "page": "players"},
-        {"icon": "⭐", "label": "Favorites", "page": "favorites"},
-        {"icon": "🔄", "label": "Transactions", "page": "transactions"},
-        {"icon": "📰", "label": "News", "page": "news"},
-        {"icon": "📊", "label": "Analytics", "page": "analytics"},
-        {"icon": "💬", "label": "Chat", "page": "chat"}
+        {"icon": faHouse,     "label": "Home",          "page": "home"},
+        {"icon": faUsers,     "label": "Teams",         "page": "teams"},
+        {"icon": faPerson,    "label": "Players",       "page": "players"},
+        {"icon": faStar,      "label": "Favorites",     "page": "favorites"},
+        {"icon": faRightLeft, "label": "Transactions",  "page": "transactions"},
+        {"icon": faNewspaper, "label": "News",          "page": "news"},
+        {"icon": faChartBar,  "label": "Analytics",     "page": "analytics"},
+        {"icon": faMessage,   "label": "Chat",          "page": "chat"}
     ];
 
     favorite_teams = [t for t in mock_teams if favoriteTeamIds.includes(t["id"])];
@@ -31,8 +56,8 @@ def:pub Sidebar(
                         return <button key={item["page"]}
                                 className={"sidebar-menu-item" + (" active" if currentPage == item["page"] else "")}
                                 onClick={lambda -> None { onNavigate(page); }}>
-                            <span className="menu-icon">{item["icon"]}</span>
-                            {(
+                                <FontAwesomeIcon icon={item["icon"]} className="menu-icon" />
+                                {(
                                 <span className="menu-label">{item["label"]}</span>
                             ) if not collapsed else None}
                         </button>;

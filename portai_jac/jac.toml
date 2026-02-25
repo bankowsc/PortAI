@@ -4,10 +4,9 @@ version = "1.0.0"
 description = "PortAI - Transfer Portal Intelligence (Jaseci Client)"
 entry-point = "main.jac"
 
-[dependencies]
-
 [dependencies.npm]
 jac-client-node = "1.0.4"
+"@fortawesome/free-solid-svg-icons" = "latest"
 
 [dependencies.npm.dev]
 "@jac-client/dev-deps" = "1.0.0"

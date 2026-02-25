@@ -127,8 +127,8 @@ def:pub AuthForm(
                     </div>
 
                     <div className="login-oauth-row">
-                        <button className="login-oauth-btn">🔵 Google</button>
-                        <button className="login-oauth-btn">🍎 Apple</button>
+                        <button className="login-oauth-btn">Google</button>
+                        <button className="login-oauth-btn">Apple</button>
                     </div>
                 </div>
             </div>

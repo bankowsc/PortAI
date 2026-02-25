@@ -1,5 +1,8 @@
 """AI Summary Card component - displays AI-generated analysis."""
 
+import from '@fortawesome/react-fontawesome' { FontAwesomeIcon }
+import from '@fortawesome/free-solid-svg-icons' { faArrowsRotate }
+
 def:pub AISummaryCard(
     title: str,
     content: str,
@@ -33,7 +36,7 @@ def:pub AISummaryCard(
                     <button className="btn-regenerate"
                             onClick={lambda -> None { onRegenerate(); }}
                             disabled={loading}>
-                        🔄 Regenerate Summary
+                            <FontAwesomeIcon icon={faArrowsRotate} /> Regenerate Summary
                     </button>
                 ) if onRegenerate else None}
             </div>
