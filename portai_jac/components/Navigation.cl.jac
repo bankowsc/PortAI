@@ -1,5 +1,11 @@
 """Navigation bar component."""
 
+import from '@fortawesome/react-fontawesome' { FontAwesomeIcon }
+import from '@fortawesome/free-solid-svg-icons' { 
+    faSun,
+    faMoon
+}
+
 def:pub Navigation(
     currentPage: str,
     searchQuery: str,
@@ -28,7 +34,7 @@ def:pub Navigation(
                         onClick={onToggleTheme}
                         className="btn-theme-toggle">
                         <span className="theme-icon">
-                            {("🌙" if theme == "dark" else "☀️")}
+                            {(<FontAwesomeIcon icon={faMoon} className="theme-icon" /> if theme == "dark" else <FontAwesomeIcon icon={faSun} className="theme-icon" />)}
                         </span>
                         <span className="theme-label">
                             {("Dark" if theme == "dark" else "Light")}

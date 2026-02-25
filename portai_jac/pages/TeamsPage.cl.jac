@@ -16,7 +16,7 @@ def:pub TeamsPage(
     activityLevel: int,
     onActivityLevelChange: any
 ) -> any {
-    conferences = ["all", "SEC", "Big Ten", "ACC", "Big 12", "Pac-12"];
+    conferences = ["all", "AAC", "ACC", "Big Ten", "Big 12", "CUSA", "MAC", "MWC", "Pac-12", "SEC", "Sun Belt"];
 
     filtered_teams = mock_teams.filter(
         lambda team: dict -> bool {
