@@ -538,6 +538,8 @@ textarea {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    color: var(--foreground);
+    transition: color 1s ease;
 }
 
 .sidebar-toggle {
