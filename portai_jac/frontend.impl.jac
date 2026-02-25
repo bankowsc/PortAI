@@ -73,7 +73,7 @@ impl app.handleLogout -> None {
     jacLogout();
     isLoggedIn = False;
     currentPage = "home";
-    favoriteTeamIds = [];
+    favoriteTeamIds = default_favorite_team_ids;
 }
 
 impl app.handleSubmit(e: any) -> None {
@@ -83,4 +83,17 @@ impl app.handleSubmit(e: any) -> None {
     } else {
         await handleSignup();
     }
+}
+
+impl app.handleToggleFavorite(teamId: str) -> None {
+    new_favorites: list = [];
+    if favoriteTeamIds.includes(teamId) {
+        new_favorites = favoriteTeamIds.filter(
+            lambda id: str -> bool { return id != teamId; }
+        );
+    } else {
+        new_favorites = favoriteTeamIds.concat([teamId]);
+    }
+    favoriteTeamIds = new_favorites;
+    await root spawn update_favorites(new_favorites=new_favorites);
 }

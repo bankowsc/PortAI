@@ -58,18 +58,19 @@ def:pub app -> JsxElement {
     async def fetchAISummary -> None;
     async def handleLogin -> None;
     async def handleSignup -> None;
+    async def handleToggleFavorite(teamId: str) -> None;
     def handleLogout -> None;
     async def handleSubmit(e: any) -> None;
 
     def toggleTheme -> None {
-    if theme == "dark" {
-        theme = "light";
-        document.documentElement.className = "light";
-    } else {
-        theme = "dark";
-        document.documentElement.className = "dark";
+        if theme == "dark" {
+            theme = "light";
+            document.documentElement.className = "light";
+        } else {
+            theme = "dark";
+            document.documentElement.className = "dark";
+        }
     }
-}
 
     def handleNavigate(page: str) -> None {
         currentPage = page;
@@ -96,16 +97,6 @@ def:pub app -> JsxElement {
     def handleToggleLoginMode -> None {
         isLoginMode = not isLoginMode;
         loginError = "";
-    }
-
-    def handleToggleFavorite(teamId: str) -> None {
-        if favoriteTeamIds.includes(teamId) {
-            favoriteTeamIds = favoriteTeamIds.filter(
-                lambda id: str -> bool { return id != teamId; }
-            );
-        } else {
-            favoriteTeamIds = favoriteTeamIds.concat([teamId]);
-        }
     }
 
     def handleRegenerateSummary -> None {
