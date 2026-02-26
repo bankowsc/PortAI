@@ -10,10 +10,12 @@ import from .components.Footer { Footer }
 import from .components.AuthForm { AuthForm }
 import from .pages.HomePage { HomePage }
 import from .pages.TeamsPage { TeamsPage }
+import from .pages.PlayersPage { PlayersPage }
 import from .data.mock_data { default_favorite_team_ids }
 
 sv import from main {
-    update_favorites, get_user_favorites, get_portal_summary
+    update_favorites, get_user_favorites, get_portal_summary,
+    get_transfers, search_players, get_player_by_id, get_ai_impact, get_portal_stats
 }
 
 def:pub app -> JsxElement {
@@ -28,6 +30,19 @@ def:pub app -> JsxElement {
         aiSummaryTitle: str = "",
         aiSummaryLoading: bool = False,
         expandedAIImpacts: list = [],
+        aiImpactTexts: any = {},
+        aiImpactLoading: list = [],
+        transactions: list = [],
+        transactionsLoading: bool = False,
+        transactionsOffset: int = 0,
+        totalTransactions: int = 0,
+        players: list = [],
+        playersLoading: bool = False,
+        playersOffset: int = 0,
+        totalPlayers: int = 0,
+        playerSearchQuery: str = "",
+        playerPositionFilter: str = "all",
+        portalStatsData: any = {},
         loginEmail: str = "",
         loginPassword: str = "",
         loginConfirmPassword: str = "",
@@ -51,11 +66,19 @@ def:pub app -> JsxElement {
         if isLoggedIn {
             fetchFavorites();
             fetchAISummary();
+            fetchTransactions();
+            fetchPortalStats();
         }
     }
 
     async def fetchFavorites -> None;
     async def fetchAISummary -> None;
+    async def fetchTransactions -> None;
+    async def loadMoreTransactions -> None;
+    async def fetchPlayers -> None;
+    async def loadMorePlayers -> None;
+    async def fetchPortalStats -> None;
+    async def fetchAIImpact(playerId: str) -> None;
     async def handleLogin -> None;
     async def handleSignup -> None;
     async def handleToggleFavorite(teamId: str) -> None;
@@ -74,6 +97,10 @@ def:pub app -> JsxElement {
 
     def handleNavigate(page: str) -> None {
         currentPage = page;
+        # Load players when navigating to players page for the first time
+        if page == "players" and players.length == 0 and not playersLoading {
+            fetchPlayers();
+        }
     }
 
     def handleSearch -> None {
@@ -110,7 +137,25 @@ def:pub app -> JsxElement {
             );
         } else {
             expandedAIImpacts = expandedAIImpacts.concat([transactionId]);
+            # Fetch AI impact if not already loaded
+            if not aiImpactTexts[transactionId] {
+                fetchAIImpact(transactionId);
+            }
         }
+    }
+
+    def handlePlayerSearchChange(e: any) -> None {
+        playerSearchQuery = e.target.value;
+    }
+
+    def handlePlayerPositionFilter(e: any) -> None {
+        playerPositionFilter = e.target.value;
+    }
+
+    def handlePlayerSearch -> None {
+        playersOffset = 0;
+        players = [];
+        fetchPlayers();
     }
 
     def handleTeamsSearchChange(e: any) -> None {
@@ -189,6 +234,13 @@ def:pub app -> JsxElement {
                             onRegenerateSummary={handleRegenerateSummary}
                             expandedAIImpacts={expandedAIImpacts}
                             onToggleAIImpact={handleToggleAIImpact}
+                            transactions={transactions}
+                            transactionsLoading={transactionsLoading}
+                            totalTransactions={totalTransactions}
+                            onLoadMore={loadMoreTransactions}
+                            aiImpactTexts={aiImpactTexts}
+                            aiImpactLoading={aiImpactLoading}
+                            portalStatsData={portalStatsData}
                         />
                     ) if currentPage == "home" else (
                         <TeamsPage
@@ -205,6 +257,19 @@ def:pub app -> JsxElement {
                             onActivityLevelChange={handleActivityLevelChange}
                         />
                     ) if currentPage == "teams" else (
+                        <PlayersPage
+                            onNavigate={handleNavigate}
+                            players={players}
+                            playersLoading={playersLoading}
+                            totalPlayers={totalPlayers}
+                            searchQuery={playerSearchQuery}
+                            onSearchChange={handlePlayerSearchChange}
+                            onSearch={handlePlayerSearch}
+                            positionFilter={playerPositionFilter}
+                            onPositionFilterChange={handlePlayerPositionFilter}
+                            onLoadMore={loadMorePlayers}
+                        />
+                    ) if currentPage == "players" else (
                         <div className="placeholder-page">
                             <h1>Coming Soon</h1>
                             <p className="text-muted">This page is under construction.</p>

@@ -22,6 +22,120 @@ impl app.fetchAISummary -> None {
     aiSummaryLoading = False;
 }
 
+impl app.fetchTransactions -> None {
+    transactionsLoading = True;
+    try {
+        result = root spawn get_transfers(
+            offset=0,
+            limit=100,
+            search_query="",
+            position_filter="all",
+            status_filter="all"
+        );
+        if result.reports {
+            transactions = result.reports[0]["transfers"];
+            totalTransactions = result.reports[0]["total"];
+            transactionsOffset = 100;
+        }
+    } except e {
+        transactions = [];
+        totalTransactions = 0;
+    }
+    transactionsLoading = False;
+}
+
+impl app.loadMoreTransactions -> None {
+    transactionsLoading = True;
+    try {
+        result = root spawn get_transfers(
+            offset=transactionsOffset,
+            limit=100,
+            search_query="",
+            position_filter="all",
+            status_filter="all"
+        );
+        if result.reports {
+            transactions = transactions.concat(result.reports[0]["transfers"]);
+            totalTransactions = result.reports[0]["total"];
+            transactionsOffset = transactionsOffset + 100;
+        }
+    } except e {
+        console.error("Failed to load more transactions");
+    }
+    transactionsLoading = False;
+}
+
+impl app.fetchPlayers -> None {
+    playersLoading = True;
+    try {
+        result = root spawn search_players(
+            query=playerSearchQuery,
+            offset=0,
+            limit=50,
+            position_filter=playerPositionFilter
+        );
+        if result.reports {
+            players = result.reports[0]["players"];
+            totalPlayers = result.reports[0]["total"];
+            playersOffset = 50;
+        }
+    } except e {
+        players = [];
+        totalPlayers = 0;
+    }
+    playersLoading = False;
+}
+
+impl app.loadMorePlayers -> None {
+    playersLoading = True;
+    try {
+        result = root spawn search_players(
+            query=playerSearchQuery,
+            offset=playersOffset,
+            limit=50,
+            position_filter=playerPositionFilter
+        );
+        if result.reports {
+            players = players.concat(result.reports[0]["players"]);
+            totalPlayers = result.reports[0]["total"];
+            playersOffset = playersOffset + 50;
+        }
+    } except e {
+        console.error("Failed to load more players");
+    }
+    playersLoading = False;
+}
+
+impl app.fetchPortalStats -> None {
+    try {
+        result = root spawn get_portal_stats();
+        if result.reports {
+            portalStatsData = result.reports[0];
+        }
+    } except e {
+        portalStatsData = {};
+    }
+}
+
+impl app.fetchAIImpact(playerId: str) -> None {
+    aiImpactLoading = aiImpactLoading.concat([playerId]);
+    try {
+        result = root spawn get_ai_impact(player_id=playerId);
+        if result.reports {
+            new_texts = Object.assign({}, aiImpactTexts);
+            new_texts[playerId] = result.reports[0]["impact"];
+            aiImpactTexts = new_texts;
+        }
+    } except e {
+        new_texts = Object.assign({}, aiImpactTexts);
+        new_texts[playerId] = "Unable to generate AI impact assessment.";
+        aiImpactTexts = new_texts;
+    }
+    aiImpactLoading = aiImpactLoading.filter(
+        lambda id: str -> bool { return id != playerId; }
+    );
+}
+
 impl app.handleLogin -> None {
     loginError = "";
     if not loginEmail.trim() or not loginPassword {

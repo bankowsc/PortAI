@@ -4,7 +4,9 @@ def:pub TransactionCard(
     transaction: dict,
     showAIImpact: bool,
     onToggleAIImpact: any,
-    onNavigate: any
+    onNavigate: any,
+    aiImpactText: str,
+    aiImpactLoading: bool
 ) -> any {
     return
         <div className="card transaction-card">
@@ -15,6 +17,11 @@ def:pub TransactionCard(
                         <div>
                             <h3 className="mb-1">{transaction["playerName"]}</h3>
                             <span className="badge badge-outline">{transaction["position"]}</span>
+                            {(
+                                <span className="badge badge-secondary" style={({"marginLeft": "0.5rem"})}>
+                                    {transaction["status"]}
+                                </span>
+                            ) if transaction["status"] else None}
                         </div>
                         <div className="player-card-stars">
                             {[
@@ -36,14 +43,16 @@ def:pub TransactionCard(
                         </div>
                     </div>
 
-                    <div className="transaction-card-stats">
-                        {[
-                            <span key={entry[0]}>
-                                <span className="transaction-card-stat-label">{entry[0]}: </span>
-                                <span>{entry[1]}</span>
-                            </span>
-                            for entry in Object.entries(transaction["stats"])
-                        ]}
+                    <div className="transaction-card-meta" style={({"display": "flex", "gap": "1rem", "fontSize": "0.85rem", "color": "var(--color-muted)"})}>
+                        {(
+                            <span>{"Height: " + transaction["height"]}</span>
+                        ) if transaction["height"] and transaction["height"] != "N/A" else None}
+                        {(
+                            <span>{"Weight: " + String(transaction["weight"]) + " lbs"}</span>
+                        ) if transaction["weight"] and transaction["weight"] != 0 else None}
+                        {(
+                            <span>{"Rating: " + String(transaction["rating"])}</span>
+                        ) if transaction["rating"] else None}
                     </div>
 
                     <div className="transaction-card-footer">
@@ -66,11 +75,15 @@ def:pub TransactionCard(
                         <div className="ai-impact-section">
                             <div className="ai-impact-content">
                                 <span className="badge badge-accent-solid">AI Generated</span>
-                                <p>
-                                    This transfer significantly strengthens {transaction["toTeam"]}'s
-                                    {" " + transaction["position"]} position. Expected to contribute
-                                    immediately based on previous performance metrics.
-                                </p>
+                                {(
+                                    <p className="text-muted" style={({"fontStyle": "italic"})}>
+                                        Generating AI impact assessment...
+                                    </p>
+                                ) if aiImpactLoading else (
+                                    <p>
+                                        {(aiImpactText if aiImpactText else "Click to generate AI impact assessment for this transfer.")}
+                                    </p>
+                                )}
                             </div>
                         </div>
                     ) if showAIImpact else None}

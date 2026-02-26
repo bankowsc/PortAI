@@ -11,6 +11,8 @@ cl {
 
 import from byllm.lib { Model }
 import json;
+import csv;
+import os;
 
 glob llm = Model(model_name="gemini/gemini-2.5-flash");
 
@@ -151,15 +153,183 @@ glob mock_teams_data: list = [
     {"id": "133", "name": "Wyoming Cowboys", "conference": "MWC", "portalActivityScore": 0, "lastSeasonRecord": "0-0", "incomingCount": 0, "outgoingCount": 0}
 ];
 
-glob mock_transactions_data: list = [
-    {"playerName": "Marcus Johnson", "position": "QB", "fromTeam": "USC Trojans", "toTeam": "Alabama Crimson Tide", "starRating": 5, "stats": "3245 yards, 28 TDs", "date": "Feb 15, 2026"},
-    {"playerName": "DeAndre Williams", "position": "WR", "fromTeam": "Florida State Seminoles", "toTeam": "Ohio State Buckeyes", "starRating": 4, "stats": "982 yards, 12 TDs", "date": "Feb 14, 2026"},
-    {"playerName": "Tyler Anderson", "position": "RB", "fromTeam": "Michigan Wolverines", "toTeam": "Georgia Bulldogs", "starRating": 4, "stats": "1456 yards, 18 TDs", "date": "Feb 13, 2026"},
-    {"playerName": "Jamal Carter", "position": "LB", "fromTeam": "Oregon Ducks", "toTeam": "Texas Longhorns", "starRating": 5, "stats": "98 tackles, 12 sacks", "date": "Feb 12, 2026"},
-    {"playerName": "Brandon Davis", "position": "DB", "fromTeam": "Alabama Crimson Tide", "toTeam": "USC Trojans", "starRating": 4, "stats": "76 tackles, 4 INTs", "date": "Feb 11, 2026"}
-];
+# --- CSV Data Layer ---
+# Resolve the CSV path relative to this file's directory
+glob CSV_DIR: str = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scraping", "transfer_247_data");
+glob CSV_FILE: str = os.path.join(CSV_DIR, "transfer_portal_247_2026.csv");
 
-glob portal_stats_context: str = "Total transfers this week: 247. Top positions entering portal: WR (45), DB (41), LB (38), RB (34), QB (23). Most active conferences: SEC (89 transfers), Big Ten (76), ACC (54), Big 12 (48), Pac-12 (42).";
+def read_all_transfers() -> list {
+    # Read all transfers from the 2026 CSV file. Returns list of dicts.
+    # Deduplicates by profile_url since each transfer can appear under both teams.
+    transfers: list = [];
+    seen_urls: dict = {};
+    with open(CSV_FILE, "r", encoding="utf-8") as f {
+        reader = csv.DictReader(f);
+        row_id = 1;
+        for row in reader {
+            profile_url = row.get("profile_url", "").strip();
+            if profile_url and profile_url in seen_urls {
+                continue;
+            }
+            if profile_url {
+                seen_urls[profile_url] = True;
+            }
+            stars_str = row.get("stars", "0").strip();
+            stars_val = int(stars_str) if stars_str.isdigit() else 0;
+
+            rating_val = None;
+            raw_rating = row.get("rating", "").strip();
+            if raw_rating and "N/A" not in raw_rating {
+                clean_rating = raw_rating.replace(".", "", 1);
+                if clean_rating.isdigit() {
+                    rating_val = float(raw_rating);
+                }
+            }
+
+            weight_str = row.get("weight", "0").replace(" lbs", "").replace("lbs", "").strip();
+            weight_val = int(weight_str) if weight_str.isdigit() else 0;
+            status_raw = row.get("status", "N/A");
+            if status_raw == "N/A" {
+                status_raw = "In Portal";
+            }
+            to_school = row.get("to_school", "N/A");
+            if to_school == "N/A" or not to_school {
+                to_school = "Undecided";
+            }
+            transfers.append({
+                "id": str(row_id),
+                "playerId": str(row_id),
+                "playerName": row.get("name", "Unknown"),
+                "playerPhoto": "👤",
+                "position": row.get("position", "N/A"),
+                "fromTeam": row.get("from_school", "Unknown"),
+                "fromTeamLogo": "🏈",
+                "toTeam": to_school,
+                "toTeamLogo": ("🏈" if to_school != "Undecided" else "❓"),
+                "starRating": stars_val,
+                "rating": rating_val,
+                "height": row.get("height", "N/A"),
+                "weight": weight_val,
+                "status": status_raw,
+                "stats": {},
+                "date": "2026",
+                "sport": "Football",
+                "profileUrl": row.get("profile_url", "")
+            });
+            row_id = row_id + 1;
+        }
+    }
+    return transfers;
+}
+
+def get_paginated_transfers(offset: int = 0, limit: int = 100, search_query: str = "", position_filter: str = "all", status_filter: str = "all") -> dict {
+    # Get a paginated slice of transfers with optional filters.
+    all_transfers = read_all_transfers();
+    filtered: list = [];
+    sq = search_query.lower().strip();
+    for t in all_transfers {
+        if position_filter != "all" and t["position"] != position_filter {
+            continue;
+        }
+        if status_filter != "all" {
+            if status_filter == "committed" and t["status"] not in ["Committed", "Enrolled", "Signed"] {
+                continue;
+            }
+            if status_filter == "in_portal" and t["status"] not in ["In Portal", "Entered"] {
+                continue;
+            }
+            if status_filter == "withdrawn" and t["status"] != "Withdrawn" {
+                continue;
+            }
+        }
+        if sq {
+            name_match = sq in t["playerName"].lower();
+            from_match = sq in t["fromTeam"].lower();
+            to_match = sq in t["toTeam"].lower();
+            pos_match = sq in t["position"].lower();
+            if not (name_match or from_match or to_match or pos_match) {
+                continue;
+            }
+        }
+        filtered.append(t);
+    }
+    total = len(filtered);
+    page = filtered[offset:offset + limit];
+    return {"transfers": page, "total": total, "offset": offset, "limit": limit};
+}
+
+def get_portal_stats_from_csv() -> dict {
+    # Compute real portal statistics from the CSV data.
+    all_transfers = read_all_transfers();
+    total = len(all_transfers);
+    position_counts: dict = {};
+    conference_counts: dict = {};
+    status_counts: dict = {"Committed": 0, "Enrolled": 0, "In Portal": 0, "Entered": 0, "Withdrawn": 0};
+    for t in all_transfers {
+        pos = t["position"];
+        if pos in position_counts {
+            position_counts[pos] = position_counts[pos] + 1;
+        } else {
+            position_counts[pos] = 1;
+        }
+        # Map from_school to conference using mock_teams_data
+        for team in mock_teams_data {
+            team_short = team["name"].split(" ")[0];
+            if team_short.lower() in t["fromTeam"].lower() or t["fromTeam"].lower() in team["name"].lower() {
+                conf = team["conference"];
+                if conf in conference_counts {
+                    conference_counts[conf] = conference_counts[conf] + 1;
+                } else {
+                    conference_counts[conf] = 1;
+                }
+                break;
+            }
+        }
+        st = t["status"];
+        if st in status_counts {
+            status_counts[st] = status_counts[st] + 1;
+        }
+    }
+    # Sort positions by count descending - manual approach
+    pos_items = list(position_counts.items());
+    # Simple bubble sort for positions
+    for i in range(len(pos_items)) {
+        for j in range(i + 1, len(pos_items)) {
+            if pos_items[j][1] > pos_items[i][1] {
+                temp = pos_items[i];
+                pos_items[i] = pos_items[j];
+                pos_items[j] = temp;
+            }
+        }
+    }
+    top_positions: list = [];
+    for p in pos_items[:6] {
+        top_positions.append({"name": p[0], "value": p[1]});
+    }
+
+    conf_items = list(conference_counts.items());
+    for i in range(len(conf_items)) {
+        for j in range(i + 1, len(conf_items)) {
+            if conf_items[j][1] > conf_items[i][1] {
+                temp = conf_items[i];
+                conf_items[i] = conf_items[j];
+                conf_items[j] = temp;
+            }
+        }
+    }
+    top_conferences: list = [];
+    for c in conf_items[:5] {
+        top_conferences.append({"name": c[0], "transfers": c[1]});
+    }
+    return {
+        "totalTransfers": total,
+        "topPositions": top_positions,
+        "topConferences": top_conferences,
+        "statusBreakdown": status_counts
+    };
+}
+
+glob portal_stats_context: str = "";
 
 # --- AI Types ---
 
@@ -254,6 +424,20 @@ def generate_team_analysis(team_info: str) -> TeamAnalysis by llm();
 """Generate a chat response about transfer portal topics."""
 def generate_chat_response(question: str) -> ChatResponse by llm();
 
+obj TransferImpact {
+    has impact: str;
+}
+
+sem TransferImpact.impact = "A concise 1-2 sentence description of this player's transfer impact. Reference the player's position, star rating, previous team, and destination team. Assess how the move strengthens or weakens both teams. Be specific and analytical, not generic.";
+
+"""Generate a short AI impact assessment for a player transfer.
+You are PortAI, an expert NCAA transfer portal analyst.
+Given a player's name, position, star rating, previous team, destination team, height, weight, and status,
+produce a brief but insightful 1-2 sentence impact assessment."""
+def generate_transfer_impact(
+    player_context: str
+) -> TransferImpact by llm();
+
 
 # --- Data Nodes ---
 
@@ -329,6 +513,128 @@ walker:pub chat {
     }
 }
 
+# --- Dynamic Data Walkers ---
+
+walker:priv get_transfers {
+    """Paginated transfer data from CSV. Returns {transfers, total, offset, limit}."""
+    has offset: int = 0;
+    has limit: int = 100;
+    has search_query: str = "";
+    has position_filter: str = "all";
+    has status_filter: str = "all";
+
+    can with Root entry {
+        result = get_paginated_transfers(
+            offset=self.offset,
+            limit=self.limit,
+            search_query=self.search_query,
+            position_filter=self.position_filter,
+            status_filter=self.status_filter
+        );
+        report result;
+    }
+}
+
+walker:priv search_players {
+    """Search players by name, position, or team. Returns paginated results."""
+    has query: str = "";
+    has offset: int = 0;
+    has limit: int = 50;
+    has position_filter: str = "all";
+
+    can with Root entry {
+        result = get_paginated_transfers(
+            offset=self.offset,
+            limit=self.limit,
+            search_query=self.query,
+            position_filter=self.position_filter
+        );
+        # Transform transfers into player-oriented format
+        players: list = [];
+        for t in result["transfers"] {
+            players.append({
+                "id": t["id"],
+                "name": t["playerName"],
+                "photo": "👤",
+                "position": t["position"],
+                "height": t["height"],
+                "weight": str(t["weight"]) + " lbs" if t["weight"] else "N/A",
+                "starRating": t["starRating"],
+                "rating": t["rating"],
+                "currentTeam": t["toTeam"] if t["toTeam"] != "Undecided" else t["fromTeam"],
+                "previousTeam": t["fromTeam"] if t["toTeam"] != "Undecided" else "N/A",
+                "status": t["status"],
+                "profileUrl": t["profileUrl"]
+            });
+        }
+        report {"players": players, "total": result["total"], "offset": self.offset, "limit": self.limit};
+    }
+}
+
+walker:priv get_player_by_id {
+    """Get a single player's details by their row ID."""
+    has player_id: str;
+
+    can with Root entry {
+        all_transfers = read_all_transfers();
+        for t in all_transfers {
+            if t["id"] == self.player_id {
+                report {
+                    "id": t["id"],
+                    "name": t["playerName"],
+                    "photo": "👤",
+                    "position": t["position"],
+                    "height": t["height"],
+                    "weight": str(t["weight"]) + " lbs" if t["weight"] else "N/A",
+                    "starRating": t["starRating"],
+                    "rating": t["rating"],
+                    "currentTeam": t["toTeam"] if t["toTeam"] != "Undecided" else t["fromTeam"],
+                    "previousTeam": t["fromTeam"] if t["toTeam"] != "Undecided" else "N/A",
+                    "fromTeam": t["fromTeam"],
+                    "toTeam": t["toTeam"],
+                    "status": t["status"],
+                    "profileUrl": t["profileUrl"]
+                };
+                return;
+            }
+        }
+        report {"error": "Player not found"};
+    }
+}
+
+walker:priv get_ai_impact {
+    """Generate an AI impact assessment for a specific transfer."""
+    has player_id: str;
+
+    can with Root entry {
+        all_transfers = read_all_transfers();
+        for t in all_transfers {
+            if t["id"] == self.player_id {
+                context = (
+                    t["playerName"] + ", " + t["position"] + ", " +
+                    str(t["starRating"]) + "-star (rating: " + str(t["rating"]) + "). " +
+                    "Height: " + t["height"] + ", Weight: " + str(t["weight"]) + " lbs. " +
+                    "Transferring from " + t["fromTeam"] + " to " + t["toTeam"] + ". " +
+                    "Status: " + t["status"] + "."
+                );
+                result = generate_transfer_impact(player_context=context);
+                report {"impact": result.impact, "playerId": self.player_id};
+                return;
+            }
+        }
+        report {"impact": "Unable to generate impact assessment.", "playerId": self.player_id};
+    }
+}
+
+walker:priv get_portal_stats {
+    """Get real-time portal statistics computed from CSV data."""
+
+    can with Root entry {
+        stats = get_portal_stats_from_csv();
+        report stats;
+    }
+}
+
 walker:priv get_portal_summary {
     has favorite_team_ids: list = [];
     has found_user: bool = False;
@@ -345,18 +651,33 @@ walker:priv get_portal_summary {
     }
 
     can generate with Root exit {
-        # Build the portal context string from mock data
-        teams_summary = "";
+        # Build portal context from real CSV data
+        stats = get_portal_stats_from_csv();
+        portal_context = "PORTAL STATISTICS: Total transfers: " + str(stats["totalTransfers"]) + ". ";
+        portal_context = portal_context + "Top positions entering portal: ";
+        for p in stats["topPositions"] {
+            portal_context = portal_context + p["name"] + " (" + str(p["value"]) + "), ";
+        }
+        portal_context = portal_context + ". Most active conferences: ";
+        for c in stats["topConferences"] {
+            portal_context = portal_context + c["name"] + " (" + str(c["transfers"]) + " transfers), ";
+        }
+
+        # Add sample of notable transfers (4+ star players)
+        notable = get_paginated_transfers(offset=0, limit=20, search_query="", position_filter="all");
+        transactions_summary = "RECENT NOTABLE TRANSACTIONS: ";
+        for tx in notable["transfers"] {
+            if tx["starRating"] >= 3 {
+                transactions_summary = transactions_summary + tx["playerName"] + " (" + tx["position"] + ", " + str(tx["starRating"]) + "-star): " + tx["fromTeam"] + " -> " + tx["toTeam"] + ". ";
+            }
+        }
+
+        teams_summary = "TEAM ACTIVITY: ";
         for t in mock_teams_data {
-            teams_summary = teams_summary + t["name"] + " (" + t["conference"] + "): Portal Activity Score " + str(t["portalActivityScore"]) + ", Record " + t["lastSeasonRecord"] + ", Incoming " + str(t["incomingCount"]) + ", Outgoing " + str(t["outgoingCount"]) + ". ";
+            teams_summary = teams_summary + t["name"] + " (" + t["conference"] + "). ";
         }
 
-        transactions_summary = "";
-        for tx in mock_transactions_data {
-            transactions_summary = transactions_summary + tx["playerName"] + " (" + tx["position"] + ", " + str(tx["starRating"]) + "-star): " + tx["fromTeam"] + " -> " + tx["toTeam"] + " (" + tx["stats"] + ", " + tx["date"] + "). ";
-        }
-
-        portal_context = "PORTAL STATISTICS: " + portal_stats_context + " TEAM ACTIVITY: " + teams_summary + " RECENT TRANSACTIONS: " + transactions_summary;
+        portal_context = portal_context + teams_summary + transactions_summary;
 
         # Build favorite teams context if user has favorites
         fav_context = "";
@@ -364,7 +685,7 @@ walker:priv get_portal_summary {
             fav_context = "USER'S FAVORITE TEAMS: ";
             for t in mock_teams_data {
                 if t["id"] in self.favorite_team_ids {
-                    fav_context = fav_context + t["name"] + " (" + t["conference"] + ", Record: " + t["lastSeasonRecord"] + ", Incoming: " + str(t["incomingCount"]) + ", Outgoing: " + str(t["outgoingCount"]) + ", Activity Score: " + str(t["portalActivityScore"]) + "). ";
+                    fav_context = fav_context + t["name"] + " (" + t["conference"] + "). ";
                 }
             }
             # Include transactions involving favorite teams
@@ -375,9 +696,20 @@ walker:priv get_portal_summary {
                     fav_team_names.append(t["name"]);
                 }
             }
-            for tx in mock_transactions_data {
-                if tx["fromTeam"] in fav_team_names or tx["toTeam"] in fav_team_names {
-                    fav_context = fav_context + tx["playerName"] + " (" + tx["position"] + ", " + str(tx["starRating"]) + "-star): " + tx["fromTeam"] + " -> " + tx["toTeam"] + ". ";
+            # Search CSV for transfers involving favorite teams
+            all_transfers = read_all_transfers();
+            count = 0;
+            for tx in all_transfers {
+                for fav_name in fav_team_names {
+                    short_name = fav_name.split(" ")[0].lower();
+                    if short_name in tx["fromTeam"].lower() or short_name in tx["toTeam"].lower() {
+                        fav_context = fav_context + tx["playerName"] + " (" + tx["position"] + ", " + str(tx["starRating"]) + "-star): " + tx["fromTeam"] + " -> " + tx["toTeam"] + ". ";
+                        count = count + 1;
+                        break;
+                    }
+                }
+                if count >= 15 {
+                    break;
                 }
             }
         }
