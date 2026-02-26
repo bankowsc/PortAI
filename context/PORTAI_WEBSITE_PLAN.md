@@ -363,6 +363,180 @@ This project is being developed for **EECS 449** at the University of Michigan (
 
 ## Version Log
 
+### v1.7 — February 26, 2026
+
+**Replaced all hard-coded mock transfer data with live CSV-driven dynamic data loading; added paginated transaction feed with "Show More", new searchable Players page, per-player AI Impact via `byLLM()`, live portal statistics, and CSV deduplication.**
+
+#### Objectives
+
+1. Load the `transfer_portal_247_2026.csv` file (6,120 rows) as the live data source instead of hard-coded mock transactions.
+2. Show 100 transfers on the Home page with a "Show More" button to load 100 more at a time.
+3. Populate the Players page dynamically and make it searchable/filterable by name, team, and position.
+4. Generate AI Impact descriptions for each transfer using `byLLM()` with Gemini 2.5 Flash.
+5. Compute portal statistics (top positions, conferences, status breakdown) in real time from CSV data.
+
+---
+
+#### Changes Made
+
+##### Server-Side — `portai_jac/main.jac`
+
+1. **Added CSV infrastructure**
+   - Added `import csv;` and `import os;` at the top of the file.
+   - Added `glob CSV_DIR` and `glob CSV_FILE` globals that resolve the CSV path relative to the file using `os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scraping", "transfer_247_data", "transfer_portal_247_2026.csv")`.
+
+2. **Created `read_all_transfers()` function**
+   - Reads the full CSV into a list of normalized dicts.
+   - **Deduplication:** Each transfer appears under both the source and destination team in the CSV (2,055 duplicates out of 6,120 rows). Added a `seen_urls: dict` tracker — any row whose `profile_url` has already been seen is skipped via `continue`. Final unique count: ~4,065 transfers.
+   - Normalizes fields: star ratings and weights parsed with `.isdigit()` guards (no `try/except` — see syntax notes below), `"N/A"` status mapped to `"In Portal"`, missing `to_school` mapped to `"Undecided"`.
+   - Row IDs are sequential integers assigned at read time.
+
+3. **Created `get_paginated_transfers()` function**
+   - Parameters: `offset`, `limit`, `search_query`, `position_filter`, `status_filter`.
+   - Filters by position/status first, then applies case-insensitive `search_query` against player name and both team names.
+   - Returns `{"transfers": [...], "total": N, "offset": N, "limit": N}`.
+
+4. **Created `get_portal_stats_from_csv()` function**
+   - Computes position counts, conference counts (by fuzzy-matching team names against `mock_teams_data`), and status counts from the full deduplicated dataset.
+   - Sorts both dicts using an in-place bubble sort (no `lambda` — see syntax notes).
+   - Returns `{"totalTransfers", "topPositions", "topConferences", "statusCounts"}`.
+
+5. **Added `TransferImpact` obj type with LLM semantics**
+   - `obj TransferImpact` with a single `impact: str` field.
+   - `sem` annotation guides the LLM to produce a 1–2 sentence assessment contextualizing the player's position, star rating, height/weight, and from/to schools.
+   - `def generate_transfer_impact(player_context: str) -> TransferImpact by llm()` — fully delegated to LLM.
+
+6. **Added 5 new walkers**
+   - All five changed to `walker:priv` (see bug fix section below):
+     - `get_transfers` — paginated transfer feed (offset, limit, search, position/status filters)
+     - `search_players` — same as `get_transfers` but reshapes output into player-oriented dicts (`currentTeam`, `previousTeam`, `name`, etc.)
+     - `get_player_by_id` — single player lookup by row ID
+     - `get_ai_impact` — builds a context string for one player and calls `generate_transfer_impact()`
+     - `get_portal_stats` — calls `get_portal_stats_from_csv()` and reports the result
+
+7. **Updated `get_portal_summary` walker** to call `get_portal_stats_from_csv()` for real data instead of the old hard-coded `portal_stats_context` string.
+
+8. **Removed `mock_transactions_data` and `portal_stats_context` globals** — no longer needed with CSV data source.
+
+##### Client-Side — `portai_jac/data/mock_data.cl.jac`
+
+- Removed all 67 hard-coded `mock_transactions` entries (~1,300 lines).
+- Kept: `mock_teams` (133 teams), `default_favorite_team_ids`, `portal_stats`, `conference_data`, `trend_data`, `position_data`, `news_articles`, `recent_conversations`.
+
+##### Client-Side — `portai_jac/frontend.cl.jac`
+
+- Added `sv import` for all 5 new walkers (`get_transfers`, `search_players`, `get_player_by_id`, `get_ai_impact`, `get_portal_stats`).
+- Added 13 new state variables: `transactions`, `transactionsLoading`, `transactionsOffset`, `totalTransactions`, `players`, `playersLoading`, `playersOffset`, `totalPlayers`, `playerSearchQuery`, `playerPositionFilter`, `portalStatsData`, `aiImpactTexts`, `aiImpactLoading`.
+- Added 6 new async method declarations: `fetchTransactions`, `loadMoreTransactions`, `fetchPlayers`, `loadMorePlayers`, `fetchPortalStats`, `fetchAIImpact`.
+- Updated `can with [isLoggedIn] entry` to also call `fetchTransactions()` and `fetchPortalStats()` on login.
+- Updated `handleNavigate` to call `fetchPlayers()` when navigating to the "players" page.
+- Added `handlePlayerSearchChange`, `handlePlayerPositionFilter`, `handlePlayerSearch` methods.
+- Updated `handleToggleAIImpact` to call `fetchAIImpact(playerId)` on first expand (lazy generation).
+- Added `PlayersPage` import and routing (`currentPage == "players"` conditional).
+- Passed all new props to `HomePage` and `PlayersPage`.
+
+##### Client-Side — `portai_jac/frontend.impl.jac`
+
+- `fetchTransactions` — Spawns `get_transfers` with offset=0, limit=100; stores result in `transactions` and `totalTransactions`.
+- `loadMoreTransactions` — Spawns `get_transfers` with current offset; appends to existing `transactions` with `.concat()`.
+- `fetchPlayers` — Spawns `search_players` with current search query and position filter; replaces `players` list from scratch.
+- `loadMorePlayers` — Spawns `search_players` with current offset; appends new results.
+- `fetchPortalStats` — Spawns `get_portal_stats`; stores in `portalStatsData`.
+- `fetchAIImpact(playerId)` — Spawns `get_ai_impact`; stores result text in `aiImpactTexts` dict (keyed by player ID); tracks in-progress state via `aiImpactLoading` array.
+
+##### Client-Side — `portai_jac/pages/HomePage.cl.jac` (recreated)
+
+- Accepts `transactions`, `transactionsLoading`, `totalTransactions`, `onLoadMore`, `aiImpactTexts`, `aiImpactLoading`, `portalStatsData` as new props.
+- "Recent Transactions" section renders via `transactions.map(...)` instead of a static list.
+- Shows a loading placeholder while transactions are being fetched.
+- "Show More Transactions (N remaining)" button when `transactions.length < totalTransactions`.
+- Portal Stats sidebar now reads `total_transfers`, `top_positions`, `top_conferences` from the `portalStatsData` prop instead of imported static data.
+
+##### Client-Side — `portai_jac/components/TransactionCard.cl.jac` (modified)
+
+- Added `aiImpactText: str` and `aiImpactLoading: bool` props.
+- AI Impact section shows a spinner while `aiImpactLoading` is true.
+- Shows LLM-generated `aiImpactText` when available.
+
+##### Client-Side — `portai_jac/pages/PlayersPage.cl.jac` (created)
+
+- Accepts `players`, `playersLoading`, `totalPlayers`, `searchQuery`, `onSearchChange`, `onSearch`, `positionFilter`, `onPositionFilterChange`, `onLoadMore` props.
+- Search bar + position dropdown (16 options: all + 15 positions) + Search button.
+- Pressing Enter in the search field triggers search.
+- Results grid with player cards: position badge, status badge, star rating, current/previous team, height, weight, rating, "View Profile" link.
+- "Load More Players" button with remaining count.
+- Empty state messages for loading, no results, and initial unprompted state.
+
+---
+
+#### Bugs Fixed in This Session
+
+1. **`main.jac` parse error — docstrings as function statements (line 163)**
+   - **Problem:** `"""..."""` string literals used as docstrings inside function bodies caused `Missing SEMI` and `Unexpected token` parse errors. Jac does not treat standalone string literals as valid statements inside `def` bodies.
+   - **Fix:** Converted all three occurrences to `#` comments (`# Read all transfers...`, etc.).
+
+2. **`main.jac` parse error — `try/except` not supported**
+   - **Problem:** Jac's parser (as of v0.10.1) does not support `try { } except { }` blocks — although this syntax was used in `frontend.impl.jac` for client-side code, it is not valid in server-side `.jac` functions.
+   - **Fix:** Replaced all three `try/except` patterns in `read_all_transfers()` with conditional string validation using `.isdigit()` and inline `if` expressions:
+     - Stars: `int(stars_str) if stars_str.isdigit() else 0`
+     - Rating: `clean_rating = raw_rating.replace(".", "", 1); if clean_rating.isdigit() { rating_val = float(raw_rating); }`
+     - Weight: `int(weight_str) if weight_str.isdigit() else 0`
+
+3. **`main.jac` parse error — `lambda` / list comprehensions in `get_portal_stats_from_csv()`**
+   - **Problem:** `sorted(..., key=lambda x: x[1], reverse=True)` and list comprehensions like `[{"name": p[0], "value": p[1]} for p in sorted_positions[:6]]` caused `Missing COLON` / `Unexpected token '='` errors. `lambda` is not supported in server-side Jac.
+   - **Fix:** Replaced with manual bubble sort loops and explicit `for` loops appending to lists.
+
+4. **`walker:pub` 500 error — "no write access to NodeAnchor Root"**
+   - **Problem:** Test API calls to `/walker/get_transfers` returned `500 Internal Server Error` with the message `Current root doesn't have write access to NodeAnchor Root[00000000...]`. Public walkers (`walker:pub`) run against the anonymous shared root node, which is read-only. The `report` statement requires write access to commit reports.
+   - **Fix:** Changed all 5 new walkers from `walker:pub` to `walker:priv`. Since these endpoints are only called after login (triggered by `can with [isLoggedIn] entry`), private walkers are correct — they run against the authenticated user's own root node.
+
+5. **JSON serialization error — emoji as UTF-16 surrogate pairs**
+   - **Problem:** Emoji characters hardcoded as UTF-16 surrogate escape sequences (`"\ud83d\udc64"`, `"\ud83c\udfc8"`) in `read_all_transfers()` caused `'utf-8' codec can't encode characters in position N: surrogates not allowed` when Python's JSON serializer attempted to encode the response. Surrogate pairs are valid in UTF-16 but not in UTF-8 JSON strings.
+   - **Fix:** Replaced all surrogate pair sequences with actual Unicode emoji literal characters (`👤`, `🏈`, `❓`).
+
+6. **Duplicate player entries in search results (Ty Haywood and ~2,055 others)**
+   - **Problem:** The CSV data source lists each transfer twice — once under the source team's roster and once under the destination team's roster. Since the same player's profile URL is identical in both rows, searching for "Ty Haywood" (for example) returned two results.
+   - **Root cause confirmed:** `python3 -c "..."` analysis showed 6,120 total rows but only 4,065 unique `profile_url` values — 2,055 duplicates.
+   - **Fix:** Added a `seen_urls: dict` accumulator at the top of `read_all_transfers()`. Before appending each row, the function checks if `profile_url in seen_urls`; if so, it `continue`s. New unique rows are tracked with `seen_urls[profile_url] = True`.
+
+---
+
+#### Jac Syntax Notes (Server-Side `.jac` Files)
+
+These rules apply specifically to `.jac` server-side files (compile to Python, run as Python). They are in addition to the existing duality rules documented in v1.6.
+
+| Pattern | NOT supported in `.jac` | Use instead |
+|---|---|---|
+| Docstring | `"""..."""` as statement | `# comment` |
+| Exception handling | `try { } except { }` | Conditional guards with `.isdigit()`, `if x else default` |
+| Lambda in sorted | `sorted(x, key=lambda e: e[1])` | Manual bubble sort or `operator.itemgetter` |
+| List comprehension with lambda | `[f(x) for x in y]` | Explicit `for` loop with `.append()` |
+| Default parameter values with keyword in call | Must match parameter name exactly | `get_paginated_transfers(offset=0, ...)` ✓ |
+
+---
+
+#### Resolution Summary
+- `jac check main.jac`: **0 errors, 0 warnings** (after all syntax fixes)
+- `jac start --dev`: **✔ Server ready** at `http://localhost:8001/`, 18 `.jac` files monitored
+- Home page now shows 100 live transfers from CSV with working "Show More" pagination
+- Players page is searchable/filterable and loads 50 players at a time
+- AI Impact generates on-demand via `byLLM()` when user expands a transaction card
+- Portal stats sidebar reflects real CSV data (position/conference/status breakdowns)
+- Duplicate transfers eliminated (4,065 unique players shown, down from 6,120 raw rows)
+
+---
+
+#### Files Changed
+- `portai_jac/main.jac` — Added CSV infrastructure, 3 data functions, `TransferImpact` type, `generate_transfer_impact` by-llm function, 5 new `walker:priv` walkers; removed mock transactions global; fixed syntax errors (docstrings, try/except, lambdas)
+- `portai_jac/data/mock_data.cl.jac` — Removed all hard-coded mock transactions (~1,300 lines)
+- `portai_jac/frontend.cl.jac` — Added 5 walker sv imports, 13 new state variables, 6 async method declarations, Players page routing and props
+- `portai_jac/frontend.impl.jac` — Added implementations for `fetchTransactions`, `loadMoreTransactions`, `fetchPlayers`, `loadMorePlayers`, `fetchPortalStats`, `fetchAIImpact`
+- `portai_jac/pages/HomePage.cl.jac` — Recreated with dynamic transaction feed, "Show More" button, dynamic portal stats
+- `portai_jac/components/TransactionCard.cl.jac` — Added `aiImpactText` and `aiImpactLoading` props with dynamic AI content
+- `portai_jac/pages/PlayersPage.cl.jac` — **Created** (new file) with search, position filter, paginated player cards
+
+---
+
 ### v1.6 — February 17, 2026
 
 **Fixed AI summary spinner getting stuck indefinitely — resolved server-side Python syntax errors in `get_portal_summary` walker and added error handling in the client-side fetch logic.**
