@@ -112,7 +112,7 @@ def:pub TeamsPage(
 
             <div>
                 <p className="results-count">
-                    Showing {filtered_teams.length} team{("s" if filtered_teams.length != 1 else "")}
+                    {"Showing " + String(filtered_teams.length) + " "} team{("s" if filtered_teams.length != 1 else "")}
                 </p>
                 <div className="grid-3">
                     {[
