@@ -222,23 +222,53 @@ def read_all_transfers() -> list {
     return transfers;
 }
 
-def get_paginated_transfers(offset: int = 0, limit: int = 100, search_query: str = "", position_filter: str = "all", status_filter: str = "all") -> dict {
+def get_paginated_transfers(offset: int = 0, limit: int = 100, search_query: str = "", position_filter: str = "all", status_filter: str = "all", team_filter: str = "") -> dict {
     # Get a paginated slice of transfers with optional filters.
     all_transfers = read_all_transfers();
     filtered: list = [];
     sq = search_query.lower().strip();
+    tf = team_filter.lower().strip();
+    # team_filter can be pipe-separated for multiple teams
+    team_filter_list: list = [];
+    if tf {
+        for part in tf.split("|") {
+            cleaned = part.strip();
+            if cleaned {
+                team_filter_list.append(cleaned);
+            }
+        }
+    }
     for t in all_transfers {
         if position_filter != "all" and t["position"] != position_filter {
             continue;
         }
         if status_filter != "all" {
-            if status_filter == "committed" and t["status"] not in ["Committed", "Enrolled", "Signed"] {
-                continue;
-            }
             if status_filter == "in_portal" and t["status"] not in ["In Portal", "Entered"] {
                 continue;
             }
+            if status_filter == "committed" and t["status"] != "Committed" {
+                continue;
+            }
+            if status_filter == "enrolled" and t["status"] != "Enrolled" {
+                continue;
+            }
             if status_filter == "withdrawn" and t["status"] != "Withdrawn" {
+                continue;
+            }
+        }
+        # Team filter: check if any team filter substring matches from/to team
+        if len(team_filter_list) > 0 {
+            matched_team = False;
+            from_lower = t["fromTeam"].lower();
+            to_lower = t["toTeam"].lower();
+            for tfn in team_filter_list {
+                # Check both directions: filter substring in CSV name, or CSV name in filter string
+                if tfn in from_lower or tfn in to_lower or from_lower in tfn or to_lower in tfn {
+                    matched_team = True;
+                    break;
+                }
+            }
+            if not matched_team {
                 continue;
             }
         }
@@ -522,6 +552,7 @@ walker:priv get_transfers {
     has search_query: str = "";
     has position_filter: str = "all";
     has status_filter: str = "all";
+    has team_filter: str = "";
 
     can with Root entry {
         result = get_paginated_transfers(
@@ -529,7 +560,8 @@ walker:priv get_transfers {
             limit=self.limit,
             search_query=self.search_query,
             position_filter=self.position_filter,
-            status_filter=self.status_filter
+            status_filter=self.status_filter,
+            team_filter=self.team_filter
         );
         report result;
     }
@@ -632,6 +664,57 @@ walker:priv get_portal_stats {
     can with Root entry {
         stats = get_portal_stats_from_csv();
         report stats;
+    }
+}
+
+obj CrystalBallPrediction {
+    has prediction: str;
+    has confidence: str;
+    has reasoning: str;
+}
+
+sem CrystalBallPrediction.prediction = "The name of the school/team the player is most likely to transfer to. Be specific - use the full team name (e.g., 'Michigan Wolverines', 'Alabama Crimson Tide').";
+sem CrystalBallPrediction.confidence = "Confidence level: 'High', 'Medium', or 'Low'";
+sem CrystalBallPrediction.reasoning = "A 2-3 sentence explanation of why this player is likely to transfer to the predicted school. Reference the player's position, star rating, and the team's needs. Consider factors like conference, geography, and team strength.";
+
+"""Predict where a transfer portal player is most likely to commit.
+You are PortAI's Crystal Ball predictor.
+Given a player's profile (name, position, star rating, height, weight, previous school),
+predict which school they will most likely transfer to and explain your reasoning.
+Consider factors like team needs, conference proximity, coaching connections, and player profile."""
+def generate_crystal_ball(player_context: str) -> CrystalBallPrediction by llm();
+
+walker:priv predict_destination {
+    """Generate a Crystal Ball prediction for where a player will transfer."""
+    has player_id: str;
+
+    can with Root entry {
+        all_transfers = read_all_transfers();
+        for t in all_transfers {
+            if t["id"] == self.player_id {
+                context = (
+                    "Player: " + t["playerName"] + ", Position: " + t["position"] + ", " +
+                    str(t["starRating"]) + "-star (rating: " + str(t["rating"]) + "). " +
+                    "Height: " + t["height"] + ", Weight: " + str(t["weight"]) + " lbs. " +
+                    "Previous school: " + t["fromTeam"] + ". " +
+                    "Current status: " + t["status"] + "."
+                );
+                result = generate_crystal_ball(player_context=context);
+                report {
+                    "prediction": result.prediction,
+                    "confidence": result.confidence,
+                    "reasoning": result.reasoning,
+                    "playerId": self.player_id
+                };
+                return;
+            }
+        }
+        report {
+            "prediction": "Unknown",
+            "confidence": "Low",
+            "reasoning": "Unable to find player data.",
+            "playerId": self.player_id
+        };
     }
 }
 

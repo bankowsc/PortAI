@@ -211,3 +211,99 @@ impl app.handleToggleFavorite(teamId: str) -> None {
     favoriteTeamIds = new_favorites;
     await root spawn update_favorites(new_favorites=new_favorites);
 }
+
+impl app.fetchTxnPageData -> None {
+    txnPageLoading = True;
+    try {
+        # Build team filter string
+        effective_team_filter = txnTeamFilter;
+        if txnFavoritesOnly and favoriteTeamIds.length > 0 {
+            # Build pipe-separated list of favorite team names
+            fav_names: list = [];
+            for fid in favoriteTeamIds {
+                for t in mock_teams {
+                    if t["id"] == fid {
+                        fav_names.push(t["name"]);
+                    }
+                }
+            }
+            effective_team_filter = fav_names.join("|");
+        }
+        result = root spawn get_transfers(
+            offset=0,
+            limit=100,
+            search_query="",
+            position_filter=txnPositionFilter,
+            status_filter=txnStatusFilter,
+            team_filter=effective_team_filter
+        );
+        if result.reports {
+            txnPageData = result.reports[0]["transfers"];
+            txnPageTotal = result.reports[0]["total"];
+            txnPageOffset = 100;
+        }
+    } except e {
+        txnPageData = [];
+        txnPageTotal = 0;
+    }
+    txnPageLoading = False;
+}
+
+impl app.loadMoreTxnPageData -> None {
+    txnPageLoading = True;
+    try {
+        effective_team_filter = txnTeamFilter;
+        if txnFavoritesOnly and favoriteTeamIds.length > 0 {
+            fav_names: list = [];
+            for fid in favoriteTeamIds {
+                for t in mock_teams {
+                    if t["id"] == fid {
+                        fav_names.push(t["name"]);
+                    }
+                }
+            }
+            effective_team_filter = fav_names.join("|");
+        }
+        result = root spawn get_transfers(
+            offset=txnPageOffset,
+            limit=100,
+            search_query="",
+            position_filter=txnPositionFilter,
+            status_filter=txnStatusFilter,
+            team_filter=effective_team_filter
+        );
+        if result.reports {
+            txnPageData = txnPageData.concat(result.reports[0]["transfers"]);
+            txnPageTotal = result.reports[0]["total"];
+            txnPageOffset = txnPageOffset + 100;
+        }
+    } except e {
+        console.error("Failed to load more transactions");
+    }
+    txnPageLoading = False;
+}
+
+impl app.handleCrystalBall(playerId: str) -> None {
+    # Don't re-fetch if already have a prediction
+    if crystalBallTexts[playerId] {
+        return;
+    }
+    crystalBallLoading = crystalBallLoading.concat([playerId]);
+    try {
+        result = root spawn predict_destination(player_id=playerId);
+        if result.reports {
+            new_texts = Object.assign({}, crystalBallTexts);
+            report_data = result.reports[0];
+            prediction_text = "Predicted Destination: " + report_data["prediction"] + " (Confidence: " + report_data["confidence"] + "). " + report_data["reasoning"];
+            new_texts[playerId] = prediction_text;
+            crystalBallTexts = new_texts;
+        }
+    } except e {
+        new_texts = Object.assign({}, crystalBallTexts);
+        new_texts[playerId] = "Unable to generate prediction at this time.";
+        crystalBallTexts = new_texts;
+    }
+    crystalBallLoading = crystalBallLoading.filter(
+        lambda id: str -> bool { return id != playerId; }
+    );
+}

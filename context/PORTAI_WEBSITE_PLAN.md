@@ -363,6 +363,128 @@ This project is being developed for **EECS 449** at the University of Michigan (
 
 ## Version Log
 
+### v1.8 — February 26, 2026
+
+**Added dedicated Transactions page with advanced filtering, Favorites page, Crystal Ball AI prediction feature, and multiple UX fixes.**
+
+#### Objectives
+
+1. Create a dedicated Transactions page with status filters, team autocomplete search, position filter, favorites-only toggle, and paginated "Show More" loading.
+2. Create a Favorites page displaying the user's favorited teams as a card grid with an empty state.
+3. Add a "Crystal Ball" AI prediction feature for undecided transfer portal players that predicts their likely destination using `byLLM()`.
+4. Fix stale-state filter bug caused by React state batching.
+5. Fix favorites filter team-name matching between CSV short names and mock_teams full names.
+
+---
+
+#### Changes Made
+
+##### Server-Side — `portai_jac/main.jac`
+
+1. **Expanded `get_paginated_transfers()` with `team_filter` parameter**
+   - Accepts an optional pipe-separated string of team names (e.g., `"Alabama|Michigan State"`).
+   - Uses bidirectional substring matching to handle the CSV-vs-mock naming mismatch: checks both `filter_name in csv_team` and `csv_team in filter_name` for `from_school` and `to_school` fields.
+   - Removed the `"signed"` status filter branch (status does not exist in the CSV data).
+
+2. **Added `CrystalBallPrediction` obj type**
+   - Fields: `prediction: str`, `confidence: str`, `reasoning: str` with `sem` annotations guiding the LLM to produce a predicted destination school, confidence level, and reasoning.
+
+3. **Added `generate_crystal_ball()` by-llm function**
+   - `def generate_crystal_ball(player_context: str) -> CrystalBallPrediction by llm()` — fully delegated to Gemini 2.5 Flash.
+
+4. **Added `predict_destination` walker**
+   - `walker:priv predict_destination` with `player_id: str` parameter.
+   - Builds a context string from the player's profile (name, position, stars, height, weight, rating, previous team, status) and calls `generate_crystal_ball()`.
+   - Reports formatted prediction with destination, confidence, and reasoning.
+
+##### Client-Side — `portai_jac/pages/TransactionsPage.cl.jac` (created)
+
+- Full transactions page with:
+  - **Status filter pills**: All, In Portal, Committed, Enrolled, Withdrawn (no "Signed" — verified absent from CSV data).
+  - **Team autocomplete search**: Type-to-filter dropdown with suggestions from `mock_teams` (top 8 matches). Shows active filter as a removable tag.
+  - **Position filter dropdown**: 16 options (All + 15 positions).
+  - **Favorites toggle button**: "☆ Favorites" / "★ Favorites" — filters transactions to only those involving the user's favorited teams.
+  - **Crystal Ball section**: For undecided players (`status != "Enrolled"`, `status != "Committed"`, `toTeam == "Undecided"`), shows a toggleable "🔮 Crystal Ball" button.
+    - First click fetches prediction and expands.
+    - Subsequent clicks toggle show/hide (cached prediction, no re-fetch).
+    - Button text changes: "Predict Destination" → "Predicting..." → "Hide Prediction" / "Predict Destination".
+  - **"Show More Transactions"** pagination button with remaining count.
+  - Local state for autocomplete: `teamSearchText`, `showSuggestions`.
+
+##### Client-Side — `portai_jac/pages/FavoritesPage.cl.jac` (created)
+
+- Displays user's favorited teams as `TeamCard` components in a responsive grid.
+- Filters `mock_teams` by `favoriteTeamIds`.
+- Empty state with message and "Browse Teams" button that navigates to the Teams page.
+- Reactive to favorites changes.
+
+##### Client-Side — `portai_jac/frontend.cl.jac`
+
+- Added imports: `TransactionsPage`, `FavoritesPage`, `mock_teams`, `predict_destination`.
+- Added 11 new state variables:
+  - `txnPageData`, `txnPageLoading`, `txnPageOffset`, `txnPageTotal` — transactions page data/pagination.
+  - `txnStatusFilter`, `txnPositionFilter`, `txnTeamFilter`, `txnFavoritesOnly` — filter state.
+  - `txnFilterVersion` — counter for reactive watcher (fixes stale-state bug).
+  - `crystalBallTexts`, `crystalBallLoading`, `expandedCrystalBalls` — Crystal Ball toggle/cache state.
+- Added reactive watcher: `can with [txnFilterVersion] entry` — triggers `fetchTxnPageData()` after state commits, solving the React state batching issue where filters required two clicks.
+- Added handler methods: `handleTxnStatusFilterChange`, `handleTxnPositionFilterChange`, `handleTxnTeamSelect`, `handleTxnClearTeamFilter`, `handleTxnToggleFavoritesOnly`, `handleToggleCrystalBall`.
+- Added async methods: `fetchTxnPageData`, `loadMoreTxnPageData`, `handleCrystalBall`.
+- Updated `handleNavigate` to trigger `txnFilterVersion++` when navigating to transactions with no data.
+- Added routing for `currentPage == "transactions"` and `currentPage == "favorites"`.
+
+##### Client-Side — `portai_jac/frontend.impl.jac`
+
+- `fetchTxnPageData` — Builds effective team filter (pipe-separated fav names if `favoritesOnly`), spawns `get_transfers` with all filters, resets offset.
+- `loadMoreTxnPageData` — Same logic but appends to existing data using `.concat()`.
+- `handleCrystalBall(playerId)` — Checks cache, spawns `predict_destination`, stores formatted prediction text in `crystalBallTexts` dict.
+
+##### Client-Side — `portai_jac/styles.css`
+
+- Added CSS for: `.status-pills`, `.status-pill` / `.status-pill.active`, `.team-autocomplete`, `.team-suggestions`, `.team-suggestion-item`, `.team-filter-active`, `.team-filter-tag`, `.team-filter-remove`, `.favorites-toggle-btn`, `.crystal-ball-section`, `.crystal-ball-btn` (gradient purple), `.crystal-ball-result`, `.favorites-empty-state`.
+
+---
+
+#### Bugs Fixed in This Session
+
+1. **JSX-style comments in `.cl.jac` files**
+   - **Problem:** `{/* comment */}` syntax is not valid in Jac client-side files.
+   - **Fix:** Removed all JSX-style comments; replaced with `#` comments where needed.
+
+2. **Stale-state filter bug — filters required two clicks to take effect**
+   - **Problem:** React batches state updates in synchronous event handlers. When a filter handler called `setState` then immediately called `fetchTxnPageData()`, the fetch read the *old* state values.
+   - **Fix:** Introduced `txnFilterVersion` counter. Each filter handler increments the counter after setting filter state. A reactive watcher `can with [txnFilterVersion] entry` fires after state commit with the *new* values and triggers the fetch.
+
+3. **Favorites filter not matching any transactions**
+   - **Problem:** Mock team names use full names ("Alabama Crimson Tide") while CSV uses short names ("Alabama"). A simple substring check `filter_name in csv_team` failed when the filter was longer than the CSV value.
+   - **Fix:** Added bidirectional substring matching: `tfn in from_lower or tfn in to_lower or from_lower in tfn or to_lower in tfn`.
+
+4. **"Signed" status shown in filter pills but does not exist in data**
+   - **Problem:** Analysis of the CSV data revealed statuses: Enrolled (3113), Committed (2303), N/A→"In Portal" (684), Entered (17), Withdrawn (3). No "Signed" status exists.
+   - **Fix:** Removed "Signed" from both the UI status pills and the server-side filter logic.
+
+---
+
+#### Resolution Summary
+- `jac check main.jac`: **0 errors, 0 warnings**
+- Transactions page fully functional with all 5 filter types working correctly
+- Favorites page shows favorited teams with empty state
+- Crystal Ball predictions generate on-demand and are toggleable (show/hide)
+- All filters respond on first click (stale-state bug resolved)
+- Favorites filter correctly matches CSV short names against mock_teams full names
+
+---
+
+#### Files Changed
+- `portai_jac/main.jac` — Expanded `get_paginated_transfers` with `team_filter` + bidirectional matching; added `CrystalBallPrediction` type, `generate_crystal_ball` by-llm function, `predict_destination` walker; removed "signed" status
+- `portai_jac/pages/TransactionsPage.cl.jac` — **Created** (new file) with status pills, team autocomplete, position filter, favorites toggle, Crystal Ball toggle
+- `portai_jac/pages/FavoritesPage.cl.jac` — **Created** (new file) with favorites team grid and empty state
+- `portai_jac/frontend.cl.jac` — Added imports, 11 state variables, reactive watcher, handlers, routing for both new pages
+- `portai_jac/frontend.impl.jac` — Added `fetchTxnPageData`, `loadMoreTxnPageData`, `handleCrystalBall` implementations
+- `portai_jac/styles.css` — Added CSS for status pills, team autocomplete, crystal ball, favorites empty state
+- `portai_jac/components/Navigation.cl.jac` — Updated "My Teams" label to "Favorites"
+
+---
+
 ### v1.7 — February 26, 2026
 
 **Replaced all hard-coded mock transfer data with live CSV-driven dynamic data loading; added paginated transaction feed with "Show More", new searchable Players page, per-player AI Impact via `byLLM()`, live portal statistics, and CSV deduplication.**
