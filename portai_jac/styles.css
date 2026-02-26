@@ -2774,3 +2774,258 @@ body.dark .ai-summary-card,
     gap: 1rem;
     color: var(--muted-foreground);
 }
+
+/* ========================================
+   STATUS FILTER PILLS
+   ======================================== */
+
+.status-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.status-pill {
+    padding: 0.4rem 1rem;
+    border-radius: 9999px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--foreground);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.status-pill:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.status-pill.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+/* ========================================
+   TEAM AUTOCOMPLETE
+   ======================================== */
+
+.team-autocomplete {
+    position: relative;
+    flex: 1;
+}
+
+.team-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    z-index: 50;
+    max-height: 320px;
+    overflow-y: auto;
+    margin-top: 4px;
+}
+
+.team-suggestion-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 1rem;
+    width: 100%;
+    border: none;
+    background: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s ease;
+    color: var(--foreground);
+}
+
+.team-suggestion-item:hover {
+    background: var(--muted);
+}
+
+.team-suggestion-logo {
+    font-size: 1.25rem;
+}
+
+.team-suggestion-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.team-suggestion-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.team-suggestion-conf {
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+}
+
+.team-filter-active {
+    display: flex;
+    align-items: center;
+    min-height: 2.5rem;
+}
+
+.team-filter-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    background: var(--accent);
+    color: white;
+    border-radius: 9999px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.team-filter-remove {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0 0.15rem;
+    opacity: 0.8;
+    transition: opacity 0.15s;
+}
+
+.team-filter-remove:hover {
+    opacity: 1;
+}
+
+/* ========================================
+   FAVORITES TOGGLE BUTTON
+   ======================================== */
+
+.favorites-toggle-btn {
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--foreground);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.favorites-toggle-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.favorites-toggle-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+.favorites-toggle-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ========================================
+   CRYSTAL BALL
+   ======================================== */
+
+.crystal-ball-section {
+    margin-top: -0.5rem;
+    margin-bottom: 0.5rem;
+    padding: 0 1.25rem 1rem 1.25rem;
+}
+
+.crystal-ball-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1.25rem;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+}
+
+.crystal-ball-btn:hover:not(:disabled) {
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.5);
+    transform: translateY(-1px);
+}
+
+.crystal-ball-btn:disabled {
+    opacity: 0.7;
+    cursor: wait;
+}
+
+.crystal-ball-btn.loading {
+    animation: crystal-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes crystal-pulse {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
+}
+
+.crystal-ball-result {
+    margin-top: 0.75rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(168, 85, 247, 0.08));
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: var(--radius);
+}
+
+.crystal-ball-result .badge {
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+}
+
+.crystal-ball-result p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--foreground);
+    margin: 0;
+}
+
+/* ========================================
+   FAVORITES EMPTY STATE
+   ======================================== */
+
+.favorites-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    text-align: center;
+    background: var(--card);
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+}
+
+.favorites-empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.favorites-empty-state h2 {
+    margin-bottom: 0.5rem;
+}
+
+.favorites-empty-state p {
+    max-width: 400px;
+    margin-bottom: 1.5rem;
+}

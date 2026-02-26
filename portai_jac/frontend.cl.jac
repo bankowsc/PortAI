@@ -11,11 +11,14 @@ import from .components.AuthForm { AuthForm }
 import from .pages.HomePage { HomePage }
 import from .pages.TeamsPage { TeamsPage }
 import from .pages.PlayersPage { PlayersPage }
-import from .data.mock_data { default_favorite_team_ids }
+import from .pages.TransactionsPage { TransactionsPage }
+import from .pages.FavoritesPage { FavoritesPage }
+import from .data.mock_data { default_favorite_team_ids, mock_teams }
 
 sv import from main {
     update_favorites, get_user_favorites, get_portal_summary,
-    get_transfers, search_players, get_player_by_id, get_ai_impact, get_portal_stats
+    get_transfers, search_players, get_player_by_id, get_ai_impact, get_portal_stats,
+    predict_destination
 }
 
 def:pub app -> JsxElement {
@@ -43,6 +46,18 @@ def:pub app -> JsxElement {
         playerSearchQuery: str = "",
         playerPositionFilter: str = "all",
         portalStatsData: any = {},
+        txnPageData: list = [],
+        txnPageLoading: bool = False,
+        txnPageOffset: int = 0,
+        txnPageTotal: int = 0,
+        txnStatusFilter: str = "all",
+        txnPositionFilter: str = "all",
+        txnTeamFilter: str = "",
+        txnFavoritesOnly: bool = False,
+        txnFilterVersion: int = 0,
+        crystalBallTexts: any = {},
+        crystalBallLoading: list = [],
+        expandedCrystalBalls: list = [],
         loginEmail: str = "",
         loginPassword: str = "",
         loginConfirmPassword: str = "",
@@ -71,6 +86,14 @@ def:pub app -> JsxElement {
         }
     }
 
+    # Reactive watcher for transaction page filters
+    # Fires AFTER state is committed, so fetchTxnPageData reads the new values
+    can with [txnFilterVersion] entry {
+        if isLoggedIn and txnFilterVersion > 0 {
+            fetchTxnPageData();
+        }
+    }
+
     async def fetchFavorites -> None;
     async def fetchAISummary -> None;
     async def fetchTransactions -> None;
@@ -79,6 +102,9 @@ def:pub app -> JsxElement {
     async def loadMorePlayers -> None;
     async def fetchPortalStats -> None;
     async def fetchAIImpact(playerId: str) -> None;
+    async def fetchTxnPageData -> None;
+    async def loadMoreTxnPageData -> None;
+    async def handleCrystalBall(playerId: str) -> None;
     async def handleLogin -> None;
     async def handleSignup -> None;
     async def handleToggleFavorite(teamId: str) -> None;
@@ -100,6 +126,10 @@ def:pub app -> JsxElement {
         # Load players when navigating to players page for the first time
         if page == "players" and players.length == 0 and not playersLoading {
             fetchPlayers();
+        }
+        # Load transactions page data when navigating to transactions
+        if page == "transactions" and txnPageData.length == 0 and not txnPageLoading {
+            txnFilterVersion = txnFilterVersion + 1;
         }
     }
 
@@ -172,6 +202,57 @@ def:pub app -> JsxElement {
 
     def handleActivityLevelChange(e: any) -> None {
         teamsActivityLevel = parseInt(e.target.value);
+    }
+
+    def handleTxnStatusFilterChange(value: str) -> None {
+        txnStatusFilter = value;
+        txnPageData = [];
+        txnPageOffset = 0;
+        txnFilterVersion = txnFilterVersion + 1;
+    }
+
+    def handleTxnPositionFilterChange(e: any) -> None {
+        txnPositionFilter = e.target.value;
+        txnPageData = [];
+        txnPageOffset = 0;
+        txnFilterVersion = txnFilterVersion + 1;
+    }
+
+    def handleTxnTeamSelect(teamName: str) -> None {
+        txnTeamFilter = teamName;
+        txnFavoritesOnly = False;
+        txnPageData = [];
+        txnPageOffset = 0;
+        txnFilterVersion = txnFilterVersion + 1;
+    }
+
+    def handleTxnClearTeamFilter -> None {
+        txnTeamFilter = "";
+        txnPageData = [];
+        txnPageOffset = 0;
+        txnFilterVersion = txnFilterVersion + 1;
+    }
+
+    def handleTxnToggleFavoritesOnly -> None {
+        txnFavoritesOnly = not txnFavoritesOnly;
+        txnTeamFilter = "";
+        txnPageData = [];
+        txnPageOffset = 0;
+        txnFilterVersion = txnFilterVersion + 1;
+    }
+
+    def handleToggleCrystalBall(playerId: str) -> None {
+        if expandedCrystalBalls.includes(playerId) {
+            expandedCrystalBalls = expandedCrystalBalls.filter(
+                lambda id: str -> bool { return id != playerId; }
+            );
+        } else {
+            expandedCrystalBalls = expandedCrystalBalls.concat([playerId]);
+            # Fetch prediction if not already loaded
+            if not crystalBallTexts[playerId] {
+                handleCrystalBall(playerId);
+            }
+        }
     }
 
     if checkingAuth {
@@ -270,6 +351,38 @@ def:pub app -> JsxElement {
                             onLoadMore={loadMorePlayers}
                         />
                     ) if currentPage == "players" else (
+                        <TransactionsPage
+                            transactions={txnPageData}
+                            transactionsLoading={txnPageLoading}
+                            totalTransactions={txnPageTotal}
+                            onLoadMore={loadMoreTxnPageData}
+                            statusFilter={txnStatusFilter}
+                            onStatusFilterChange={handleTxnStatusFilterChange}
+                            positionFilter={txnPositionFilter}
+                            onPositionFilterChange={handleTxnPositionFilterChange}
+                            teamFilter={txnTeamFilter}
+                            onTeamSelect={handleTxnTeamSelect}
+                            onClearTeamFilter={handleTxnClearTeamFilter}
+                            favoritesOnly={txnFavoritesOnly}
+                            onToggleFavoritesOnly={handleTxnToggleFavoritesOnly}
+                            favoriteTeamIds={favoriteTeamIds}
+                            expandedAIImpacts={expandedAIImpacts}
+                            onToggleAIImpact={handleToggleAIImpact}
+                            aiImpactTexts={aiImpactTexts}
+                            aiImpactLoading={aiImpactLoading}
+                            onNavigate={handleNavigate}
+                            crystalBallTexts={crystalBallTexts}
+                            crystalBallLoading={crystalBallLoading}
+                            expandedCrystalBalls={expandedCrystalBalls}
+                            onToggleCrystalBall={handleToggleCrystalBall}
+                        />
+                    ) if currentPage == "transactions" else (
+                        <FavoritesPage
+                            onNavigate={handleNavigate}
+                            favoriteTeamIds={favoriteTeamIds}
+                            onToggleFavorite={handleToggleFavorite}
+                        />
+                    ) if currentPage == "favorites" else (
                         <div className="placeholder-page">
                             <h1>Coming Soon</h1>
                             <p className="text-muted">This page is under construction.</p>
