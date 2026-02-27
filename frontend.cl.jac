@@ -108,7 +108,7 @@ def:pub app -> any {
             "Washington", "Washington State", "West Virginia", "Western Kentucky",
             "Western Michigan", "Wisconsin", "Wyoming"
         ];
-        [favorites, setFavorites] = useState(["Michigan", "Michigan State", "Akron"]);
+        [favorites, setFavorites] = useState(["Michigan", "Michigan State"]);
         [showDropdownFavorite, setshowDropdownFavorite] = useState(False);
         # [transfer_data, setTransferData] = useState([]);
 
