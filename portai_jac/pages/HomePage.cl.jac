@@ -3,12 +3,13 @@
 import from ..components.AISummaryCard { AISummaryCard }
 import from ..components.TransactionCard { TransactionCard }
 import from ..data.mock_data {
-    mock_teams, default_favorite_team_ids
+    mock_teams, default_favorite_team_ids, default_rival_team_ids
 }
 
 def:pub HomePage(
     onNavigate: any,
     favoriteTeamIds: list,
+    rivalTeamIds: list,
     aiSummary: str,
     aiSummaryTitle: str,
     aiSummaryLoading: bool,
@@ -25,6 +26,9 @@ def:pub HomePage(
 ) -> any {
     favorite_teams = [t for t in mock_teams if favoriteTeamIds.includes(t["id"])];
     has_favorites = favorite_teams.length > 0;
+
+    rival_teams = [t for t in mock_teams if rivalTeamIds.includes(t["id"])];
+    has_rivals = rival_teams.length > 0;
 
     trending_teams = mock_teams.slice().sort(
         lambda a: dict, b: dict -> int { return b["portalActivityScore"] - a["portalActivityScore"]; }

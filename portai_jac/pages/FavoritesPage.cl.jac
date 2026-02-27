@@ -6,7 +6,9 @@ import from ..data.mock_data { mock_teams }
 def:pub FavoritesPage(
     onNavigate: any,
     favoriteTeamIds: list,
-    onToggleFavorite: any
+    rivalTeamIds: list,
+    onToggleFavorite: any,
+    onToggleRival: any
 ) -> any {
     favorite_teams = mock_teams.filter(
         lambda t: dict -> bool { return favoriteTeamIds.includes(t["id"]); }
@@ -46,8 +48,13 @@ def:pub FavoritesPage(
                             return <TeamCard
                                 key={team["id"]}
                                 team={team}
+
                                 isFavorite={True}
+                                isRival={True}
+
                                 onToggleFavorite={onToggleFavorite}
+                                onToggleRival={onToggleRival}
+
                                 onNavigate={onNavigate}
                             />;
                         })}

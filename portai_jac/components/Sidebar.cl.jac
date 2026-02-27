@@ -1,6 +1,6 @@
 """Sidebar navigation component."""
 
-import from ..data.mock_data { mock_teams, default_favorite_team_ids }
+import from ..data.mock_data { mock_teams, default_favorite_team_ids, default_rival_team_ids }
 
 # RUN THESE TWO
 # jac add --npm @fortawesome/free-solid-svg-icons
@@ -22,7 +22,8 @@ def:pub Sidebar(
     collapsed: bool,
     onToggleCollapse: any,
     onNavigate: any,
-    favoriteTeamIds: list
+    favoriteTeamIds: list,
+    rivalTeamIds: list
 ) -> any {
     # has menu_items: list = [
     #     {"icon": "🏠", "label": "Home", "page": "home"},
@@ -46,6 +47,8 @@ def:pub Sidebar(
     ];
 
     favorite_teams = [t for t in mock_teams if favoriteTeamIds.includes(t["id"])];
+    rival_teams = [t for t in mock_teams if rivalTeamIds.includes(t["id"])];
+
 
     return
         <aside className={"sidebar " + ("collapsed" if collapsed else "expanded")}>
@@ -78,6 +81,21 @@ def:pub Sidebar(
                         })}
                     </div>
                 ) if not collapsed and favorite_teams.length > 0 else None}
+
+                {(
+                    <div className="sidebar-rivals">
+                        <div className="sidebar-rivals-title">RIVAL TEAMS</div>
+                        {rival_teams.map(lambda team: dict -> any {
+                            teamId = team["id"];
+                            return <button key={team["id"]}
+                                    className="sidebar-rival-item"
+                                    onClick={lambda -> None { onNavigate("team-detail:" + teamId); }}>
+                                <span className="team-emoji">{team["logo"]}</span>
+                                <span className="team-name">{team["name"]}</span>
+                            </button>;
+                        })}
+                    </div>
+                ) if not collapsed and rival_teams.length > 0 else None}
             </div>
 
             <div className="sidebar-toggle">

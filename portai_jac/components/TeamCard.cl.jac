@@ -3,7 +3,9 @@
 def:pub TeamCard(
     team: dict,
     isFavorite: bool,
+    isRival: bool,
     onToggleFavorite: any,
+    onToggleRival: any,
     onNavigate: any
 ) -> any {
     return
@@ -19,6 +21,10 @@ def:pub TeamCard(
                 <button className={"team-card-fav-btn" + (" active" if isFavorite else "")}
                         onClick={lambda -> None { onToggleFavorite(team["id"]); }}>
                     {("★" if isFavorite else "☆")}
+                </button>
+                <button className={"team-card-riv-btn" + (" active" if isRival else "")}
+                        onClick={lambda -> None { onToggleRival(team["id"]); }}>
+                    {("★" if isRival else "☆")}
                 </button>
             </div>
 

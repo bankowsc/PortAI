@@ -48,6 +48,7 @@ def generate_news_story(school: str) -> NewsStory by llm();
 node User {
     has username: str;
     has favorite_teams: list = [];
+    has rival_teams: list = [];
 }
 
 

@@ -16,8 +16,11 @@ def:pub TransactionsPage(
     onTeamSelect: any,
     onClearTeamFilter: any,
     favoritesOnly: bool,
+    rivalsOnly: bool,
     onToggleFavoritesOnly: any,
+    onToggleRivalsOnly: any,
     favoriteTeamIds: list,
+    rivalTeamIds: list,
     expandedAIImpacts: list,
     onToggleAIImpact: any,
     aiImpactTexts: any,
@@ -164,6 +167,14 @@ def:pub TransactionsPage(
                         disabled={favoriteTeamIds.length == 0}
                     >
                         {("★ Favorites" if favoritesOnly else "☆ Favorites")}
+                    </button>
+
+                    <button
+                        className={"btn rivals-toggle-btn" + (" active" if rivalsOnly else "")}
+                        onClick={onToggleRivalsOnly}
+                        disabled={rivalTeamIds.length == 0}
+                    >
+                        {("★ Rivals" if rivalsOnly else "☆ Rivals")}
                     </button>
                 </div>
             </div>

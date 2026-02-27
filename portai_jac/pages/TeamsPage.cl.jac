@@ -6,7 +6,9 @@ import from ..data.mock_data { mock_teams }
 def:pub TeamsPage(
     onNavigate: any,
     favoriteTeamIds: list,
+    rivalTeamIds: list,
     onToggleFavorite: any,
+    onToggleRival: any,
     searchFilter: str,
     onSearchFilterChange: any,
     conferenceFilter: str,
@@ -119,8 +121,13 @@ def:pub TeamsPage(
                         <TeamCard
                             key={team["id"]}
                             team={team}
+                            
                             isFavorite={favoriteTeamIds.includes(team["id"])}
+                            isRival={rivalTeamIds.includes(team["id"])}
+
                             onToggleFavorite={onToggleFavorite}
+                            onToggleRival={onToggleRival}
+
                             onNavigate={onNavigate}
                         />
                         for team in filtered_teams

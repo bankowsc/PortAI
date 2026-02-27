@@ -13,10 +13,10 @@ import from .pages.TeamsPage { TeamsPage }
 import from .pages.PlayersPage { PlayersPage }
 import from .pages.TransactionsPage { TransactionsPage }
 import from .pages.FavoritesPage { FavoritesPage }
-import from .data.mock_data { default_favorite_team_ids, mock_teams }
+import from .data.mock_data { default_favorite_team_ids, default_rival_team_ids, mock_teams }
 
 sv import from main {
-    update_favorites, get_user_favorites, get_portal_summary,
+    update_favorites, get_user_favorites, update_rivals, get_user_rivals, get_portal_summary,
     get_transfers, search_players, get_player_by_id, get_ai_impact, get_portal_stats,
     predict_destination
 }
@@ -29,6 +29,7 @@ def:pub app -> JsxElement {
         searchQuery: str = "",
         showUserMenu: bool = False,
         favoriteTeamIds: list = default_favorite_team_ids,
+        rivalTeamIds: list = default_rival_team_ids,
         aiSummary: str = "",
         aiSummaryTitle: str = "",
         aiSummaryLoading: bool = False,
@@ -54,6 +55,7 @@ def:pub app -> JsxElement {
         txnPositionFilter: str = "all",
         txnTeamFilter: str = "",
         txnFavoritesOnly: bool = False,
+        txnRivalsOnly: bool = False,
         txnFilterVersion: int = 0,
         crystalBallTexts: any = {},
         crystalBallLoading: list = [],
@@ -80,6 +82,7 @@ def:pub app -> JsxElement {
     can with [isLoggedIn] entry {
         if isLoggedIn {
             fetchFavorites();
+            fetchRivals();
             fetchAISummary();
             fetchTransactions();
             fetchPortalStats();
@@ -95,6 +98,7 @@ def:pub app -> JsxElement {
     }
 
     async def fetchFavorites -> None;
+    async def fetchRivals -> None;
     async def fetchAISummary -> None;
     async def fetchTransactions -> None;
     async def loadMoreTransactions -> None;
@@ -108,6 +112,7 @@ def:pub app -> JsxElement {
     async def handleLogin -> None;
     async def handleSignup -> None;
     async def handleToggleFavorite(teamId: str) -> None;
+    async def handleToggleRival(teamId: str) -> None;
     def handleLogout -> None;
     async def handleSubmit(e: any) -> None;
 
@@ -221,6 +226,7 @@ def:pub app -> JsxElement {
     def handleTxnTeamSelect(teamName: str) -> None {
         txnTeamFilter = teamName;
         txnFavoritesOnly = False;
+        txnRivalsOnly = False;
         txnPageData = [];
         txnPageOffset = 0;
         txnFilterVersion = txnFilterVersion + 1;
@@ -235,6 +241,14 @@ def:pub app -> JsxElement {
 
     def handleTxnToggleFavoritesOnly -> None {
         txnFavoritesOnly = not txnFavoritesOnly;
+        txnTeamFilter = "";
+        txnPageData = [];
+        txnPageOffset = 0;
+        txnFilterVersion = txnFilterVersion + 1;
+    }
+
+    def handleTxnToggleRivalsOnly -> None {
+        txnRivalsOnly = not txnRivalsOnly;
         txnTeamFilter = "";
         txnPageData = [];
         txnPageOffset = 0;
@@ -303,12 +317,14 @@ def:pub app -> JsxElement {
                     onToggleCollapse={handleToggleSidebar}
                     onNavigate={handleNavigate}
                     favoriteTeamIds={favoriteTeamIds}
+                    rivalTeamIds={rivalTeamIds}
                 />
                 <main className="main-content">
                     {(
                         <HomePage
                             onNavigate={handleNavigate}
                             favoriteTeamIds={favoriteTeamIds}
+                            rivalTeamIds={rivalTeamIds}
                             aiSummary={aiSummary}
                             aiSummaryTitle={aiSummaryTitle}
                             aiSummaryLoading={aiSummaryLoading}
@@ -327,7 +343,8 @@ def:pub app -> JsxElement {
                         <TeamsPage
                             onNavigate={handleNavigate}
                             favoriteTeamIds={favoriteTeamIds}
-                            onToggleFavorite={handleToggleFavorite}
+                            rivalTeamIds={rivalTeamIds}
+                            onToggleRival={handleToggleRival}
                             searchFilter={teamsSearchFilter}
                             onSearchFilterChange={handleTeamsSearchChange}
                             conferenceFilter={teamsConferenceFilter}
@@ -364,8 +381,11 @@ def:pub app -> JsxElement {
                             onTeamSelect={handleTxnTeamSelect}
                             onClearTeamFilter={handleTxnClearTeamFilter}
                             favoritesOnly={txnFavoritesOnly}
+                            rivalsOnly={txnRivalsOnly}
                             onToggleFavoritesOnly={handleTxnToggleFavoritesOnly}
+                            onToggleRivalsOnly={handleTxnToggleRivalsOnly}
                             favoriteTeamIds={favoriteTeamIds}
+                            rivalTeamIds={rivalTeamIds}
                             expandedAIImpacts={expandedAIImpacts}
                             onToggleAIImpact={handleToggleAIImpact}
                             aiImpactTexts={aiImpactTexts}

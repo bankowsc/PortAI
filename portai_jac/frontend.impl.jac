@@ -7,6 +7,13 @@ impl app.fetchFavorites -> None {
     }
 }
 
+impl app.fetchRivals -> None {
+    result = root spawn get_user_rivals();
+    if result.reports {
+        rivalTeamIds = result.reports[0]["rivals"];
+    }
+}
+
 impl app.fetchAISummary -> None {
     aiSummaryLoading = True;
     try {
@@ -188,6 +195,7 @@ impl app.handleLogout -> None {
     isLoggedIn = False;
     currentPage = "home";
     favoriteTeamIds = default_favorite_team_ids;
+    rivalTeamIds = default_rival_team_ids;
 }
 
 impl app.handleSubmit(e: any) -> None {
@@ -212,6 +220,19 @@ impl app.handleToggleFavorite(teamId: str) -> None {
     await root spawn update_favorites(new_favorites=new_favorites);
 }
 
+impl app.handleToggleRival(teamId: str) -> None {
+    new_rivals: list = [];
+    if rivalTeamIds.includes(teamId) {
+        new_rivals = rivalTeamIds.filter(
+            lambda id: str -> bool { return id != teamId; }
+        );
+    } else {
+        new_rivals = rivalTeamIds.concat([teamId]);
+    }
+    rivalTeamIds = new_rivals;
+    await root spawn update_rivals(new_rivals=new_rivals);
+}
+
 impl app.fetchTxnPageData -> None {
     txnPageLoading = True;
     try {
@@ -228,6 +249,18 @@ impl app.fetchTxnPageData -> None {
                 }
             }
             effective_team_filter = fav_names.join("|");
+        }
+        if txnRivalsOnly and rivalTeamIds.length > 0 {
+            # Build pipe-separated list of rival team names
+            riv_names: list = [];
+            for fid in rivalTeamIds {
+                for t in mock_teams {
+                    if t["id"] == fid {
+                        riv_names.push(t["name"]);
+                    }
+                }
+            }
+            effective_team_filter = riv_names.join("|");
         }
         result = root spawn get_transfers(
             offset=0,
@@ -263,6 +296,17 @@ impl app.loadMoreTxnPageData -> None {
                 }
             }
             effective_team_filter = fav_names.join("|");
+        }
+        if txnRivalsOnly and rivalTeamIds.length > 0 {
+            riv_names: list = [];
+            for fid in rivalTeamIds {
+                for t in mock_teams {
+                    if t["id"] == fid {
+                        riv_names.push(t["name"]);
+                    }
+                }
+            }
+            effective_team_filter = riv_names.join("|");
         }
         result = root spawn get_transfers(
             offset=txnPageOffset,

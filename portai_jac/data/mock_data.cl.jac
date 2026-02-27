@@ -141,7 +141,8 @@ glob:pub mock_teams = [
     {"id": "138", "name": "Wyoming Cowboys", "conference": "MWC", "portalActivityScore": 0, "lastSeasonRecord": "0-0", "incomingCount": 0, "outgoingCount": 0}
 ];
 
-glob:pub default_favorite_team_ids = ["1", "3", "6"];
+glob:pub default_favorite_team_ids = ["1", "2", "3"];
+glob:pub default_rival_team_ids = ["4", "5", "6"];
 
 glob:pub portal_stats = [
     {"name": "QB", "value": 23},

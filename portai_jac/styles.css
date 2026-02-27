@@ -542,6 +542,52 @@ textarea {
     transition: color 1s ease;
 }
 
+
+/*NEW*/
+
+.sidebar-rivals {
+    margin-top: 2rem;
+    padding: 0 0.75rem;
+}
+
+.sidebar-rivals-title {
+    padding: 0 1rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.6875rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+}
+
+.sidebar-rival-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    gap: 0.75rem;
+    transition: background 1s;
+    cursor: pointer;
+}
+
+.sidebar-rival-item:hover {
+    background: rgba(14, 165, 233, 0.05);
+}
+
+.sidebar-rival-item .team-emoji {
+    font-size: 1.25rem;
+}
+
+.sidebar-rival-item .team-name {
+    font-size: 0.875rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--foreground);
+    transition: color 1s ease;
+}
+
+/*end new*/
+
 .sidebar-toggle {
     border-top: 1px solid var(--border);
     padding: 0.75rem;
@@ -1207,6 +1253,19 @@ body.dark .ai-summary-card,
 .team-card-fav-btn.active {
     color: var(--accent);
 }
+
+/* NEW */
+
+.team-card-riv-btn {
+    color: var(--muted-foreground);
+    font-size: 1.25rem;
+}
+
+.team-card-riv-btn.active {
+    color: var(--accent);
+}
+
+/* end new*/
 
 .team-card-stats {
     display: flex;
@@ -2936,6 +2995,39 @@ body.dark .ai-summary-card,
 }
 
 /* ========================================
+   RIVALS TOGGLE BUTTON
+   ======================================== */
+
+.rivals-toggle-btn {
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--foreground);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.rivals-toggle-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.rivals-toggle-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+.rivals-toggle-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ========================================
    CRYSTAL BALL
    ======================================== */
 
@@ -2976,8 +3068,15 @@ body.dark .ai-summary-card,
 }
 
 @keyframes crystal-pulse {
-    0%, 100% { opacity: 0.7; }
-    50% { opacity: 1; }
+
+    0%,
+    100% {
+        opacity: 0.7;
+    }
+
+    50% {
+        opacity: 1;
+    }
 }
 
 .crystal-ball-result {

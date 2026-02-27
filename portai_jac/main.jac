@@ -480,6 +480,7 @@ def generate_transfer_impact(
 node User {
     has username: str;
     has favorite_team_ids: list = [];
+    has rival_team_ids: list = [];
 }
 
 
@@ -726,6 +727,7 @@ walker:priv predict_destination {
 
 walker:priv get_portal_summary {
     has favorite_team_ids: list = [];
+    has rival_team_ids: list = [];
     has found_user: bool = False;
 
     can search with Root entry {
@@ -736,6 +738,7 @@ walker:priv get_portal_summary {
         if not self.found_user {
             self.found_user = True;
             self.favorite_team_ids = here.favorite_team_ids;
+            self.rival_team_ids = here.rival_team_ids;
         }
     }
 
@@ -836,6 +839,30 @@ walker:priv update_favorites {
     }
 }
 
+walker:priv update_rivals {
+    has new_rivals: list;
+    has found: bool = False;
+
+    can search with Root entry {
+        visit [-->];
+    }
+
+    can update with User entry {
+        if not self.found {
+            here.rival_team_ids = self.new_rivals;
+            self.found = True;
+            report {"status": "updated", "rivals": here.rival_team_ids};
+        }
+    }
+
+    can create_if_needed with Root exit {
+        if not self.found {
+            new_user = here ++> User(username="default", rival_team_ids=self.new_rivals);
+            report {"status": "created", "rivals": new_user[0].rival_team_ids};
+        }
+    }
+}
+
 walker:priv get_user_favorites {
     has found: bool = False;
 
@@ -853,6 +880,27 @@ walker:priv get_user_favorites {
     can default_if_none with Root exit {
         if not self.found {
             report {"favorites": []};
+        }
+    }
+}
+
+walker:priv get_user_rivals {
+    has found: bool = False;
+
+    can search with Root entry {
+        visit [-->];
+    }
+
+    can get_favs with User entry {
+        if not self.found {
+            self.found = True;
+            report {"rivals": here.rival_team_ids};
+        }
+    }
+
+    can default_if_none with Root exit {
+        if not self.found {
+            report {"rivals": []};
         }
     }
 }
