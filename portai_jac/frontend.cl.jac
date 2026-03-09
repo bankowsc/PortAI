@@ -13,14 +13,12 @@ import from .pages.TeamsPage { TeamsPage }
 import from .pages.PlayersPage { PlayersPage }
 import from .pages.TransactionsPage { TransactionsPage }
 import from .pages.FavoritesPage { FavoritesPage }
-import from .pages.ProfilePage { ProfilePage }
-import from .pages.ChatPage { ChatPage }
 import from .data.mock_data { default_favorite_team_ids, mock_teams }
 
 sv import from main {
-    update_favorites, get_user_favorites, get_portal_summary, update_profile, get_user_profile, 
+    update_favorites, get_user_favorites, get_portal_summary,
     get_transfers, search_players, get_player_by_id, get_ai_impact, get_portal_stats,
-    predict_destination, chat
+    predict_destination
 }
 
 def:pub app -> JsxElement {
@@ -70,21 +68,13 @@ def:pub app -> JsxElement {
         teamsConferenceFilter: str = "all",
         teamsSortBy: str = "activity",
         teamsActivityLevel: int = 0,
-        theme: str = "light",
-        chatMessages: list = [],
-        chatLoading: bool = False,
-        conversations: list = [],
-        activeConversationId: str = "",
-        profileTransactions: list = [],
-        profileTransactionsLoading: bool = False,
-        profileDisplayName: str = "",
-        profileAvatarIcon: str = "",
-        userEmail: str = "";
+        theme: str = "light";
 
     can with entry {
         isLoggedIn = jacIsLoggedIn();
         checkingAuth = False;
         document.documentElement.className = theme;
+
     }
 
     can with [isLoggedIn] entry {
@@ -93,11 +83,11 @@ def:pub app -> JsxElement {
             fetchAISummary();
             fetchTransactions();
             fetchPortalStats();
-            fetchUserProfile();
         }
     }
 
     # Reactive watcher for transaction page filters
+    # Fires AFTER state is committed, so fetchTxnPageData reads the new values
     can with [txnFilterVersion] entry {
         if isLoggedIn and txnFilterVersion > 0 {
             fetchTxnPageData();
@@ -120,12 +110,6 @@ def:pub app -> JsxElement {
     async def handleToggleFavorite(teamId: str) -> None;
     def handleLogout -> None;
     async def handleSubmit(e: any) -> None;
-    async def fetchProfileTransactions -> None;
-    async def handleChatSend(message: str) -> None;
-    def handleNewConversation -> None;
-    def handleSelectConversation(convId: str) -> None;
-    async def fetchUserProfile -> None;
-    async def saveUserProfile(profileData: any) -> None;
 
     def toggleTheme -> None {
         if theme == "dark" {
@@ -139,14 +123,13 @@ def:pub app -> JsxElement {
 
     def handleNavigate(page: str) -> None {
         currentPage = page;
+        # Load players when navigating to players page for the first time
         if page == "players" and players.length == 0 and not playersLoading {
             fetchPlayers();
         }
+        # Load transactions page data when navigating to transactions
         if page == "transactions" and txnPageData.length == 0 and not txnPageLoading {
             txnFilterVersion = txnFilterVersion + 1;
-        }
-        if page == "profile" and profileTransactions.length == 0 and not profileTransactionsLoading {
-            fetchProfileTransactions();
         }
     }
 
@@ -184,6 +167,7 @@ def:pub app -> JsxElement {
             );
         } else {
             expandedAIImpacts = expandedAIImpacts.concat([transactionId]);
+            # Fetch AI impact if not already loaded
             if not aiImpactTexts[transactionId] {
                 fetchAIImpact(transactionId);
             }
@@ -257,20 +241,6 @@ def:pub app -> JsxElement {
         txnFilterVersion = txnFilterVersion + 1;
     }
 
-    def handleNewConversation -> None {
-        activeConversationId = "";
-        chatMessages = [];
-    }
-
-    def handleSelectConversation(convId: str) -> None {
-        for conv in conversations {
-            if conv["id"] == convId {
-                activeConversationId = convId;
-                chatMessages = conv["messages"];
-            }
-        }
-    }
-
     def handleToggleCrystalBall(playerId: str) -> None {
         if expandedCrystalBalls.includes(playerId) {
             expandedCrystalBalls = expandedCrystalBalls.filter(
@@ -278,6 +248,7 @@ def:pub app -> JsxElement {
             );
         } else {
             expandedCrystalBalls = expandedCrystalBalls.concat([playerId]);
+            # Fetch prediction if not already loaded
             if not crystalBallTexts[playerId] {
                 handleCrystalBall(playerId);
             }
@@ -321,6 +292,7 @@ def:pub app -> JsxElement {
                 onLogout={handleLogout}
                 showUserMenu={showUserMenu}
                 onToggleUserMenu={handleToggleUserMenu}
+
                 theme={theme}
                 onToggleTheme={toggleTheme}
             />
@@ -411,32 +383,6 @@ def:pub app -> JsxElement {
                             onToggleFavorite={handleToggleFavorite}
                         />
                     ) if currentPage == "favorites" else (
-                        <ProfilePage
-                            onNavigate={handleNavigate}
-                            onLogout={handleLogout}
-                            favoriteTeamIds={favoriteTeamIds}
-                            onToggleFavorite={handleToggleFavorite}
-                            userEmail={loginEmail}
-                            profileTransactions={profileTransactions}
-                            profileTransactionsLoading={profileTransactionsLoading}
-                            portalStatsData={portalStatsData}
-                            savedDisplayName={profileDisplayName}
-                            savedAvatarIcon={profileAvatarIcon}
-                            onSaveProfile={saveUserProfile}
-                        />
-                    ) if currentPage == "profile" else (
-                        <ChatPage
-                            onNavigate={handleNavigate}
-                            chatMessages={chatMessages}
-                            chatLoading={chatLoading}
-                            onChatSend={handleChatSend}
-                            conversations={conversations}
-                            activeConversationId={activeConversationId}
-                            onSelectConversation={handleSelectConversation}
-                            onNewConversation={handleNewConversation}
-                        />
-
-                    ) if currentPage == "chat" else (
                         <div className="placeholder-page">
                             <h1>Coming Soon</h1>
                             <p className="text-muted">This page is under construction.</p>

@@ -72,18 +72,12 @@ def:pub Navigation(
                         </button>
                         {(
                             <div className="avatar-dropdown-menu">
-                                <button
-                                    className="avatar-dropdown-item"
-                                    onClick={lambda -> None { onNavigate("profile"); onToggleUserMenu(); }}
-                                >Profile</button>
-                                <button
-                                    className="avatar-dropdown-item"
-                                    onClick={lambda -> None { onNavigate("settings"); onToggleUserMenu(); }}
-                                >Settings</button>
-                                <button
-                                    className="avatar-dropdown-item"
-                                    onClick={lambda -> None { onLogout(); }}
-                                >Sign Out</button>
+                                <button className="avatar-dropdown-item">Profile</button>
+                                <button className="avatar-dropdown-item">Settings</button>
+                                <button className="avatar-dropdown-item"
+                                        onClick={lambda -> None { onLogout(); }}>
+                                    Sign Out
+                                </button>
                             </div>
                         ) if showUserMenu else None}
                     </div>
