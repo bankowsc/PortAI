@@ -480,6 +480,8 @@ def generate_transfer_impact(
 node User {
     has username: str;
     has favorite_team_ids: list = [];
+    has display_name: str = "";
+    has avatar_icon: str = "";      
 }
 
 
@@ -853,6 +855,56 @@ walker:priv get_user_favorites {
     can default_if_none with Root exit {
         if not self.found {
             report {"favorites": []};
+        }
+    }
+}
+
+walker:priv update_profile {
+    has display_name: str = "";
+    has avatar_icon: str = "";
+    has found: bool = False;
+    has saved_display_name: str = "";
+    has saved_avatar_icon: str = "";
+
+    can search with Root entry {
+        visit [-->];
+        if not self.found {
+            new_user = User(username="", display_name=self.display_name, avatar_icon=self.avatar_icon);
+            here ++> new_user;
+            self.saved_display_name = self.display_name;
+            self.saved_avatar_icon = self.avatar_icon;
+        }
+        report {"display_name": self.saved_display_name, "avatar_icon": self.saved_avatar_icon};
+    }
+
+    can update with User entry {
+        if self.display_name {
+            here.display_name = self.display_name;
+        }
+        if self.avatar_icon {
+            here.avatar_icon = self.avatar_icon;
+        }
+        self.found = True;
+        self.saved_display_name = here.display_name;
+        self.saved_avatar_icon = here.avatar_icon;
+    }
+}
+
+walker:priv get_user_profile {
+    can search with Root entry {
+        visit [-->];
+    }
+
+    has found: bool = False;
+
+    can get_profile with User entry {
+        self.found = True;
+        report {"display_name": here.display_name, "avatar_icon": here.avatar_icon};
+    }
+
+    can default_if_none with Root exit {
+        if not self.found {
+            report {"display_name": "", "avatar_icon": ""};
         }
     }
 }

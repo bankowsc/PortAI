@@ -147,6 +147,7 @@ impl app.handleLogin -> None {
     loginLoading = False;
     if success {
         isLoggedIn = True;
+        userEmail = loginEmail;
         loginEmail = "";
         loginPassword = "";
         currentPage = "home";
@@ -174,6 +175,7 @@ impl app.handleSignup -> None {
     loginLoading = False;
     if result["success"] {
         isLoggedIn = True;
+        userEmail = loginEmail;
         loginEmail = "";
         loginPassword = "";
         loginConfirmPassword = "";
@@ -215,10 +217,8 @@ impl app.handleToggleFavorite(teamId: str) -> None {
 impl app.fetchTxnPageData -> None {
     txnPageLoading = True;
     try {
-        # Build team filter string
         effective_team_filter = txnTeamFilter;
         if txnFavoritesOnly and favoriteTeamIds.length > 0 {
-            # Build pipe-separated list of favorite team names
             fav_names: list = [];
             for fid in favoriteTeamIds {
                 for t in mock_teams {
@@ -284,7 +284,6 @@ impl app.loadMoreTxnPageData -> None {
 }
 
 impl app.handleCrystalBall(playerId: str) -> None {
-    # Don't re-fetch if already have a prediction
     if crystalBallTexts[playerId] {
         return;
     }
@@ -306,4 +305,125 @@ impl app.handleCrystalBall(playerId: str) -> None {
     crystalBallLoading = crystalBallLoading.filter(
         lambda id: str -> bool { return id != playerId; }
     );
+}
+
+impl app.fetchProfileTransactions -> None {
+    profileTransactionsLoading = True;
+    try {
+        result = root spawn get_transfers(
+            offset=0,
+            limit=200,
+            search_query="",
+            position_filter="all",
+            status_filter="all"
+        );
+        if result.reports {
+            profileTransactions = result.reports[0]["transfers"];
+        }
+    } except e {
+        profileTransactions = [];
+    }
+    profileTransactionsLoading = False;
+}
+
+impl app.handleChatSend(message: str) -> None {
+    # Build the full updated message list locally first,
+    # then assign to chatMessages exactly once per stage
+    # to avoid Jac reactive state being lost mid-sequence.
+
+    # Stage 1: snapshot current messages + add user message
+    with_user: list = chatMessages.concat([
+        {"role": "user", "content": message}
+    ]);
+
+    # Assign once so user bubble renders immediately
+    chatMessages = with_user;
+    chatLoading = True;
+
+    # Stage 2: call AI walker
+    ai_response_text = "Unable to get a response right now. Please try again.";
+    try {
+        result = root spawn chat(question=message);
+        if result.reports {
+            ai_response_text = result.reports[0]["response"];
+        }
+    } except e {
+        ai_response_text = "Unable to get a response right now. Please try again.";
+    }
+
+    # Stage 3: build final list with AI response appended
+    final_messages: list = with_user.concat([
+        {"role": "assistant", "content": ai_response_text}
+    ]);
+
+    # Single assignment — both user + AI messages now in state
+    chatMessages = final_messages;
+    chatLoading = False;
+
+    # Stage 4: update conversation history
+    now = Date();
+    time_str = String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
+    date_str = now.toLocaleDateString("en-US", {"month": "short", "day": "numeric"});
+    timestamp_str = date_str + " " + time_str;
+
+    title_raw = message;
+    conv_title = (title_raw.slice(0, 40) + "...") if title_raw.length > 40 else title_raw;
+
+    is_new_conversation = activeConversationId == "";
+
+    if is_new_conversation {
+        new_id = "conv_" + String(Date.now());
+        new_conv = {
+            "id": new_id,
+            "title": conv_title,
+            "timestamp": timestamp_str,
+            "messages": final_messages
+        };
+        conversations = [new_conv].concat(conversations);
+        activeConversationId = new_id;
+    } else {
+        updated_convs: list = [];
+        for conv in conversations {
+            if conv["id"] == activeConversationId {
+                updated_convs.push({
+                    "id": conv["id"],
+                    "title": conv["title"],
+                    "timestamp": timestamp_str,
+                    "messages": final_messages
+                });
+            } else {
+                updated_convs.push(conv);
+            }
+        }
+        conversations = updated_convs;
+    }
+}
+
+impl app.fetchUserProfile -> None {
+    try {
+        result = root spawn get_user_profile();
+        if result.reports.length > 0 {
+            data = result.reports[0];
+            profileDisplayName = data["display_name"];
+            profileAvatarIcon = data["avatar_icon"];
+        }
+    } except e {
+        profileDisplayName = profileDisplayName;
+    }
+}
+
+impl app.saveUserProfile(profileData: any) -> None {
+    try {
+        result = await root spawn update_profile(
+            display_name=profileData["displayName"],
+            avatar_icon=profileData["avatarIcon"]
+        );
+        if result.reports.length > 0 {
+            data = result.reports[0];
+            profileDisplayName = data["display_name"];
+            profileAvatarIcon = data["avatar_icon"];
+        }
+    } except e {
+        console.error("Failed to save profile: " + String(e));
+    }
 }
