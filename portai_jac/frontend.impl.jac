@@ -143,13 +143,15 @@ impl app.handleLogin -> None {
         return;
     }
     loginLoading = True;
-    success = await jacLogin(loginEmail, loginPassword);
+    success = await jacLogin(loginEmail, loginPassword, loginName);
     loginLoading = False;
     if success {
         isLoggedIn = True;
         userEmail = loginEmail;
+        displayName = displayName;
         loginEmail = "";
         loginPassword = "";
+        loginName = "";
         currentPage = "home";
     } else {
         loginError = "Invalid email or password";

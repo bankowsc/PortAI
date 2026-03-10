@@ -2,11 +2,13 @@
 
 def:pub AuthForm(
     isLogin: bool,
+    displayName: str,          # new prop for the user's display name
     email: str,
     password: str,
     confirmPassword: str,
     error: str,
     loading: bool,
+    onDisplayNameChange: any,  # new change handler
     onEmailChange: any,
     onPasswordChange: any,
     onConfirmPasswordChange: any,
@@ -97,7 +99,20 @@ def:pub AuthForm(
                                     onChange={onConfirmPasswordChange}
                                     required={True}
                                 />
+                            </div>,
+
+                            <div className="form-field">
+                                <label className="form-label">Display Name</label>
+                                <input
+                                    type="text"
+                                    className="input"
+                                    placeholder="Your Name"
+                                    value={displayName}
+                                    onChange={onDisplayNameChange}
+                                    required={True}
+                                />
                             </div>
+                            
                         ) if not isLogin else None}
 
                         {(

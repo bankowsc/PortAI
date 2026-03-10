@@ -84,15 +84,16 @@ impl app.toggleTheme -> None {
 
 impl app.handleLogin -> None {
     error = "";
-    if not username.trim() or not password {
+    if not email.trim() or not password or not username {
         error = "Please fill in all fields";
         return;
     }
     loading = True;
-    success = await jacLogin(username, password);
+    success = await jacLogin(email, password, username);
     loading = False;
     if success {
         isLoggedIn = True;
+        email = "";
         username = "";
         password = "";
     } else {
@@ -111,12 +112,13 @@ impl app.handleSignup -> None {
         return;
     }
     loading = True;
-    result = await jacSignup(username, password);
+    result = await jacSignup(email, password, username);
     loading = False;
     if result["success"] {
         isLoggedIn = True;
         username = "";
         password = "";
+        email = "";
     } else {
         error = result["error"] if result["error"] else "Signup failed";
     }

@@ -10,10 +10,11 @@ def:pub ProfilePage(
     favoriteTeamIds: list,
     onToggleFavorite: any,
     userEmail: str,
+    displayName: str,
     profileTransactions: list,
     profileTransactionsLoading: bool,
     portalStatsData: any,
-    savedDisplayName: str,
+    userName: str,
     savedAvatarIcon: str,
     onSaveProfile: any,
 ) -> any {
@@ -27,10 +28,10 @@ def:pub ProfilePage(
         selectedIcon: str = "default",
         displayName: str = "";
 
-    can with [savedDisplayName, savedAvatarIcon] entry {
+    can with [userName, savedAvatarIcon] entry {
         atSymbol = "@";
         if not displayName {
-            displayName = (savedDisplayName if savedDisplayName else (userEmail.split(atSymbol)[0] if userEmail.includes(atSymbol) else (userEmail if userEmail else "Fan")));
+            displayName = (userName if userName else (userEmail.split(atSymbol)[0] if userEmail.includes(atSymbol) else (userEmail if userEmail else "Fan")));
         }
         if savedAvatarIcon and selectedIcon == "default" {
             selectedIcon = savedAvatarIcon;

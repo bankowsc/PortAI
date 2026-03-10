@@ -61,6 +61,7 @@ def:pub app -> JsxElement {
         crystalBallLoading: list = [],
         expandedCrystalBalls: list = [],
         loginEmail: str = "",
+        loginName: str = "",
         loginPassword: str = "",
         loginConfirmPassword: str = "",
         loginError: str = "",
@@ -79,7 +80,8 @@ def:pub app -> JsxElement {
         profileTransactionsLoading: bool = False,
         profileDisplayName: str = "",
         profileAvatarIcon: str = "",
-        userEmail: str = "";
+        userEmail: str = "",
+        userName: str = "";
 
     can with entry {
         isLoggedIn = jacIsLoggedIn();
@@ -297,11 +299,13 @@ def:pub app -> JsxElement {
         return
             <AuthForm
                 isLogin={isLoginMode}
+                displayName={loginName}
                 email={loginEmail}
                 password={loginPassword}
                 confirmPassword={loginConfirmPassword}
                 error={loginError}
                 loading={loginLoading}
+                onDisplayNameChange={lambda e: any -> None { loginName = e.target.value; }}
                 onEmailChange={lambda e: any -> None { loginEmail = e.target.value; }}
                 onPasswordChange={lambda e: any -> None { loginPassword = e.target.value; }}
                 onConfirmPasswordChange={lambda e: any -> None { loginConfirmPassword = e.target.value; }}
@@ -420,7 +424,7 @@ def:pub app -> JsxElement {
                             profileTransactions={profileTransactions}
                             profileTransactionsLoading={profileTransactionsLoading}
                             portalStatsData={portalStatsData}
-                            savedDisplayName={profileDisplayName}
+                            userName={loginName}
                             savedAvatarIcon={profileAvatarIcon}
                             onSaveProfile={saveUserProfile}
                         />
