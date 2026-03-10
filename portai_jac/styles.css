@@ -1819,6 +1819,7 @@ body.dark .ai-summary-card,
     flex-direction: column;
     min-height: calc(100vh - 73px);
     background: var(--background);
+    transition: background-color 1s ease;
 }
 
 .profile-body {
@@ -1837,6 +1838,7 @@ body.dark .ai-summary-card,
     display: flex;
     flex-direction: column;
     gap: 24px;
+    transition: background-color 1s ease, border-color 1s ease;
 }
 
 .profile-filter-section { display: flex; flex-direction: column; gap: 14px; }
@@ -1849,10 +1851,11 @@ body.dark .ai-summary-card,
     color: var(--muted-foreground);
     padding-bottom: 6px;
     border-bottom: 1px solid var(--border);
+    transition: color 1s ease, border-color 1s ease;
 }
 
 .profile-filter-group { display: flex; flex-direction: column; gap: 8px; }
-.profile-filter-label { font-size: 0.8rem; font-weight: 600; color: var(--foreground); }
+.profile-filter-label { font-size: 0.8rem; font-weight: 600; color: var(--foreground); transition: color 1s ease; }
 
 .profile-position-pills { display: flex; flex-wrap: wrap; gap: 4px; }
 
@@ -1865,7 +1868,7 @@ body.dark .ai-summary-card,
     font-weight: 600;
     color: var(--muted-foreground);
     cursor: pointer;
-    transition: all 0.1s;
+    transition: border-color 1s ease, color 1s ease, background-color 1s ease;
 }
 
 .profile-pos-pill:hover { border-color: var(--primary); color: var(--primary); }
@@ -1874,8 +1877,8 @@ body.dark .ai-summary-card,
 /* NIL Toggle */
 .profile-toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .profile-toggle-info { display: flex; flex-direction: column; gap: 2px; flex: 1; }
-.profile-toggle-name { font-size: 0.8rem; font-weight: 500; color: var(--foreground); }
-.profile-toggle-helper { font-size: 0.72rem; color: var(--muted-foreground); }
+.profile-toggle-name { font-size: 0.8rem; font-weight: 500; color: var(--foreground); transition: color 1s ease; }
+.profile-toggle-helper { font-size: 0.72rem; color: var(--muted-foreground); transition: color 1s ease; }
 
 .profile-toggle-switch {
     width: 36px; height: 20px;
@@ -1883,7 +1886,7 @@ body.dark .ai-summary-card,
     background: var(--muted);
     cursor: pointer;
     position: relative;
-    transition: background 0.2s;
+    transition: background 1s ease;
     flex-shrink: 0;
 }
 
@@ -1912,6 +1915,7 @@ body.dark .ai-summary-card,
     padding: 6px 8px;
     border-radius: 6px;
     background: var(--accent);
+    transition: background-color 1s ease;
 }
 
 .profile-fav-team-badge {
@@ -1925,6 +1929,7 @@ body.dark .ai-summary-card,
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    transition: background-color 1s ease;
 }
 
 .profile-fav-team-info { flex: 1; min-width: 0; }
@@ -1936,9 +1941,10 @@ body.dark .ai-summary-card,
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    transition: color 1s ease;
 }
 
-.profile-fav-team-conf { font-size: 0.7rem; color: var(--muted-foreground); }
+.profile-fav-team-conf { font-size: 0.7rem; color: var(--muted-foreground); transition: color 1s ease; }
 
 .profile-unfav-btn {
     background: none;
@@ -1948,7 +1954,7 @@ body.dark .ai-summary-card,
     cursor: pointer;
     padding: 2px 4px;
     border-radius: 3px;
-    transition: color 0.1s;
+    transition: color 1s ease;
 }
 
 .profile-unfav-btn:hover { color: #dc2626; }
@@ -1962,6 +1968,7 @@ body.dark .ai-summary-card,
     flex-direction: column;
     gap: 8px;
     align-items: center;
+    transition: color 1s ease;
 }
 
 /* ── Main Content ─────────────────────────────────────────── */
@@ -1972,6 +1979,7 @@ body.dark .ai-summary-card,
     padding: 24px;
     overflow-y: auto;
     background: var(--background);
+    transition: background-color 1s ease;
 }
 
 /* Hero Card */
@@ -1981,6 +1989,7 @@ body.dark .ai-summary-card,
     background: var(--card);
     border: 1px solid var(--border);
     position: relative;
+    transition: background-color 1s ease, border-color 1s ease;
 }
 
 .profile-hero-bg {
@@ -2016,6 +2025,7 @@ body.dark .ai-summary-card,
     letter-spacing: -0.02em;
     position: relative;
     z-index: 1;
+    transition: background 1s ease;
 }
 
 .profile-avatar-ring {
@@ -2024,6 +2034,7 @@ body.dark .ai-summary-card,
     border-radius: 50%;
     border: 2px solid var(--primary);
     opacity: 0.4;
+    transition: border-color 1s ease;
 }
 
 .profile-avatar-clickable { cursor: pointer; transition: opacity 0.15s, transform 0.15s; }
@@ -2042,7 +2053,7 @@ body.dark .ai-summary-card,
     justify-content: center;
     cursor: pointer;
     z-index: 2;
-    transition: background 0.1s, border-color 0.1s;
+    transition: background 1s ease, border-color 1s ease;
     padding: 0;
 }
 
@@ -2059,6 +2070,7 @@ body.dark .ai-summary-card,
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
     padding: 14px;
     width: 220px;
+    transition: background-color 1s ease, border-color 1s ease;
 }
 
 .profile-icon-picker-title {
@@ -2068,6 +2080,7 @@ body.dark .ai-summary-card,
     text-transform: uppercase;
     color: var(--muted-foreground);
     margin-bottom: 10px;
+    transition: color 1s ease;
 }
 
 .profile-icon-picker-grid {
@@ -2087,7 +2100,7 @@ body.dark .ai-summary-card,
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.1s;
+    transition: border-color 1s ease, background-color 1s ease;
 }
 
 .profile-icon-option:hover { border-color: var(--primary); background: var(--accent); }
@@ -2103,7 +2116,7 @@ body.dark .ai-summary-card,
     font-weight: 600;
     color: var(--foreground);
     cursor: pointer;
-    transition: background 0.1s;
+    transition: background 1s ease, border-color 1s ease, color 1s ease;
 }
 
 .profile-icon-picker-close:hover { background: var(--muted); }
@@ -2121,7 +2134,7 @@ body.dark .ai-summary-card,
     color: var(--muted-foreground);
     padding: 2px 4px;
     border-radius: 4px;
-    transition: background 0.1s, color 0.1s;
+    transition: background 1s ease, color 1s ease;
     display: flex;
     align-items: center;
 }
@@ -2142,6 +2155,7 @@ body.dark .ai-summary-card,
     min-width: 0;
     width: 220px;
     box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
+    transition: background-color 1s ease, color 1s ease, border-color 1s ease;
 }
 
 .profile-name-save-btn {
@@ -2153,7 +2167,7 @@ body.dark .ai-summary-card,
     font-size: 0.82rem;
     font-weight: 600;
     cursor: pointer;
-    transition: opacity 0.1s;
+    transition: background-color 1s ease, opacity 0.1s;
     white-space: nowrap;
 }
 
@@ -2167,7 +2181,7 @@ body.dark .ai-summary-card,
     font-size: 0.82rem;
     color: var(--muted-foreground);
     cursor: pointer;
-    transition: background 0.1s;
+    transition: background 1s ease, border-color 1s ease, color 1s ease;
     white-space: nowrap;
 }
 
@@ -2179,9 +2193,10 @@ body.dark .ai-summary-card,
     color: var(--foreground);
     letter-spacing: -0.02em;
     margin: 0;
+    transition: color 1s ease;
 }
 
-.profile-email { font-size: 0.85rem; color: var(--muted-foreground); }
+.profile-email { font-size: 0.85rem; color: var(--muted-foreground); transition: color 1s ease; }
 
 .profile-meta-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
 
@@ -2196,6 +2211,7 @@ body.dark .ai-summary-card,
     font-size: 0.75rem;
     font-weight: 500;
     color: var(--foreground);
+    transition: background-color 1s ease, border-color 1s ease, color 1s ease;
 }
 
 .profile-meta-pill.accent-pill { background: var(--primary); border-color: var(--primary); color: #fff; }
@@ -2205,6 +2221,7 @@ body.dark .ai-summary-card,
     display: flex;
     gap: 0;
     border-bottom: 2px solid var(--border);
+    transition: border-color 1s ease;
 }
 
 .profile-tab {
@@ -2217,7 +2234,7 @@ body.dark .ai-summary-card,
     cursor: pointer;
     border-bottom: 2px solid transparent;
     margin-bottom: -2px;
-    transition: all 0.15s;
+    transition: color 1s ease, border-color 1s ease;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -2235,6 +2252,7 @@ body.dark .ai-summary-card,
     border-radius: 10px;
     min-width: 18px;
     text-align: center;
+    transition: background-color 1s ease;
 }
 
 .profile-tab-content {
@@ -2264,6 +2282,7 @@ body.dark .ai-summary-card,
     display: flex;
     flex-direction: column;
     gap: 4px;
+    transition: background-color 1s ease, border-color 1s ease;
 }
 
 .snapshot-card-label {
@@ -2272,6 +2291,7 @@ body.dark .ai-summary-card,
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: var(--muted-foreground);
+    transition: color 1s ease;
 }
 
 .snapshot-card-value {
@@ -2279,13 +2299,14 @@ body.dark .ai-summary-card,
     font-weight: 800;
     letter-spacing: -0.03em;
     color: var(--foreground);
+    transition: color 1s ease;
 }
 
 .snapshot-card-value.blue  { color: #0ea5e9; }
 .snapshot-card-value.green { color: #22c55e; }
 .snapshot-card-value.red   { color: #ef4444; }
 .snapshot-card-value.gold  { color: #f59e0b; }
-.snapshot-card-sub { font-size: 0.72rem; color: var(--muted-foreground); }
+.snapshot-card-sub { font-size: 0.72rem; color: var(--muted-foreground); transition: color 1s ease; }
 
 /* Stats Row */
 .profile-stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -2295,9 +2316,10 @@ body.dark .ai-summary-card,
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 18px;
+    transition: background-color 1s ease, border-color 1s ease;
 }
 
-.profile-stats-card-title { font-size: 0.82rem; font-weight: 700; color: var(--foreground); margin-bottom: 14px; }
+.profile-stats-card-title { font-size: 0.82rem; font-weight: 700; color: var(--foreground); margin-bottom: 14px; transition: color 1s ease; }
 .profile-bar-list { display: flex; flex-direction: column; gap: 10px; }
 
 .profile-bar-row {
@@ -2307,24 +2329,25 @@ body.dark .ai-summary-card,
     gap: 8px;
 }
 
-.profile-bar-label { font-size: 0.75rem; font-weight: 600; color: var(--foreground); white-space: nowrap; }
+.profile-bar-label { font-size: 0.75rem; font-weight: 600; color: var(--foreground); white-space: nowrap; transition: color 1s ease; }
 
 .profile-bar-track {
     height: 6px;
     border-radius: 3px;
     background: var(--muted);
     overflow: hidden;
+    transition: background-color 1s ease;
 }
 
 .profile-bar-fill {
     height: 100%;
     border-radius: 3px;
     background: var(--primary);
-    transition: width 0.5s ease;
+    transition: width 0.5s ease, background-color 1s ease;
 }
 
 .profile-bar-fill.conf { background: #8b5cf6; }
-.profile-bar-count { font-size: 0.72rem; font-weight: 600; color: var(--muted-foreground); text-align: right; }
+.profile-bar-count { font-size: 0.72rem; font-weight: 600; color: var(--muted-foreground); text-align: right; transition: color 1s ease; }
 
 /* Activity Feed */
 .profile-activity-card {
@@ -2332,6 +2355,7 @@ body.dark .ai-summary-card,
     border: 1px solid var(--border);
     border-radius: 10px;
     overflow: hidden;
+    transition: background-color 1s ease, border-color 1s ease;
 }
 
 .profile-activity-header {
@@ -2340,9 +2364,10 @@ body.dark .ai-summary-card,
     justify-content: space-between;
     padding: 14px 18px;
     border-bottom: 1px solid var(--border);
+    transition: border-color 1s ease;
 }
 
-.profile-activity-title { font-size: 0.88rem; font-weight: 700; color: var(--foreground); }
+.profile-activity-title { font-size: 0.88rem; font-weight: 700; color: var(--foreground); transition: color 1s ease; }
 
 .profile-view-all-btn {
     background: none;
@@ -2351,7 +2376,7 @@ body.dark .ai-summary-card,
     color: var(--primary);
     cursor: pointer;
     font-weight: 500;
-    transition: opacity 0.1s;
+    transition: color 1s ease, opacity 0.1s;
 }
 
 .profile-view-all-btn:hover { opacity: 0.75; }
@@ -2363,7 +2388,7 @@ body.dark .ai-summary-card,
     justify-content: space-between;
     padding: 11px 18px;
     border-bottom: 1px solid var(--border);
-    transition: background 0.1s;
+    transition: background-color 1s ease, border-color 1s ease;
 }
 
 .profile-activity-row:last-child { border-bottom: none; }
@@ -2383,9 +2408,10 @@ body.dark .ai-summary-card,
     font-weight: 700;
     color: var(--muted-foreground);
     flex-shrink: 0;
+    transition: background-color 1s ease, border-color 1s ease, color 1s ease;
 }
 
-.profile-activity-name { font-size: 0.85rem; font-weight: 600; color: var(--foreground); }
+.profile-activity-name { font-size: 0.85rem; font-weight: 600; color: var(--foreground); transition: color 1s ease; }
 
 .profile-activity-route {
     display: flex;
@@ -2395,9 +2421,9 @@ body.dark .ai-summary-card,
     margin-top: 2px;
 }
 
-.activity-from { color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px; }
-.activity-arrow { color: var(--primary); font-size: 0.8rem; flex-shrink: 0; }
-.activity-to { color: var(--foreground); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px; }
+.activity-from { color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px; transition: color 1s ease; }
+.activity-arrow { color: var(--primary); font-size: 0.8rem; flex-shrink: 0; transition: color 1s ease; }
+.activity-to { color: var(--foreground); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px; transition: color 1s ease; }
 .profile-activity-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 
 .profile-pos-badge {
@@ -2409,6 +2435,7 @@ body.dark .ai-summary-card,
     border: 1px solid var(--border);
     color: var(--foreground);
     text-transform: uppercase;
+    transition: background-color 1s ease, border-color 1s ease, color 1s ease;
 }
 
 .profile-watch-btn {
@@ -2421,7 +2448,7 @@ body.dark .ai-summary-card,
     color: var(--muted-foreground);
     cursor: pointer;
     white-space: nowrap;
-    transition: all 0.15s;
+    transition: border-color 1s ease, color 1s ease, background-color 1s ease;
 }
 
 .profile-watch-btn:hover { border-color: var(--primary); color: var(--primary); }
@@ -2438,7 +2465,7 @@ body.dark .ai-summary-card,
     display: flex;
     flex-direction: column;
     gap: 10px;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition: border-color 1s ease, box-shadow 1s ease, background-color 1s ease;
 }
 
 .profile-watchlist-card:hover { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(14,165,233,0.08); }
@@ -2455,12 +2482,13 @@ body.dark .ai-summary-card,
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: background 1s ease;
 }
 
-.watchlist-name { font-size: 0.9rem; font-weight: 700; color: var(--foreground); }
+.watchlist-name { font-size: 0.9rem; font-weight: 700; color: var(--foreground); transition: color 1s ease; }
 .watchlist-pos-status { display: flex; align-items: center; gap: 8px; }
-.watchlist-status { font-size: 0.72rem; color: var(--muted-foreground); }
-.watchlist-route { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--muted-foreground); flex-wrap: wrap; }
+.watchlist-status { font-size: 0.72rem; color: var(--muted-foreground); transition: color 1s ease; }
+.watchlist-route { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--muted-foreground); flex-wrap: wrap; transition: color 1s ease; }
 
 .profile-unwatch-btn {
     width: 100%;
@@ -2471,7 +2499,7 @@ body.dark .ai-summary-card,
     font-size: 0.75rem;
     color: var(--muted-foreground);
     cursor: pointer;
-    transition: all 0.15s;
+    transition: border-color 1s ease, color 1s ease, background-color 1s ease;
     margin-top: 4px;
 }
 
@@ -2488,7 +2516,7 @@ body.dark .ai-summary-card,
     display: flex;
     flex-direction: column;
     gap: 14px;
-    transition: border-color 0.15s;
+    transition: border-color 1s ease, background-color 1s ease;
 }
 
 .profile-team-detail-card:hover { border-color: var(--primary); }
@@ -2506,12 +2534,13 @@ body.dark .ai-summary-card,
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    transition: background 1s ease;
 }
 
 .ptdc-title-block { flex: 1; min-width: 0; }
-.ptdc-name { font-size: 0.9rem; font-weight: 700; color: var(--foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ptdc-conf { font-size: 0.72rem; color: var(--muted-foreground); }
-.ptdc-remove-btn { background: none; border: none; font-size: 0.75rem; color: var(--muted-foreground); cursor: pointer; padding: 4px; border-radius: 3px; transition: color 0.1s; }
+.ptdc-name { font-size: 0.9rem; font-weight: 700; color: var(--foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 1s ease; }
+.ptdc-conf { font-size: 0.72rem; color: var(--muted-foreground); transition: color 1s ease; }
+.ptdc-remove-btn { background: none; border: none; font-size: 0.75rem; color: var(--muted-foreground); cursor: pointer; padding: 4px; border-radius: 3px; transition: color 1s ease; }
 .ptdc-remove-btn:hover { color: #dc2626; }
 
 .ptdc-stats {
@@ -2521,14 +2550,15 @@ body.dark .ai-summary-card,
     padding: 12px 0;
     border-top: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
+    transition: border-color 1s ease;
 }
 
 .ptdc-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.ptdc-stat-val { font-size: 1.3rem; font-weight: 800; color: var(--foreground); }
+.ptdc-stat-val { font-size: 1.3rem; font-weight: 800; color: var(--foreground); transition: color 1s ease; }
 .ptdc-stat-val.green { color: #22c55e; }
 .ptdc-stat-val.red   { color: #ef4444; }
-.ptdc-stat-label { font-size: 0.7rem; font-weight: 600; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.05em; }
-.ptdc-stat-divider { width: 1px; height: 28px; background: var(--border); }
+.ptdc-stat-label { font-size: 0.7rem; font-weight: 600; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.05em; transition: color 1s ease; }
+.ptdc-stat-divider { width: 1px; height: 28px; background: var(--border); transition: background-color 1s ease; }
 
 .ptdc-view-btn {
     width: 100%;
@@ -2540,7 +2570,7 @@ body.dark .ai-summary-card,
     font-size: 0.8rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: background-color 1s ease, color 1s ease, border-color 1s ease;
     text-align: center;
 }
 
@@ -2553,6 +2583,7 @@ body.dark .ai-summary-card,
     border-radius: 10px;
     overflow: hidden;
     max-width: 560px;
+    transition: background-color 1s ease, border-color 1s ease;
 }
 
 .profile-settings-section {
@@ -2561,6 +2592,7 @@ body.dark .ai-summary-card,
     display: flex;
     flex-direction: column;
     gap: 12px;
+    transition: border-color 1s ease;
 }
 
 .profile-settings-section:last-child { border-bottom: none; }
@@ -2571,6 +2603,7 @@ body.dark .ai-summary-card,
     letter-spacing: 0.05em;
     text-transform: uppercase;
     color: var(--muted-foreground);
+    transition: color 1s ease;
 }
 
 .profile-settings-row {
@@ -2580,8 +2613,8 @@ body.dark .ai-summary-card,
     gap: 12px;
 }
 
-.profile-settings-label { font-size: 0.85rem; font-weight: 500; color: var(--foreground); }
-.profile-settings-value { font-size: 0.85rem; color: var(--muted-foreground); }
+.profile-settings-label { font-size: 0.85rem; font-weight: 500; color: var(--foreground); transition: color 1s ease; }
+.profile-settings-value { font-size: 0.85rem; color: var(--muted-foreground); transition: color 1s ease; }
 
 .profile-settings-value-row { display: flex; align-items: center; gap: 10px; }
 
@@ -2594,7 +2627,7 @@ body.dark .ai-summary-card,
     font-size: 0.75rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.12s;
+    transition: background-color 1s ease, color 1s ease, border-color 1s ease;
     white-space: nowrap;
 }
 
@@ -2611,10 +2644,11 @@ body.dark .ai-summary-card,
     border: 1px solid var(--border);
     margin-top: 4px;
     animation: profileTabIn 0.18s ease;
+    transition: background-color 1s ease, border-color 1s ease;
 }
 
 .profile-password-field { display: flex; flex-direction: column; gap: 4px; }
-.profile-password-label { font-size: 0.78rem; font-weight: 600; color: var(--foreground); }
+.profile-password-label { font-size: 0.78rem; font-weight: 600; color: var(--foreground); transition: color 1s ease; }
 
 .profile-password-input {
     padding: 8px 12px;
@@ -2624,7 +2658,7 @@ body.dark .ai-summary-card,
     font-size: 0.85rem;
     color: var(--foreground);
     outline: none;
-    transition: border-color 0.15s;
+    transition: border-color 1s ease, background-color 1s ease, color 1s ease;
 }
 
 .profile-password-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1); }
@@ -2638,7 +2672,7 @@ body.dark .ai-summary-card,
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
-    transition: opacity 0.12s;
+    transition: background-color 1s ease, opacity 0.12s;
     align-self: flex-start;
 }
 
@@ -2671,7 +2705,7 @@ body.dark .ai-summary-card,
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: background-color 1s ease, color 1s ease;
     align-self: flex-start;
 }
 
@@ -2688,9 +2722,9 @@ body.dark .ai-summary-card,
     text-align: center;
 }
 
-.profile-empty-tab h3 { font-size: 1.05rem; font-weight: 700; color: var(--foreground); margin: 0; }
-.profile-empty-tab p { font-size: 0.85rem; color: var(--muted-foreground); margin: 0; max-width: 320px; }
-.profile-empty-state { padding: 20px; text-align: center; font-size: 0.82rem; color: var(--muted-foreground); }
+.profile-empty-tab h3 { font-size: 1.05rem; font-weight: 700; color: var(--foreground); margin: 0; transition: color 1s ease; }
+.profile-empty-tab p { font-size: 0.85rem; color: var(--muted-foreground); margin: 0; max-width: 320px; transition: color 1s ease; }
+.profile-empty-state { padding: 20px; text-align: center; font-size: 0.82rem; color: var(--muted-foreground); transition: color 1s ease; }
 
 .profile-loading-state {
     display: flex;
@@ -2700,6 +2734,7 @@ body.dark .ai-summary-card,
     padding: 32px;
     font-size: 0.85rem;
     color: var(--muted-foreground);
+    transition: color 1s ease;
 }
 
 .profile-spinner {
@@ -2708,6 +2743,7 @@ body.dark .ai-summary-card,
     border: 2px solid var(--border);
     border-top-color: var(--primary);
     animation: spin 0.7s linear infinite;
+    transition: border-color 1s ease;
 }
 
 /* Profile Responsive */
@@ -2730,6 +2766,7 @@ body.dark .ai-summary-card,
     flex-direction: column;
     height: calc(100vh - 73px);
     background: var(--background);
+    transition: background-color 1s ease;
 }
 
 /* Header */
@@ -2741,6 +2778,7 @@ body.dark .ai-summary-card,
     background: var(--card);
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
+    transition: background-color 1s ease, border-color 1s ease;
 }
 
 .chat-page-header-left { display: flex; flex-direction: column; gap: 2px; }
@@ -2753,6 +2791,7 @@ body.dark .ai-summary-card,
     display: flex;
     align-items: baseline;
     gap: 6px;
+    transition: color 1s ease;
 }
 
 .chat-page-brand .accent { color: var(--accent); }
@@ -2762,9 +2801,10 @@ body.dark .ai-summary-card,
     font-weight: 500;
     color: var(--muted-foreground);
     letter-spacing: 0;
+    transition: color 1s ease;
 }
 
-.chat-page-subtitle { font-size: 0.8rem; color: var(--muted-foreground); }
+.chat-page-subtitle { font-size: 0.8rem; color: var(--muted-foreground); transition: color 1s ease; }
 .chat-page-header-right { display: flex; align-items: center; gap: 12px; }
 
 .chat-page-status {
@@ -2805,6 +2845,7 @@ body.dark .ai-summary-card,
     display: flex;
     flex-direction: column;
     gap: 12px;
+    transition: background-color 1s ease, border-color 1s ease;
 }
 
 .chat-sidebar-section-title {
@@ -2815,6 +2856,7 @@ body.dark .ai-summary-card,
     color: var(--muted-foreground);
     padding-bottom: 6px;
     border-bottom: 1px solid var(--border);
+    transition: color 1s ease, border-color 1s ease;
 }
 
 .chat-prompt-list { display: flex; flex-direction: column; gap: 4px; }
@@ -2830,7 +2872,7 @@ body.dark .ai-summary-card,
     border: 1px solid transparent;
     background: transparent;
     cursor: pointer;
-    transition: all 0.12s;
+    transition: background-color 1s ease, border-color 1s ease, color 1s ease;
     color: var(--foreground);
 }
 
@@ -2848,7 +2890,7 @@ body.dark .ai-summary-card,
     font-size: 0.85rem;
     font-weight: 700;
     cursor: pointer;
-    transition: background 0.15s, box-shadow 0.15s;
+    transition: background-color 1s ease, border-color 1s ease, box-shadow 1s ease;
     letter-spacing: 0.01em;
     flex-shrink: 0;
 }
@@ -2882,7 +2924,7 @@ body.dark .ai-summary-card,
     border: 1px solid transparent;
     background: transparent;
     cursor: pointer;
-    transition: all 0.12s;
+    transition: background-color 1s ease, border-color 1s ease, color 1s ease;
     color: var(--foreground);
 }
 
@@ -2918,6 +2960,7 @@ body.dark .ai-summary-card,
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 170px;
+    transition: color 1s ease;
 }
 
 .chat-history-item.active .chat-history-title {
@@ -2928,6 +2971,7 @@ body.dark .ai-summary-card,
 .chat-history-meta {
     font-size: 0.68rem;
     color: var(--muted-foreground);
+    transition: color 1s ease;
 }
 
 /* ── Prompts section (always visible below history) ─────── */
@@ -2951,11 +2995,11 @@ body.dark .ai-summary-card,
     font-size: 0.85rem;
     flex-shrink: 0;
     margin-top: 1px;
-    transition: color 0.12s;
+    transition: color 1s ease;
 }
 
 .chat-sidebar-prompt:hover .chat-prompt-icon { color: var(--primary); }
-.chat-prompt-text { font-size: 0.78rem; line-height: 1.4; color: var(--foreground); }
+.chat-prompt-text { font-size: 0.78rem; line-height: 1.4; color: var(--foreground); transition: color 1s ease; }
 
 /* Main area */
 .chat-page-main { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
@@ -2988,12 +3032,13 @@ body.dark .ai-summary-card,
     color: var(--accent);
     margin-bottom: 4px;
     animation: emptyIconFloat 3s ease-in-out infinite;
+    transition: color 1s ease;
 }
 
 @keyframes emptyIconFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 
-.chat-page-empty-title { font-size: 1.4rem; font-weight: 800; color: var(--foreground); margin: 0; letter-spacing: -0.02em; }
-.chat-page-empty-sub { font-size: 0.9rem; color: var(--muted-foreground); margin: 0; line-height: 1.5; }
+.chat-page-empty-title { font-size: 1.4rem; font-weight: 800; color: var(--foreground); margin: 0; letter-spacing: -0.02em; transition: color 1s ease; }
+.chat-page-empty-sub { font-size: 0.9rem; color: var(--muted-foreground); margin: 0; line-height: 1.5; transition: color 1s ease; }
 .chat-page-empty-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 8px; }
 
 .chat-empty-chip {
@@ -3004,7 +3049,7 @@ body.dark .ai-summary-card,
     font-size: 0.78rem;
     color: var(--foreground);
     cursor: pointer;
-    transition: all 0.12s;
+    transition: border-color 1s ease, color 1s ease, background-color 1s ease;
     text-align: left;
 }
 
@@ -3035,9 +3080,10 @@ body.dark .ai-summary-card,
     letter-spacing: 0.04em;
     color: var(--accent);
     text-transform: uppercase;
+    transition: color 1s ease;
 }
 
-.chat-ai-icon { font-size: 0.85rem; color: var(--accent); }
+.chat-ai-icon { font-size: 0.85rem; color: var(--accent); transition: color 1s ease; }
 
 .chat-page-bubble-text {
     padding: 12px 16px;
@@ -3045,11 +3091,12 @@ body.dark .ai-summary-card,
     font-size: 0.9rem;
     line-height: 1.6;
     color: var(--foreground);
+    transition: background-color 1s ease, border-color 1s ease, color 1s ease;
 }
 
 .chat-page-bubble.user .chat-page-bubble-text {
     background: var(--primary);
-    color: #fff;
+    color: var(--primary-foreground);
     border-radius: 14px 14px 4px 14px;
 }
 
@@ -3068,6 +3115,7 @@ body.dark .ai-summary-card,
     border: 1px solid var(--border);
     border-radius: 14px 14px 14px 4px;
     width: fit-content;
+    transition: background-color 1s ease, border-color 1s ease;
 }
 
 .chat-page-typing span {
@@ -3075,6 +3123,7 @@ body.dark .ai-summary-card,
     border-radius: 50%;
     background: var(--muted-foreground);
     animation: typingBounce 1.2s infinite;
+    transition: background-color 1s ease;
 }
 
 .chat-page-typing span:nth-child(2) { animation-delay: 0.2s; }
@@ -3094,6 +3143,7 @@ body.dark .ai-summary-card,
     border-top: 1px solid var(--border);
     background: var(--card);
     flex-shrink: 0;
+    transition: background-color 1s ease, border-color 1s ease;
 }
 
 .chat-page-input {
@@ -3105,7 +3155,7 @@ body.dark .ai-summary-card,
     font-size: 0.9rem;
     color: var(--foreground);
     outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition: border-color 1s ease, box-shadow 1s ease, background-color 1s ease, color 1s ease;
 }
 
 .chat-page-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1); }
@@ -3124,7 +3174,7 @@ body.dark .ai-summary-card,
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    transition: opacity 0.15s, transform 0.15s;
+    transition: background-color 1s ease, opacity 0.15s, transform 0.15s;
 }
 
 .chat-page-send-btn:hover:not(.disabled) { opacity: 0.88; transform: scale(1.05); }
