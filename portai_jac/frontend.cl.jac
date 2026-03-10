@@ -20,7 +20,7 @@ import from .data.mock_data { default_favorite_team_ids, mock_teams }
 sv import from main {
     update_favorites, get_user_favorites, get_portal_summary, update_profile, get_user_profile, 
     get_transfers, search_players, get_player_by_id, get_ai_impact, get_portal_stats,
-    predict_destination, chat
+    predict_destination, chat, get_team_stats
 }
 
 def:pub app -> JsxElement {
@@ -36,6 +36,7 @@ def:pub app -> JsxElement {
         aiSummaryLoading: bool = False,
         expandedAIImpacts: list = [],
         aiImpactTexts: any = {},
+        teamCounts: any = {},
         aiImpactLoading: list = [],
         transactions: list = [],
         transactionsLoading: bool = False,
@@ -94,6 +95,7 @@ def:pub app -> JsxElement {
             fetchTransactions();
             fetchPortalStats();
             fetchUserProfile();
+            fetchTeamStats();
         }
     }
 
@@ -117,6 +119,7 @@ def:pub app -> JsxElement {
     async def handleCrystalBall(playerId: str) -> None;
     async def handleLogin -> None;
     async def handleSignup -> None;
+    async def fetchTeamStats -> None;
     async def handleToggleFavorite(teamId: str) -> None;
     def handleLogout -> None;
     async def handleSubmit(e: any) -> None;
@@ -350,6 +353,7 @@ def:pub app -> JsxElement {
                             aiImpactTexts={aiImpactTexts}
                             aiImpactLoading={aiImpactLoading}
                             portalStatsData={portalStatsData}
+                            teamCounts={teamCounts}
                         />
                     ) if currentPage == "home" else (
                         <TeamsPage
@@ -364,6 +368,7 @@ def:pub app -> JsxElement {
                             onSortByChange={handleSortByChange}
                             activityLevel={teamsActivityLevel}
                             onActivityLevelChange={handleActivityLevelChange}
+                            teamCounts={teamCounts}
                         />
                     ) if currentPage == "teams" else (
                         <PlayersPage

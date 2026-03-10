@@ -427,3 +427,14 @@ impl app.saveUserProfile(profileData: any) -> None {
         console.error("Failed to save profile: " + String(e));
     }
 }
+
+impl app.fetchTeamStats -> None {
+    try {
+        result = root spawn get_team_stats();
+        if result.reports {
+            teamCounts = result.reports[0]["teamCounts"];
+        }
+    } except e {
+        teamCounts = {};
+    }
+}

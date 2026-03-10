@@ -14,11 +14,23 @@ def:pub TeamsPage(
     sortBy: str,
     onSortByChange: any,
     activityLevel: int,
-    onActivityLevelChange: any
+    onActivityLevelChange: any,
+    teamCounts: any
 ) -> any {
     conferences = ["all", "AAC", "ACC", "Big Ten", "Big 12", "CUSA", "MAC", "MWC", "Pac-12", "SEC", "Sun Belt"];
 
-    filtered_teams = mock_teams.filter(
+    enriched_teams = mock_teams.map(
+        lambda team: dict -> dict {
+            counts = (teamCounts[team["name"]] if teamCounts and teamCounts[team["name"]] else {"incoming": 0, "outgoing": 0});
+            return Object.assign({}, team, {
+                "incomingCount": counts["incoming"],
+                "outgoingCount": counts["outgoing"],
+                "portalActivityScore": counts["incoming"] + counts["outgoing"]
+            });
+        }
+    );
+
+    filtered_teams = enriched_teams.filter(
         lambda team: dict -> bool {
             if conferenceFilter != "all" and team["conference"] != conferenceFilter {
                 return False;

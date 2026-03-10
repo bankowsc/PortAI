@@ -1,0 +1,29 @@
+
+  JAC DEV SERVER v0.9.15
+
+  ➜  Local:     http://localhost:8000/
+  ➜  Network:   http://35.2.146.231:8000/
+
+  🚀 Server ready
+
+
+  ⏳ Building client bundle...
+
+
+  ✔ Client bundle built (1.1s)
+  ✔ Client bundle ready (4.8s)
+  127.0.0.1:58010 - "GET / HTTP/1.1" 200
+  127.0.0.1:58011 - "GET /static/client.js?hash=395ff999eb8a2a561ea06661265490af8db7df08658a5d73251dc37d5f6693f8 HTTP/1.1" 200
+  127.0.0.1:58010 - "GET /static/styles.css?hash=69e96093 HTTP/1.1" 200
+  127.0.0.1:58010 - "POST /walker/get_portal_summary HTTP/1.1" 500
+  127.0.0.1:58011 - "POST /walker/get_user_favorites HTTP/1.1" 500
+  127.0.0.1:58012 - "POST /walker/get_transfers HTTP/1.1" 500
+  127.0.0.1:58013 - "POST /walker/get_portal_stats HTTP/1.1" 500
+  127.0.0.1:58014 - "POST /walker/get_user_profile HTTP/1.1" 500
+  127.0.0.1:58027 - "POST /user/register HTTP/1.1" 400
+  127.0.0.1:58036 - "POST /user/login HTTP/1.1" 200
+  127.0.0.1:58036 - "POST /walker/get_user_favorites HTTP/1.1" 500
+  127.0.0.1:58037 - "POST /walker/get_portal_summary HTTP/1.1" 500
+  127.0.0.1:58038 - "POST /walker/get_transfers HTTP/1.1" 500
+  127.0.0.1:58039 - "POST /walker/get_portal_stats HTTP/1.1" 500
+  127.0.0.1:58040 - "POST /walker/get_user_profile HTTP/1.1" 500

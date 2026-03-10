@@ -161,7 +161,7 @@ glob mock_teams_data = [
 
 # --- CSV Data Layer ---
 # Resolve the CSV path relative to this file's directory
-glob CSV_DIR: str = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scraping", "transfer_247_data");
+glob CSV_DIR: str = os.path.join(os.getcwd(), "..", "scraping", "transfer_247_data");
 glob CSV_FILE: str = os.path.join(CSV_DIR, "transfer_portal_247_2026.csv");
 
 def read_all_transfers() -> list {
@@ -364,6 +364,33 @@ def get_portal_stats_from_csv() -> dict {
         "statusBreakdown": status_counts
     };
 }
+
+def get_team_transfer_counts() -> dict {
+    # Returns a dict mapping team name -> {incoming, outgoing}
+    all_transfers = read_all_transfers();
+    counts: dict = {};
+    for t in all_transfers {
+        from_team = t["fromTeam"];
+        to_team = t["toTeam"];
+        # Count outgoing
+        if from_team and from_team != "Unknown" {
+            if from_team not in counts {
+                counts[from_team] = {"incoming": 0, "outgoing": 0};
+            }
+            counts[from_team]["outgoing"] = counts[from_team]["outgoing"] + 1;
+        }
+        # Count incoming (only if committed/enrolled somewhere)
+        if to_team and to_team != "Undecided" and to_team != "Unknown" {
+            if to_team not in counts {
+                counts[to_team] = {"incoming": 0, "outgoing": 0};
+            }
+            counts[to_team]["incoming"] = counts[to_team]["incoming"] + 1;
+        }
+    }
+    return counts;
+}
+
+
 
 glob portal_stats_context: str = "";
 
@@ -672,6 +699,37 @@ walker:priv get_portal_stats {
     can with Root entry {
         stats = get_portal_stats_from_csv();
         report stats;
+    }
+}
+
+walker:priv get_team_stats {
+    """Get incoming/outgoing transfer counts matched to mock team IDs."""
+
+    can with Root entry {
+        counts = get_team_transfer_counts();
+        # Match CSV names to mock team names and return by mock team name
+        matched: dict = {};
+        for mock_team in mock_teams_data {
+            tname = mock_team["name"].lower();
+            tfirst = tname.split(" ")[0];
+            best_key = "";
+            best_len = 0;
+            for csv_key in counts {
+                kl = csv_key.lower();
+                if tname in kl or kl in tname or (tfirst in kl and kl in tname) {
+                    if len(csv_key) > best_len {
+                        best_key = csv_key;
+                        best_len = len(csv_key);
+                    }
+                }
+            }
+            if best_key {
+                matched[mock_team["name"]] = counts[best_key];
+            } else {
+                matched[mock_team["name"]] = {"incoming": 0, "outgoing": 0};
+            }
+        }
+        report {"teamCounts": matched};
     }
 }
 

@@ -21,12 +21,25 @@ def:pub HomePage(
     onLoadMore: any,
     aiImpactTexts: any,
     aiImpactLoading: list,
-    portalStatsData: any
+    portalStatsData: any,
+    teamCounts: any
 ) -> any {
-    favorite_teams = [t for t in mock_teams if favoriteTeamIds.includes(t["id"])];
+    
+    enriched_teams = mock_teams.map(
+        lambda team: dict -> dict {
+            counts = (teamCounts[team["name"]] if teamCounts and teamCounts[team["name"]] else {"incoming": 0, "outgoing": 0});
+            return Object.assign({}, team, {
+                "incomingCount": counts["incoming"],
+                "outgoingCount": counts["outgoing"],
+                "portalActivityScore": counts["incoming"] + counts["outgoing"]
+            });
+        }
+    );
+
+    favorite_teams = [t for t in enriched_teams if favoriteTeamIds.includes(t["id"])];
     has_favorites = favorite_teams.length > 0;
 
-    trending_teams = mock_teams.slice().sort(
+    trending_teams = enriched_teams.slice().sort(
         lambda a: dict, b: dict -> int { return b["portalActivityScore"] - a["portalActivityScore"]; }
     ).slice(0, 5);
 
