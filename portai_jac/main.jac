@@ -16,6 +16,104 @@ import os;
 
 glob llm = Model(model_name="gemini/gemini-2.5-flash");
 
+glob TEAM_NAME_MAP: dict = {
+    "Alabama Crimson Tide": "Alabama",
+    "Auburn Tigers": "Auburn",
+    "LSU Tigers": "LSU",
+    "Ole Miss Rebels": "Ole Miss",
+    "Mississippi State Bulldogs": "Mississippi State",
+    "Miami Hurricanes": "Miami",
+    "Miami (OH) RedHawks": "Miami (OH)",
+    "NC State Wolfpack": "NC State",
+    "BYU Cougars": "BYU",
+    "SMU Mustangs": "SMU",
+    "TCU Horned Frogs": "TCU",
+    "USC Trojans": "USC",
+    "UCF Knights": "UCF",
+    "UCLA Bruins": "UCLA",
+    "UAB Blazers": "UAB",
+    "Texas A&M Aggies": "Texas A&M",
+    "Oklahoma Sooners": "Oklahoma",
+    "Oklahoma State Cowboys": "Oklahoma State",
+    "Ohio State Buckeyes": "Ohio State",
+    "Michigan Wolverines": "Michigan",
+    "Michigan State Spartans": "Michigan State",
+    "Penn State Nittany Lions": "Penn State",
+    "Notre Dame Fighting Irish": "Notre Dame",
+    "Georgia Bulldogs": "Georgia",
+    "Florida Gators": "Florida",
+    "Florida State Seminoles": "Florida State",
+    "Tennessee Volunteers": "Tennessee",
+    "Arkansas Razorbacks": "Arkansas",
+    "South Carolina Gamecocks": "South Carolina",
+    "Kentucky Wildcats": "Kentucky",
+    "Vanderbilt Commodores": "Vanderbilt",
+    "Missouri Tigers": "Missouri",
+    "Texas Longhorns": "Texas",
+    "Texas Tech Red Raiders": "Texas Tech",
+    "Baylor Bears": "Baylor",
+    "Kansas Jayhawks": "Kansas",
+    "Kansas State Wildcats": "Kansas State",
+    "Iowa State Cyclones": "Iowa State",
+    "West Virginia Mountaineers": "West Virginia",
+    "Oregon Ducks": "Oregon",
+    "Oregon State Beavers": "Oregon State",
+    "Washington Huskies": "Washington",
+    "Washington State Cougars": "Washington State",
+    "Utah Utes": "Utah",
+    "Colorado Buffaloes": "Colorado",
+    "Arizona Wildcats": "Arizona",
+    "Arizona State Sun Devils": "Arizona State",
+    "Stanford Cardinal": "Stanford",
+    "California Golden Bears": "California",
+    "UCLA Bruins": "UCLA",
+    "Wisconsin Badgers": "Wisconsin",
+    "Minnesota Golden Gophers": "Minnesota",
+    "Iowa Hawkeyes": "Iowa",
+    "Illinois Fighting Illini": "Illinois",
+    "Northwestern Wildcats": "Northwestern",
+    "Indiana Hoosiers": "Indiana",
+    "Purdue Boilermakers": "Purdue",
+    "Nebraska Cornhuskers": "Nebraska",
+    "Rutgers Scarlet Knights": "Rutgers",
+    "Maryland Terrapins": "Maryland",
+    "Pittsburgh Panthers": "Pittsburgh",
+    "Syracuse Orange": "Syracuse",
+    "Boston College Eagles": "Boston College",
+    "Wake Forest Demon Deacons": "Wake Forest",
+    "Duke Blue Devils": "Duke",
+    "North Carolina Tar Heels": "North Carolina",
+    "Virginia Cavaliers": "Virginia",
+    "Virginia Tech Hokies": "Virginia Tech",
+    "Clemson Tigers": "Clemson",
+    "Georgia Tech Yellow Jackets": "Georgia Tech",
+    "Louisville Cardinals": "Louisville",
+    "Cincinnati Bearcats": "Cincinnati",
+    "Houston Cougars": "Houston",
+    "UCF Knights": "UCF",
+    "Memphis Tigers": "Memphis",
+    "Tulane Green Wave": "Tulane",
+    "Army Black Knights": "Army",
+    "Navy Midshipmen": "Navy",
+    "Air Force Falcons": "Air Force",
+    "Boise State Broncos": "Boise State",
+    "Fresno State Bulldogs": "Fresno State",
+    "San Diego State Aztecs": "San Diego State",
+    "Nevada Wolf Pack": "Nevada",
+    "UNLV Rebels": "UNLV",
+    "Utah State Aggies": "Utah State",
+    "Colorado State Rams": "Colorado State",
+    "Wyoming Cowboys": "Wyoming",
+    "New Mexico Lobos": "New Mexico",
+    "New Mexico State Aggies": "New Mexico State",
+    "Hawaii Warriors": "Hawaii",
+    "Liberty Flames": "Liberty",
+    "James Madison Dukes": "James Madison",
+    "Jacksonville State Gamecocks": "Jacksonville State",
+    "Sam Houston Bearkats": "Sam Houston",
+    "Kennesaw State Owls": "Kennesaw State",
+};
+
 # Import mock data for building LLM context
 glob mock_teams_data = [
     {"id": "1", "name": "Air Force Falcons", "conference": "MWC", "portalActivityScore": 0, "lastSeasonRecord": "0-0", "incomingCount": 0, "outgoingCount": 0},
@@ -703,30 +801,16 @@ walker:priv get_portal_stats {
 }
 
 walker:priv get_team_stats {
-    """Get incoming/outgoing transfer counts matched to mock team IDs."""
-
+    """Get incoming/outgoing transfer counts keyed by mock team full name."""
     can with Root entry {
         counts = get_team_transfer_counts();
-        # Match CSV names to mock team names and return by mock team name
         matched: dict = {};
-        for mock_team in mock_teams_data {
-            tname = mock_team["name"].lower();
-            tfirst = tname.split(" ")[0];
-            best_key = "";
-            best_len = 0;
-            for csv_key in counts {
-                kl = csv_key.lower();
-                if tname in kl or kl in tname or (tfirst in kl and kl in tname) {
-                    if len(csv_key) > best_len {
-                        best_key = csv_key;
-                        best_len = len(csv_key);
-                    }
-                }
-            }
-            if best_key {
-                matched[mock_team["name"]] = counts[best_key];
+        for mock_name in TEAM_NAME_MAP {
+            csv_name = TEAM_NAME_MAP[mock_name];
+            if csv_name in counts {
+                matched[mock_name] = counts[csv_name];
             } else {
-                matched[mock_team["name"]] = {"incoming": 0, "outgoing": 0};
+                matched[mock_name] = {"incoming": 0, "outgoing": 0};
             }
         }
         report {"teamCounts": matched};
@@ -964,5 +1048,21 @@ walker:priv get_user_profile {
         if not self.found {
             report {"display_name": "", "avatar_icon": ""};
         }
+    }
+}
+
+walker:priv get_team_transfers {
+    has team_name: str = "";
+
+    can with Root entry {
+        csv_name = TEAM_NAME_MAP[team_name] if team_name in TEAM_NAME_MAP else team_name;
+        all_transfers = read_all_transfers();
+        result: list = [];
+        for t in all_transfers {
+            if t["fromTeam"] == csv_name or t["toTeam"] == csv_name {
+                result.append(t);
+            }
+        }
+        report {"transfers": result};
     }
 }

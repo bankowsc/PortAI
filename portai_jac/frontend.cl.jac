@@ -16,11 +16,12 @@ import from .pages.FavoritesPage { FavoritesPage }
 import from .pages.ProfilePage { ProfilePage }
 import from .pages.ChatPage { ChatPage }
 import from .data.mock_data { default_favorite_team_ids, mock_teams }
+import from .pages.TeamDetailPage { TeamDetailPage }
 
 sv import from main {
     update_favorites, get_user_favorites, get_portal_summary, update_profile, get_user_profile, 
     get_transfers, search_players, get_player_by_id, get_ai_impact, get_portal_stats,
-    predict_destination, chat, get_team_stats
+    predict_destination, chat, get_team_stats, get_team_analysis, get_team_transfers
 }
 
 def:pub app -> JsxElement {
@@ -80,6 +81,11 @@ def:pub app -> JsxElement {
         profileTransactionsLoading: bool = False,
         profileDisplayName: str = "",
         profileAvatarIcon: str = "",
+        teamDetailId: str = "",
+        teamTransfers: list = [],
+        teamTransfersLoading: bool = False,
+        teamAnalysis: str = "",
+        teamAnalysisLoading: bool = False,
         userEmail: str = "";
 
     can with entry {
@@ -129,6 +135,8 @@ def:pub app -> JsxElement {
     def handleSelectConversation(convId: str) -> None;
     async def fetchUserProfile -> None;
     async def saveUserProfile(profileData: any) -> None;
+    async def fetchTeamTransfers(teamName: str) -> None;
+    async def fetchTeamAnalysis(teamName: str) -> None;
 
     def toggleTheme -> None {
         if theme == "dark" {
@@ -141,17 +149,26 @@ def:pub app -> JsxElement {
     }
 
     def handleNavigate(page: str) -> None {
-        currentPage = page;
-        if page == "players" and players.length == 0 and not playersLoading {
-            fetchPlayers();
-        }
-        if page == "transactions" and txnPageData.length == 0 and not txnPageLoading {
-            txnFilterVersion = txnFilterVersion + 1;
-        }
-        if page == "profile" and profileTransactions.length == 0 and not profileTransactionsLoading {
-            fetchProfileTransactions();
+    currentPage = page;
+    if page.startsWith("team-detail:") {
+        teamDetailId = page.split(":")[1];
+        team_name = "";
+        found = mock_teams.filter(lambda t: dict -> bool { return t["id"] == teamDetailId; });
+        if found.length > 0 {
+            fetchTeamTransfers(found[0]["name"]);
+            fetchTeamAnalysis(found[0]["name"]);
         }
     }
+    if page == "players" and players.length == 0 and not playersLoading {
+        fetchPlayers();
+    }
+    if page == "transactions" and txnPageData.length == 0 and not txnPageLoading {
+        txnFilterVersion = txnFilterVersion + 1;
+    }
+    if page == "profile" and profileTransactions.length == 0 and not profileTransactionsLoading {
+        fetchProfileTransactions();
+    }
+}
 
     def handleSearch -> None {
         if searchQuery.trim() {
@@ -442,6 +459,23 @@ def:pub app -> JsxElement {
                         />
 
                     ) if currentPage == "chat" else (
+                        <TeamDetailPage
+                            teamId={teamDetailId}
+                            teamCounts={teamCounts}
+                            onNavigate={handleNavigate}
+                            favoriteTeamIds={favoriteTeamIds}
+                            onToggleFavorite={handleToggleFavorite}
+                            expandedAIImpacts={expandedAIImpacts}
+                            onToggleAIImpact={handleToggleAIImpact}
+                            aiImpactTexts={aiImpactTexts}
+                            aiImpactLoading={aiImpactLoading}
+                            teamTransfers={teamTransfers}
+                            teamTransfersLoading={teamTransfersLoading}
+                            teamAnalysis={teamAnalysis}
+                            teamAnalysisLoading={teamAnalysisLoading}
+                            onRegenerateAnalysis={lambda -> None { fetchTeamAnalysis(teamDetailName); }}
+                        />
+                    ) if currentPage.startsWith("team-detail:") else (
                         <div className="placeholder-page">
                             <h1>Coming Soon</h1>
                             <p className="text-muted">This page is under construction.</p>

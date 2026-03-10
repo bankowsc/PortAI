@@ -438,3 +438,38 @@ impl app.fetchTeamStats -> None {
         teamCounts = {};
     }
 }
+
+impl app.fetchTeamTransfers(teamName: str) -> None {
+    teamTransfersLoading = True;
+    teamTransfers = [];
+    try {
+        result = root spawn get_team_transfers(team_name=teamName);
+        if result.reports {
+            teamTransfers = result.reports[0]["transfers"];
+        }
+    } except e {
+        teamTransfers = [];
+    }
+    teamTransfersLoading = False;
+}
+
+impl app.fetchTeamAnalysis(teamName: str) -> None {
+    teamAnalysisLoading = True;
+    teamAnalysis = "";
+    try {
+        result = root spawn get_team_analysis(team_info=teamName);
+        if result.reports {
+            data = result.reports[0];
+            teamAnalysis = (
+                "Strategy: " + data["portal_strategy"] + " " +
+                "Key Additions: " + data["key_additions"] + " " +
+                "Key Losses: " + data["key_losses"] + " " +
+                "Outlook: " + data["outlook"] + " " +
+                "Risk Level: " + data["risk_level"]
+            );
+        }
+    } except e {
+        teamAnalysis = "Unable to generate analysis at this time.";
+    }
+    teamAnalysisLoading = False;
+}
