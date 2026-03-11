@@ -151,6 +151,7 @@ impl app.handleLogin -> None {
         loginEmail = "";
         loginPassword = "";
         currentPage = "home";
+        window.history.pushState({}, "", "/");
     } else {
         loginError = "Invalid email or password";
     }
@@ -180,6 +181,7 @@ impl app.handleSignup -> None {
         loginPassword = "";
         loginConfirmPassword = "";
         currentPage = "home";
+        window.history.pushState({}, "", "/");
     } else {
         loginError = result["error"] if result["error"] else "Signup failed. Please try again.";
     }
@@ -189,6 +191,7 @@ impl app.handleLogout -> None {
     jacLogout();
     isLoggedIn = False;
     currentPage = "home";
+    window.history.pushState({}, "", "/");
     favoriteTeamIds = default_favorite_team_ids;
 }
 

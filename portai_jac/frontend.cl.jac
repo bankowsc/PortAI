@@ -25,6 +25,36 @@ sv import from main {
     predict_destination, chat, get_team_stats, get_team_analysis, get_team_transfers, get_player_detail
 }
 
+# --- URL <-> Page Sync Helpers ---
+def pageToPath(page: str) -> str {
+    if page == "home" { return "/"; }
+    if page.startsWith("team-detail:") { return "/teams/" + page.split(":")[1]; }
+    if page.startsWith("player-detail:") { return "/players/" + page.split(":")[1]; }
+    return "/" + page;
+}
+
+def pathToPage(path: str) -> str {
+    if path == "/" or path == "" { return "home"; }
+    # Remove leading slash
+    cleaned = path;
+    if cleaned.startsWith("/") { cleaned = cleaned.substring(1); }
+    # Remove trailing slash
+    if cleaned.endsWith("/") { cleaned = cleaned.substring(0, cleaned.length - 1); }
+    # Handle /teams/123 -> team-detail:123
+    if cleaned.startsWith("teams/") {
+        parts = cleaned.split("/");
+        if parts.length >= 2 and parts[1] { return "team-detail:" + parts[1]; }
+        return "teams";
+    }
+    # Handle /players/123 -> player-detail:123
+    if cleaned.startsWith("players/") {
+        parts = cleaned.split("/");
+        if parts.length >= 2 and parts[1] { return "player-detail:" + parts[1]; }
+        return "players";
+    }
+    return cleaned;
+}
+
 def:pub app -> JsxElement {
     has currentPage: str = "home",
         isLoggedIn: bool = False,
@@ -96,6 +126,43 @@ def:pub app -> JsxElement {
         isLoggedIn = jacIsLoggedIn();
         checkingAuth = False;
         document.documentElement.className = theme;
+        # --- URL Sync: read URL on mount ---
+        initial_page = pathToPage(window.location.pathname);
+        if initial_page != currentPage {
+            currentPage = initial_page;
+            # Trigger side-effects for the restored page
+            if initial_page.startsWith("team-detail:") {
+                teamDetailId = initial_page.split(":")[1];
+                found = mock_teams.filter(lambda t: dict -> bool { return t["id"] == teamDetailId; });
+                if found.length > 0 {
+                    fetchTeamTransfers(found[0]["name"]);
+                    fetchTeamAnalysis(found[0]["name"]);
+                }
+            }
+            if initial_page.startsWith("player-detail:") {
+                playerDetailId = initial_page.split(":")[1];
+                fetchPlayerDetail(playerDetailId);
+            }
+            if initial_page == "players" and players.length == 0 and not playersLoading {
+                fetchPlayers();
+            }
+            if initial_page == "transactions" and txnPageData.length == 0 and not txnPageLoading {
+                txnFilterVersion = txnFilterVersion + 1;
+            }
+            if initial_page == "profile" and profileTransactions.length == 0 and not profileTransactionsLoading {
+                fetchProfileTransactions();
+            }
+        }
+        # --- URL Sync: listen for browser back/forward ---
+        if not window._portaiPopstateSet {
+            window._portaiPopstateSet = True;
+            window.addEventListener("popstate", lambda -> None {
+                nav_page = pathToPage(window.location.pathname);
+                if nav_page != currentPage {
+                    handleNavigate(nav_page);
+                }
+            });
+        }
     }
 
     can with [isLoggedIn] entry {
@@ -156,6 +223,11 @@ def:pub app -> JsxElement {
 
     def handleNavigate(page: str) -> None {
     currentPage = page;
+    # --- URL Sync: push URL to browser history ---
+    new_path = pageToPath(page);
+    if window.location.pathname != new_path {
+        window.history.pushState({}, "", new_path);
+    }
     if page.startsWith("team-detail:") {
         teamDetailId = page.split(":")[1];
         team_name = "";
