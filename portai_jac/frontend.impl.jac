@@ -473,3 +473,17 @@ impl app.fetchTeamAnalysis(teamName: str) -> None {
     }
     teamAnalysisLoading = False;
 }
+
+impl app.fetchPlayerDetail(playerId: str) -> None {
+    playerDetailLoading = True;
+    playerDetailData = {};
+    try {
+        result = root spawn get_player_detail(player_id=playerId);
+        if result.reports {
+            playerDetailData = result.reports[0];
+        }
+    } except e {
+        playerDetailData = {"error": "Failed to load player"};
+    }
+    playerDetailLoading = False;
+}

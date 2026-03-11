@@ -1066,3 +1066,30 @@ walker:priv get_team_transfers {
         report {"transfers": result};
     }
 }
+
+walker:priv get_player_detail {
+    has player_id: str;
+
+    can with Root entry {
+        all_transfers = read_all_transfers();
+        for t in all_transfers {
+            if t["id"] == self.player_id {
+                report {
+                    "id": t["id"],
+                    "name": t["playerName"],
+                    "position": t["position"],
+                    "height": t["height"],
+                    "weight": str(t["weight"]) + " lbs" if t["weight"] else "N/A",
+                    "starRating": t["starRating"],
+                    "rating": t["rating"],
+                    "fromTeam": t["fromTeam"],
+                    "toTeam": t["toTeam"],
+                    "status": t["status"],
+                    "profileUrl": t["profileUrl"]
+                };
+                return;
+            }
+        }
+        report {"error": "Player not found"};
+    }
+}

@@ -17,11 +17,12 @@ import from .pages.ProfilePage { ProfilePage }
 import from .pages.ChatPage { ChatPage }
 import from .data.mock_data { default_favorite_team_ids, mock_teams }
 import from .pages.TeamDetailPage { TeamDetailPage }
+import from .pages.PlayerDetailPage { PlayerDetailPage }
 
 sv import from main {
     update_favorites, get_user_favorites, get_portal_summary, update_profile, get_user_profile, 
     get_transfers, search_players, get_player_by_id, get_ai_impact, get_portal_stats,
-    predict_destination, chat, get_team_stats, get_team_analysis, get_team_transfers
+    predict_destination, chat, get_team_stats, get_team_analysis, get_team_transfers, get_player_detail
 }
 
 def:pub app -> JsxElement {
@@ -86,6 +87,9 @@ def:pub app -> JsxElement {
         teamTransfersLoading: bool = False,
         teamAnalysis: str = "",
         teamAnalysisLoading: bool = False,
+        playerDetailData: any = {},
+        playerDetailLoading: bool = False,
+        playerDetailId: str = "",
         userEmail: str = "";
 
     can with entry {
@@ -137,6 +141,8 @@ def:pub app -> JsxElement {
     async def saveUserProfile(profileData: any) -> None;
     async def fetchTeamTransfers(teamName: str) -> None;
     async def fetchTeamAnalysis(teamName: str) -> None;
+    async def fetchPlayerDetail(playerId: str) -> None;
+
 
     def toggleTheme -> None {
         if theme == "dark" {
@@ -158,6 +164,10 @@ def:pub app -> JsxElement {
             fetchTeamTransfers(found[0]["name"]);
             fetchTeamAnalysis(found[0]["name"]);
         }
+    }
+    if page.startsWith("player-detail:") {
+        playerDetailId = page.split(":")[1];
+        fetchPlayerDetail(playerDetailId);
     }
     if page == "players" and players.length == 0 and not playersLoading {
         fetchPlayers();
@@ -459,6 +469,21 @@ def:pub app -> JsxElement {
                         />
 
                     ) if currentPage == "chat" else (
+                        <PlayerDetailPage
+                            playerId={playerDetailId}
+                            playerData={playerDetailData}
+                            playerLoading={playerDetailLoading}
+                            onNavigate={handleNavigate}
+                            aiImpactTexts={aiImpactTexts}
+                            aiImpactLoading={aiImpactLoading}
+                            expandedAIImpacts={expandedAIImpacts}
+                            onToggleAIImpact={handleToggleAIImpact}
+                            crystalBallTexts={crystalBallTexts}
+                            crystalBallLoading={crystalBallLoading}
+                            expandedCrystalBalls={expandedCrystalBalls}
+                            onToggleCrystalBall={handleToggleCrystalBall}
+                        />
+                    ) if currentPage.startsWith("player-detail:") else (
                         <TeamDetailPage
                             teamId={teamDetailId}
                             teamCounts={teamCounts}
@@ -476,6 +501,7 @@ def:pub app -> JsxElement {
                             onRegenerateAnalysis={lambda -> None { fetchTeamAnalysis(teamDetailName); }}
                         />
                     ) if currentPage.startsWith("team-detail:") else (
+                    
                         <div className="placeholder-page">
                             <h1>Coming Soon</h1>
                             <p className="text-muted">This page is under construction.</p>
