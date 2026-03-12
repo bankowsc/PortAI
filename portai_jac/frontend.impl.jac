@@ -1,9 +1,15 @@
 """PortAI - Frontend Method Implementations."""
 
 impl app.fetchFavorites -> None {
-    result = root spawn get_user_favorites();
-    if result.reports {
-        favoriteTeamIds = result.reports[0]["favorites"];
+    try {
+        result = root spawn get_user_favorites();
+        if result.reports {
+            favoriteTeamIds = result.reports[0]["favorites"];
+            window.localStorage.setItem("portai_favorites", JSON.stringify(result.reports[0]["favorites"]));
+        }
+    } except e {
+        # Keep existing favoriteTeamIds (may have been loaded from localStorage)
+        favoriteTeamIds = favoriteTeamIds;
     }
 }
 
@@ -14,10 +20,14 @@ impl app.fetchAISummary -> None {
         if result.reports {
             aiSummaryTitle = result.reports[0]["title"];
             aiSummary = result.reports[0]["content"];
+            window.localStorage.setItem("portai_ai_summary_title", result.reports[0]["title"]);
+            window.localStorage.setItem("portai_ai_summary", result.reports[0]["content"]);
         }
     } except e {
-        aiSummaryTitle = "Transfer Impact Overview";
-        aiSummary = "Unable to generate AI summary at this time. Please try again by clicking Regenerate Summary.";
+        if not aiSummary {
+            aiSummaryTitle = "Transfer Impact Overview";
+            aiSummary = "Unable to generate AI summary at this time. Please try again by clicking Regenerate Summary.";
+        }
     }
     aiSummaryLoading = False;
 }
@@ -36,10 +46,17 @@ impl app.fetchTransactions -> None {
             transactions = result.reports[0]["transfers"];
             totalTransactions = result.reports[0]["total"];
             transactionsOffset = 100;
+            window.localStorage.setItem("portai_transactions", JSON.stringify({
+                "data": result.reports[0]["transfers"],
+                "total": result.reports[0]["total"],
+                "offset": 100
+            }));
         }
     } except e {
-        transactions = [];
-        totalTransactions = 0;
+        if transactions.length == 0 {
+            transactions = [];
+            totalTransactions = 0;
+        }
     }
     transactionsLoading = False;
 }
@@ -111,13 +128,20 @@ impl app.fetchPortalStats -> None {
         result = root spawn get_portal_stats();
         if result.reports {
             portalStatsData = result.reports[0];
+            window.localStorage.setItem("portai_portal_stats", JSON.stringify(result.reports[0]));
         }
     } except e {
-        portalStatsData = {};
+        if not portalStatsData {
+            portalStatsData = {};
+        }
     }
 }
 
 impl app.fetchAIImpact(playerId: str) -> None {
+    # Return cached result if available
+    if aiImpactTexts[playerId] {
+        return;
+    }
     aiImpactLoading = aiImpactLoading.concat([playerId]);
     try {
         result = root spawn get_ai_impact(player_id=playerId);
@@ -125,6 +149,7 @@ impl app.fetchAIImpact(playerId: str) -> None {
             new_texts = Object.assign({}, aiImpactTexts);
             new_texts[playerId] = result.reports[0]["impact"];
             aiImpactTexts = new_texts;
+            window.localStorage.setItem("portai_ai_impacts", JSON.stringify(new_texts));
         }
     } except e {
         new_texts = Object.assign({}, aiImpactTexts);
@@ -148,6 +173,12 @@ impl app.handleLogin -> None {
     if success {
         isLoggedIn = True;
         userEmail = loginEmail;
+        window.localStorage.setItem("portai_email", loginEmail);
+        try {
+            await root spawn update_profile(email=loginEmail);
+        } except e {
+            console.warn("Failed to sync email to server");
+        }
         loginEmail = "";
         loginPassword = "";
         currentPage = "home";
@@ -177,6 +208,12 @@ impl app.handleSignup -> None {
     if result["success"] {
         isLoggedIn = True;
         userEmail = loginEmail;
+        window.localStorage.setItem("portai_email", loginEmail);
+        try {
+            await root spawn update_profile(email=loginEmail);
+        } except e {
+            console.warn("Failed to sync email to server");
+        }
         loginEmail = "";
         loginPassword = "";
         loginConfirmPassword = "";
@@ -193,6 +230,29 @@ impl app.handleLogout -> None {
     currentPage = "home";
     window.history.pushState({}, "", "/");
     favoriteTeamIds = default_favorite_team_ids;
+    watchedPlayerIds = [];
+    # Clear all cached data from localStorage
+    cache_keys: list = [
+        "portai_watchlist", "portai_display_name", "portai_avatar_icon",
+        "portai_email", "portai_ai_summary_title", "portai_ai_summary",
+        "portai_transactions", "portai_portal_stats", "portai_team_counts",
+        "portai_favorites", "portai_profile_transactions",
+        "portai_ai_impacts", "portai_crystal_ball"
+    ];
+    for key in cache_keys {
+        window.localStorage.removeItem(key);
+    }
+    # Clear team analysis caches (prefixed keys)
+    keys_to_remove: list = [];
+    for i in range(window.localStorage.length) {
+        k = window.localStorage.key(i);
+        if k and k.startsWith("portai_team_analysis_") {
+            keys_to_remove.push(k);
+        }
+    }
+    for k in keys_to_remove {
+        window.localStorage.removeItem(k);
+    }
 }
 
 impl app.handleSubmit(e: any) -> None {
@@ -299,6 +359,7 @@ impl app.handleCrystalBall(playerId: str) -> None {
             prediction_text = "Predicted Destination: " + report_data["prediction"] + " (Confidence: " + report_data["confidence"] + "). " + report_data["reasoning"];
             new_texts[playerId] = prediction_text;
             crystalBallTexts = new_texts;
+            window.localStorage.setItem("portai_crystal_ball", JSON.stringify(new_texts));
         }
     } except e {
         new_texts = Object.assign({}, crystalBallTexts);
@@ -322,9 +383,12 @@ impl app.fetchProfileTransactions -> None {
         );
         if result.reports {
             profileTransactions = result.reports[0]["transfers"];
+            window.localStorage.setItem("portai_profile_transactions", JSON.stringify(result.reports[0]["transfers"]));
         }
     } except e {
-        profileTransactions = [];
+        if profileTransactions.length == 0 {
+            profileTransactions = [];
+        }
     }
     profileTransactionsLoading = False;
 }
@@ -407,15 +471,34 @@ impl app.fetchUserProfile -> None {
         result = root spawn get_user_profile();
         if result.reports.length > 0 {
             data = result.reports[0];
-            profileDisplayName = data["display_name"];
-            profileAvatarIcon = data["avatar_icon"];
+            if data["display_name"] {
+                profileDisplayName = data["display_name"];
+                window.localStorage.setItem("portai_display_name", data["display_name"]);
+            }
+            if data["avatar_icon"] {
+                profileAvatarIcon = data["avatar_icon"];
+                window.localStorage.setItem("portai_avatar_icon", data["avatar_icon"]);
+            }
+            if data["email"] {
+                userEmail = data["email"];
+                window.localStorage.setItem("portai_email", data["email"]);
+            }
         }
     } except e {
+        # Keep existing values (may have been loaded from localStorage)
         profileDisplayName = profileDisplayName;
     }
 }
 
 impl app.saveUserProfile(profileData: any) -> None {
+    if profileData["displayName"] {
+        profileDisplayName = profileData["displayName"];
+        window.localStorage.setItem("portai_display_name", profileData["displayName"]);
+    }
+    if profileData["avatarIcon"] {
+        profileAvatarIcon = profileData["avatarIcon"];
+        window.localStorage.setItem("portai_avatar_icon", profileData["avatarIcon"]);
+    }
     try {
         result = await root spawn update_profile(
             display_name=profileData["displayName"],
@@ -427,7 +510,7 @@ impl app.saveUserProfile(profileData: any) -> None {
             profileAvatarIcon = data["avatar_icon"];
         }
     } except e {
-        console.error("Failed to save profile: " + String(e));
+        console.warn("Failed to sync profile to server");
     }
 }
 
@@ -436,9 +519,12 @@ impl app.fetchTeamStats -> None {
         result = root spawn get_team_stats();
         if result.reports {
             teamCounts = result.reports[0]["teamCounts"];
+            window.localStorage.setItem("portai_team_counts", JSON.stringify(result.reports[0]["teamCounts"]));
         }
     } except e {
-        teamCounts = {};
+        if Object.keys(teamCounts).length == 0 {
+            teamCounts = {};
+        }
     }
 }
 
@@ -457,6 +543,13 @@ impl app.fetchTeamTransfers(teamName: str) -> None {
 }
 
 impl app.fetchTeamAnalysis(teamName: str) -> None {
+    # Check localStorage cache for this team's analysis
+    cache_key = "portai_team_analysis_" + teamName;
+    cached = window.localStorage.getItem(cache_key);
+    if cached {
+        teamAnalysis = cached;
+        return;
+    }
     teamAnalysisLoading = True;
     teamAnalysis = "";
     try {
@@ -470,6 +563,7 @@ impl app.fetchTeamAnalysis(teamName: str) -> None {
                 "Outlook: " + data["outlook"] + " " +
                 "Risk Level: " + data["risk_level"]
             );
+            window.localStorage.setItem(cache_key, teamAnalysis);
         }
     } except e {
         teamAnalysis = "Unable to generate analysis at this time.";
@@ -489,4 +583,36 @@ impl app.fetchPlayerDetail(playerId: str) -> None {
         playerDetailData = {"error": "Failed to load player"};
     }
     playerDetailLoading = False;
+}
+
+impl app.fetchWatchlist -> None {
+    try {
+        result = root spawn get_user_watchlist();
+        if result.reports {
+            watchedPlayerIds = result.reports[0]["watched_player_ids"];
+            window.localStorage.setItem("portai_watchlist", JSON.stringify(watchedPlayerIds));
+        }
+    } except e {
+        # Keep existing watchedPlayerIds (may have been loaded from localStorage)
+        watchedPlayerIds = watchedPlayerIds;
+    }
+}
+
+impl app.handleToggleWatch(playerId: str) -> None {
+    new_watchlist: list = [];
+    if watchedPlayerIds.includes(playerId) {
+        new_watchlist = watchedPlayerIds.filter(
+            lambda id: str -> bool { return id != playerId; }
+        );
+    } else {
+        new_watchlist = watchedPlayerIds.concat([playerId]);
+    }
+    watchedPlayerIds = new_watchlist;
+    window.localStorage.setItem("portai_watchlist", JSON.stringify(new_watchlist));
+    try {
+        await root spawn update_watchlist(new_watchlist=new_watchlist);
+    } except e {
+        # localStorage already saved, server sync is best-effort
+        console.warn("Failed to sync watchlist to server");
+    }
 }

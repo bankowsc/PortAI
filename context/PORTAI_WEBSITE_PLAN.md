@@ -363,7 +363,203 @@ This project is being developed for **EECS 449** at the University of Michigan (
 
 ## Version Log
 
-### v1.8 — February 26, 2026
+### v1.9 — February 26, 2026
+
+**Removed overhead search bar, implemented persistent Watchlist, added Watchlist to Transactions page, removed Settings from profile dropdown, persisted user profile data, fixed React stale-closure bugs, and added comprehensive localStorage caching for AI responses and all data.**
+
+#### Objectives
+
+1. Remove the overhead search bar from the top navigation bar.
+2. Fully implement persistent Watchlist functionality (server + localStorage).
+3. Add an option on the Transactions page to add players to the user's Watchlist.
+4. Remove the "Settings" button from the profile dropdown menu.
+5. Persist the user's display name, email, and avatar across logout and page reload.
+6. Cache AI responses (AI Summary, AI Impact, Crystal Ball, Team Analysis) in localStorage to avoid redundant LLM calls on page reload.
+7. Cache all heavy data (transactions, portal stats, team counts, profile transactions, favorites) in localStorage for instant reload.
+
+---
+
+#### Changes Made
+
+##### Server-Side — `portai_jac/main.jac`
+
+1. **Expanded `User` node with `watched_player_ids` and `email` fields**
+   - Added `watched_player_ids: list = []` for server-side watchlist persistence.
+   - Added `email: str = ""` for storing the user's login email on the graph.
+
+2. **Added `update_watchlist` walker**
+   - `walker:priv update_watchlist` with `new_watchlist: list` parameter.
+   - Traverses `Root → User` and sets `here.watched_player_ids`.
+
+3. **Added `get_user_watchlist` walker**
+   - `walker:priv get_user_watchlist` — reads and reports `here.watched_player_ids`.
+
+4. **Updated `update_profile` and `get_user_profile` walkers**
+   - Both now handle the `email` field in addition to `display_name` and `avatar_icon`.
+
+##### Client-Side — `portai_jac/frontend.cl.jac`
+
+1. **Removed search bar from Navigation**
+   - Removed `searchQuery`, `onSearch`, `onSearchChange` props from Navigation component call.
+   - Search functionality remains available on individual pages (Players, Teams, Transactions).
+
+2. **Moved theme toggle into navbar-actions group**
+   - Repositioned the dark/light mode toggle from the removed search bar area into the right-side actions group next to Favorites and Profile.
+
+3. **Lifted Watchlist state to app level**
+   - Added `watchedPlayerIds: list = []` state variable.
+   - Added `fetchWatchlist` and `handleToggleWatch` async method declarations.
+   - Passed `watchedPlayerIds` and `onToggleWatch` props to `ProfilePage` and `TransactionsPage`.
+
+4. **Comprehensive localStorage restoration on mount**
+   - Mount effect (`can with entry`) now restores ALL cached data from localStorage:
+     - User profile: `portai_display_name`, `portai_email`, `portai_avatar_icon`
+     - Watchlist: `portai_watchlist`
+     - AI Summary: `portai_ai_summary_title`, `portai_ai_summary`
+     - Transactions: `portai_transactions` (data + total + offset)
+     - Portal Stats: `portai_portal_stats`
+     - Team Counts: `portai_team_counts`
+     - Favorites: `portai_favorites`
+     - Profile Transactions: `portai_profile_transactions`
+     - AI Impact texts: `portai_ai_impacts`
+     - Crystal Ball texts: `portai_crystal_ball`
+   - Uses `auth_result = jacIsLoggedIn()` local variable to avoid React stale-closure bug.
+
+5. **Conditional data fetching in `can with [isLoggedIn] entry` watcher**
+   - Lightweight fetches (user profile, watchlist, favorites) always run.
+   - Heavy fetches (AI Summary, transactions, portal stats, team stats) are **skipped** if cached data was already restored from localStorage.
+   - AI Summary only fetches via LLM if `aiSummary` is empty (no cache).
+
+6. **Regenerate handlers clear cache before refetching**
+   - `handleRegenerateSummary` clears `portai_ai_summary_title` and `portai_ai_summary` from localStorage, resets state, then calls `fetchAISummary()`.
+   - Team analysis regeneration clears the team-specific cache key before calling `fetchTeamAnalysis()`.
+
+7. **Removed Settings from profile dropdown**
+   - Removed the "Settings" option from the Navigation user menu dropdown (Settings is accessible via the Profile page's Settings tab).
+
+##### Client-Side — `portai_jac/frontend.impl.jac`
+
+1. **`fetchAISummary` — now caches result in localStorage**
+   - On success: writes `portai_ai_summary_title` and `portai_ai_summary` to localStorage.
+   - On failure: preserves existing cached summary instead of overwriting with error message.
+
+2. **`fetchTransactions` — now caches result in localStorage**
+   - Stores transactions array, total count, and offset as JSON in `portai_transactions`.
+   - On failure: preserves existing cached data.
+
+3. **`fetchPortalStats` — now caches result in localStorage**
+   - Stores full stats object in `portai_portal_stats`.
+
+4. **`fetchTeamStats` — now caches result in localStorage**
+   - Stores team counts object in `portai_team_counts`.
+
+5. **`fetchProfileTransactions` — now caches result in localStorage**
+   - Stores profile transactions array in `portai_profile_transactions`.
+
+6. **`fetchFavorites` — now caches result and handles errors gracefully**
+   - Wrapped in try/except; writes favorites to `portai_favorites` on success.
+
+7. **`fetchAIImpact` — now checks cache and writes to localStorage**
+   - Returns immediately if `aiImpactTexts[playerId]` already exists (session or localStorage cache).
+   - Writes full `aiImpactTexts` dict to `portai_ai_impacts` on success.
+
+8. **`handleCrystalBall` — now writes to localStorage**
+   - Writes full `crystalBallTexts` dict to `portai_crystal_ball` on success.
+
+9. **`fetchTeamAnalysis` — now checks and writes per-team localStorage cache**
+   - Cache key: `portai_team_analysis_{teamName}`.
+   - Returns cached analysis immediately if available; only calls LLM on cache miss.
+   - Writes result to localStorage on success.
+
+10. **`handleLogout` — clears all localStorage caches**
+    - Removes all `portai_*` keys including per-team analysis caches.
+    - Iterates localStorage to find and remove `portai_team_analysis_*` prefixed keys.
+
+11. **`fetchUserProfile` — writes name/avatar/email to localStorage**
+    - Ensures server-fetched profile data is always synced to localStorage.
+
+12. **`saveUserProfile` — writes to localStorage immediately before server call**
+    - Provides instant local persistence even if server call fails.
+
+13. **`handleLogin`/`handleSignup` — persist email to localStorage**
+    - Stores `portai_email` immediately on successful login/signup.
+    - Server `update_profile` call wrapped in try/except (best-effort).
+
+14. **`fetchWatchlist` — reads from server, writes to localStorage**
+    - Server result updates both state and localStorage cache.
+
+15. **`handleToggleWatch` — writes to localStorage immediately, server sync best-effort**
+    - Updates state locally, writes to `portai_watchlist`, then attempts server sync.
+
+##### Client-Side — `portai_jac/components/Navigation.cl.jac`
+
+- Removed `searchQuery`, `onSearch`, `onSearchChange` props.
+- Removed the search bar `<div className="search-bar-container">` block.
+- Moved theme toggle button into `navbar-actions` div.
+
+##### Client-Side — `portai_jac/pages/ProfilePage.cl.jac`
+
+1. **Watchlist lifted to props**
+   - Removed local `watchedPlayerIds` state and `handleToggleWatch` handler.
+   - Now receives `watchedPlayerIds: list` and `onToggleWatch: any` as props.
+   - All internal references updated from `handleToggleWatch` to `onToggleWatch`.
+
+2. **Fixed name watcher**
+   - Removed `if not displayName` guard that prevented updates once "Fan" was set.
+   - Added `userEmail` to dependency array: `can with [savedDisplayName, savedAvatarIcon, userEmail] entry`.
+   - Name now always computes from best available source: `savedDisplayName` if set, else email prefix, else "Fan".
+
+##### Client-Side — `portai_jac/pages/TransactionsPage.cl.jac`
+
+- Added `watchedPlayerIds: list` and `onToggleWatch: any` props.
+- Added a `txn-card-actions-row` below each `TransactionCard` with a watch/unwatch button.
+- Button displays "Watching" (with check icon) or "+ Watch" based on whether the player is in the watchlist.
+
+##### Client-Side — `portai_jac/styles.css`
+
+- Added CSS for `.txn-card-actions-row`, `.txn-watch-btn`, `.txn-watch-btn:hover`, `.txn-watch-btn.watching`.
+
+---
+
+#### Bugs Fixed in This Session
+
+1. **React stale-closure bug — localStorage reads gated by stale `isLoggedIn`**
+   - **Problem:** The `can with entry` mount effect called `setIsLoggedIn(true)` then checked `if isLoggedIn { ... }` to read localStorage. But `isLoggedIn` is the closure variable capturing the initial render value (`false`), not the post-setState value.
+   - **Fix:** Store `jacIsLoggedIn()` result in a local variable `auth_result` and use that for conditional checks instead of the stale state variable.
+
+2. **ProfilePage name watcher guard preventing updates**
+   - **Problem:** `if not displayName` guard in the name watcher blocked updates once "Fan" was set as default, causing the name to never update to the actual display name or email-derived name.
+   - **Fix:** Removed the guard; name now always computes from best source. Added `userEmail` to dependency list.
+
+3. **`loginEmail` vs `userEmail` — ProfilePage receiving cleared value**
+   - **Problem:** ProfilePage was passed `loginEmail` which is cleared to `""` after login. The email-derived name was always empty.
+   - **Fix:** Changed to pass `userEmail` (the persistent email state) instead.
+
+---
+
+#### Resolution Summary
+- `jac check main.jac`: **0 errors, 0 warnings**
+- All data restores instantly from localStorage on page reload (no loading delay)
+- AI Summary only calls LLM on first visit or explicit "Regenerate Summary" click
+- AI Impact and Crystal Ball results persist across page navigation (session + localStorage)
+- Team Analysis persists per-team in localStorage; regeneration clears and refetches
+- Watchlist persists across logout/login and page reload
+- User name, email, and avatar persist across logout/login and page reload
+- Theme toggle accessible in navbar actions group
+- All caches cleared on logout
+
+---
+
+#### Files Changed
+- `portai_jac/main.jac` — Added `watched_player_ids` and `email` to User node; added `update_watchlist` and `get_user_watchlist` walkers; updated `update_profile`/`get_user_profile` for email
+- `portai_jac/frontend.cl.jac` — Removed search bar props; added watchlist state and props; comprehensive localStorage restore on mount; conditional fetching; regenerate cache-clearing
+- `portai_jac/frontend.impl.jac` — Added localStorage caching to all fetch functions; expanded logout to clear all caches; added error-resilient fetching that preserves cached data
+- `portai_jac/components/Navigation.cl.jac` — Removed search bar; moved theme toggle; removed Settings dropdown item
+- `portai_jac/pages/ProfilePage.cl.jac` — Lifted watchlist to props; fixed name watcher guard and dependencies
+- `portai_jac/pages/TransactionsPage.cl.jac` — Added watchlist button per transaction
+- `portai_jac/styles.css` — Added watchlist button styles
+
+---
 
 **Added dedicated Transactions page with advanced filtering, Favorites page, Crystal Ball AI prediction feature, and multiple UX fixes.**
 

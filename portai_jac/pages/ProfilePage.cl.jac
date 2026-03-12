@@ -16,21 +16,24 @@ def:pub ProfilePage(
     savedDisplayName: str,
     savedAvatarIcon: str,
     onSaveProfile: any,
+    watchedPlayerIds: list,
+    onToggleWatch: any,
 ) -> any {
 
     has activeTab: str = "overview",
         positionFilter: str = "All",
-        watchedPlayerIds: list = [],
         editingName: bool = False,
         editNameValue: str = "",
         showIconPicker: bool = False,
         selectedIcon: str = "default",
         displayName: str = "";
 
-    can with [savedDisplayName, savedAvatarIcon] entry {
+    can with [savedDisplayName, savedAvatarIcon, userEmail] entry {
         atSymbol = "@";
-        if not displayName {
-            displayName = (savedDisplayName if savedDisplayName else (userEmail.split(atSymbol)[0] if userEmail.includes(atSymbol) else (userEmail if userEmail else "Fan")));
+        if savedDisplayName {
+            displayName = savedDisplayName;
+        } else {
+            displayName = (userEmail.split(atSymbol)[0] if userEmail.includes(atSymbol) else (userEmail if userEmail else "Fan"));
         }
         if savedAvatarIcon and selectedIcon == "default" {
             selectedIcon = savedAvatarIcon;
@@ -60,14 +63,6 @@ def:pub ProfilePage(
 
     def handleTabChange(tab: str) -> None {
         activeTab = tab;
-    }
-
-    def handleToggleWatch(playerId: str) -> None {
-        if watchedPlayerIds.includes(playerId) {
-            watchedPlayerIds = [id for id in watchedPlayerIds if id != playerId];
-        } else {
-            watchedPlayerIds = watchedPlayerIds.concat([playerId]);
-        }
     }
 
     def handlePositionFilter(pos: str) -> None {
@@ -376,7 +371,7 @@ def:pub ProfilePage(
                                                     <span className="profile-pos-badge">{txn["position"]}</span>
                                                     <button
                                                         className={("profile-watch-btn watching" if watchedPlayerIds.includes(txn["id"]) else "profile-watch-btn")}
-                                                        onClick={lambda _: any -> None { handleToggleWatch(txn["id"]); }}
+                                                        onClick={lambda _: any -> None { onToggleWatch(txn["id"]); }}
                                                     >{("Watching" if watchedPlayerIds.includes(txn["id"]) else "+ Watch")}</button>
                                                 </div>
                                             </div>
@@ -411,7 +406,7 @@ def:pub ProfilePage(
                                             </div>
                                             <button
                                                 className="profile-unwatch-btn"
-                                                onClick={lambda _: any -> None { handleToggleWatch(txn["id"]); }}
+                                                onClick={lambda _: any -> None { onToggleWatch(txn["id"]); }}
                                             >Remove from Watchlist</button>
                                         </div>
                                         for txn in watchlistItems
