@@ -22,7 +22,8 @@ import from .pages.PlayerDetailPage { PlayerDetailPage }
 sv import from main {
     update_favorites, get_user_favorites, get_portal_summary, update_profile, get_user_profile, 
     get_transfers, search_players, get_player_by_id, get_ai_impact, get_portal_stats,
-    predict_destination, chat, get_team_stats, get_team_analysis, get_team_transfers, get_player_detail
+    predict_destination, chat, get_team_stats, get_team_analysis, get_team_transfers, get_player_detail,
+    update_watchlist, get_user_watchlist
 }
 
 # --- URL <-> Page Sync Helpers ---
@@ -120,12 +121,70 @@ def:pub app -> JsxElement {
         playerDetailData: any = {},
         playerDetailLoading: bool = False,
         playerDetailId: str = "",
-        userEmail: str = "";
+        userEmail: str = "",
+        watchedPlayerIds: list = [];
 
     can with entry {
-        isLoggedIn = jacIsLoggedIn();
+        auth_result = jacIsLoggedIn();
+        isLoggedIn = auth_result;
         checkingAuth = False;
         document.documentElement.className = theme;
+        # --- Restore persisted data from localStorage ---
+        if auth_result {
+            stored_watchlist = window.localStorage.getItem("portai_watchlist");
+            if stored_watchlist {
+                watchedPlayerIds = JSON.parse(stored_watchlist);
+            }
+            stored_name = window.localStorage.getItem("portai_display_name");
+            if stored_name {
+                profileDisplayName = stored_name;
+            }
+            stored_email = window.localStorage.getItem("portai_email");
+            if stored_email {
+                userEmail = stored_email;
+            }
+            stored_avatar = window.localStorage.getItem("portai_avatar_icon");
+            if stored_avatar {
+                profileAvatarIcon = stored_avatar;
+            }
+            stored_ai_title = window.localStorage.getItem("portai_ai_summary_title");
+            stored_ai_content = window.localStorage.getItem("portai_ai_summary");
+            if stored_ai_title and stored_ai_content {
+                aiSummaryTitle = stored_ai_title;
+                aiSummary = stored_ai_content;
+            }
+            stored_transactions = window.localStorage.getItem("portai_transactions");
+            if stored_transactions {
+                parsed_txns = JSON.parse(stored_transactions);
+                transactions = parsed_txns["data"];
+                totalTransactions = parsed_txns["total"];
+                transactionsOffset = parsed_txns["offset"];
+            }
+            stored_portal_stats = window.localStorage.getItem("portai_portal_stats");
+            if stored_portal_stats {
+                portalStatsData = JSON.parse(stored_portal_stats);
+            }
+            stored_team_counts = window.localStorage.getItem("portai_team_counts");
+            if stored_team_counts {
+                teamCounts = JSON.parse(stored_team_counts);
+            }
+            stored_favorites = window.localStorage.getItem("portai_favorites");
+            if stored_favorites {
+                favoriteTeamIds = JSON.parse(stored_favorites);
+            }
+            stored_profile_txns = window.localStorage.getItem("portai_profile_transactions");
+            if stored_profile_txns {
+                profileTransactions = JSON.parse(stored_profile_txns);
+            }
+            stored_ai_impacts = window.localStorage.getItem("portai_ai_impacts");
+            if stored_ai_impacts {
+                aiImpactTexts = JSON.parse(stored_ai_impacts);
+            }
+            stored_crystal = window.localStorage.getItem("portai_crystal_ball");
+            if stored_crystal {
+                crystalBallTexts = JSON.parse(stored_crystal);
+            }
+        }
         # --- URL Sync: read URL on mount ---
         initial_page = pathToPage(window.location.pathname);
         if initial_page != currentPage {
@@ -167,12 +226,24 @@ def:pub app -> JsxElement {
 
     can with [isLoggedIn] entry {
         if isLoggedIn {
-            fetchFavorites();
-            fetchAISummary();
-            fetchTransactions();
-            fetchPortalStats();
+            # Always fetch user profile and watchlist (lightweight)
             fetchUserProfile();
-            fetchTeamStats();
+            fetchWatchlist();
+            fetchFavorites();
+
+            # Only fetch heavy data if not already restored from cache
+            if not aiSummary {
+                fetchAISummary();
+            }
+            if transactions.length == 0 {
+                fetchTransactions();
+            }
+            if not portalStatsData {
+                fetchPortalStats();
+            }
+            if Object.keys(teamCounts).length == 0 {
+                fetchTeamStats();
+            }
         }
     }
 
@@ -209,6 +280,8 @@ def:pub app -> JsxElement {
     async def fetchTeamTransfers(teamName: str) -> None;
     async def fetchTeamAnalysis(teamName: str) -> None;
     async def fetchPlayerDetail(playerId: str) -> None;
+    async def fetchWatchlist -> None;
+    async def handleToggleWatch(playerId: str) -> None;
 
 
     def toggleTheme -> None {
@@ -276,6 +349,11 @@ def:pub app -> JsxElement {
     }
 
     def handleRegenerateSummary -> None {
+        # Clear cache so a fresh LLM call is made
+        window.localStorage.removeItem("portai_ai_summary_title");
+        window.localStorage.removeItem("portai_ai_summary");
+        aiSummary = "";
+        aiSummaryTitle = "";
         fetchAISummary();
     }
 
@@ -416,9 +494,6 @@ def:pub app -> JsxElement {
         <div className="app-layout">
             <Navigation
                 currentPage={currentPage}
-                searchQuery={searchQuery}
-                onSearch={handleSearch}
-                onSearchChange={handleSearchChange}
                 onNavigate={handleNavigate}
                 onLogout={handleLogout}
                 showUserMenu={showUserMenu}
@@ -507,6 +582,8 @@ def:pub app -> JsxElement {
                             crystalBallLoading={crystalBallLoading}
                             expandedCrystalBalls={expandedCrystalBalls}
                             onToggleCrystalBall={handleToggleCrystalBall}
+                            watchedPlayerIds={watchedPlayerIds}
+                            onToggleWatch={handleToggleWatch}
                         />
                     ) if currentPage == "transactions" else (
                         <FavoritesPage
@@ -520,13 +597,15 @@ def:pub app -> JsxElement {
                             onLogout={handleLogout}
                             favoriteTeamIds={favoriteTeamIds}
                             onToggleFavorite={handleToggleFavorite}
-                            userEmail={loginEmail}
+                            userEmail={userEmail}
                             profileTransactions={profileTransactions}
                             profileTransactionsLoading={profileTransactionsLoading}
                             portalStatsData={portalStatsData}
                             savedDisplayName={profileDisplayName}
                             savedAvatarIcon={profileAvatarIcon}
                             onSaveProfile={saveUserProfile}
+                            watchedPlayerIds={watchedPlayerIds}
+                            onToggleWatch={handleToggleWatch}
                         />
                     ) if currentPage == "profile" else (
                         <ChatPage
@@ -570,7 +649,11 @@ def:pub app -> JsxElement {
                             teamTransfersLoading={teamTransfersLoading}
                             teamAnalysis={teamAnalysis}
                             teamAnalysisLoading={teamAnalysisLoading}
-                            onRegenerateAnalysis={lambda -> None { fetchTeamAnalysis(teamDetailName); }}
+                            onRegenerateAnalysis={lambda -> None {
+                                window.localStorage.removeItem("portai_team_analysis_" + teamDetailName);
+                                teamAnalysis = "";
+                                fetchTeamAnalysis(teamDetailName);
+                            }}
                         />
                     ) if currentPage.startsWith("team-detail:") else (
                     

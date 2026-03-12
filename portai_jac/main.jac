@@ -606,7 +606,9 @@ node User {
     has username: str;
     has favorite_team_ids: list = [];
     has display_name: str = "";
-    has avatar_icon: str = "";      
+    has avatar_icon: str = "";
+    has watched_player_ids: list = [];
+    has email: str = "";
 }
 
 
@@ -1004,6 +1006,7 @@ walker:priv get_user_favorites {
 walker:priv update_profile {
     has display_name: str = "";
     has avatar_icon: str = "";
+    has email: str = "";
     has found: bool = False;
     has saved_display_name: str = "";
     has saved_avatar_icon: str = "";
@@ -1011,7 +1014,7 @@ walker:priv update_profile {
     can search with Root entry {
         visit [-->];
         if not self.found {
-            new_user = User(username="", display_name=self.display_name, avatar_icon=self.avatar_icon);
+            new_user = User(username="", display_name=self.display_name, avatar_icon=self.avatar_icon, email=self.email);
             here ++> new_user;
             self.saved_display_name = self.display_name;
             self.saved_avatar_icon = self.avatar_icon;
@@ -1025,6 +1028,9 @@ walker:priv update_profile {
         }
         if self.avatar_icon {
             here.avatar_icon = self.avatar_icon;
+        }
+        if self.email {
+            here.email = self.email;
         }
         self.found = True;
         self.saved_display_name = here.display_name;
@@ -1041,12 +1047,56 @@ walker:priv get_user_profile {
 
     can get_profile with User entry {
         self.found = True;
-        report {"display_name": here.display_name, "avatar_icon": here.avatar_icon};
+        report {"display_name": here.display_name, "avatar_icon": here.avatar_icon, "email": here.email};
     }
 
     can default_if_none with Root exit {
         if not self.found {
-            report {"display_name": "", "avatar_icon": ""};
+            report {"display_name": "", "avatar_icon": "", "email": ""};
+        }
+    }
+}
+
+walker:priv update_watchlist {
+    has new_watchlist: list = [];
+    has found: bool = False;
+
+    can search with Root entry {
+        visit [-->];
+    }
+
+    can update with User entry {
+        here.watched_player_ids = self.new_watchlist;
+        self.found = True;
+        report {"watched_player_ids": here.watched_player_ids};
+    }
+
+    can create_if_needed with Root exit {
+        if not self.found {
+            new_user = User(username="", watched_player_ids=self.new_watchlist);
+            here ++> new_user;
+            report {"watched_player_ids": self.new_watchlist};
+        }
+    }
+}
+
+walker:priv get_user_watchlist {
+    has found: bool = False;
+
+    can search with Root entry {
+        visit [-->];
+    }
+
+    can get_watchlist with User entry {
+        if not self.found {
+            self.found = True;
+            report {"watched_player_ids": here.watched_player_ids};
+        }
+    }
+
+    can default_if_none with Root exit {
+        if not self.found {
+            report {"watched_player_ids": []};
         }
     }
 }

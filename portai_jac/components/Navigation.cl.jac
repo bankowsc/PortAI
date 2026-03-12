@@ -8,9 +8,6 @@ import from '@fortawesome/free-solid-svg-icons' {
 
 def:pub Navigation(
     currentPage: str,
-    searchQuery: str,
-    onSearch: any,
-    onSearchChange: any,
     onNavigate: any,
     onLogout: any,
     showUserMenu: bool,
@@ -29,7 +26,7 @@ def:pub Navigation(
                     </span>
                 </div>
 
-                <div className="navbar-theme">
+                <div className="navbar-actions">
                     <button
                         onClick={onToggleTheme}
                         className="btn-theme-toggle">
@@ -40,22 +37,6 @@ def:pub Navigation(
                             {("Dark" if theme == "dark" else "Light")}
                         </span>
                     </button>
-                </div>
-
-                <form className="navbar-search"
-                      onSubmit={lambda e: any -> None { e.preventDefault(); onSearch(); }}>
-                    <div className="navbar-search-wrapper">
-                        <span className="navbar-search-icon">🔍</span>
-                        <input
-                            type="search"
-                            placeholder="Search teams or players..."
-                            value={searchQuery}
-                            onChange={onSearchChange}
-                        />
-                    </div>
-                </form>
-
-                <div className="navbar-actions">
                     <button className="icon-btn"
                             onClick={lambda -> None { onNavigate("favorites"); }}
                             title="Favorites">
@@ -76,10 +57,6 @@ def:pub Navigation(
                                     className="avatar-dropdown-item"
                                     onClick={lambda -> None { onNavigate("profile"); onToggleUserMenu(); }}
                                 >Profile</button>
-                                <button
-                                    className="avatar-dropdown-item"
-                                    onClick={lambda -> None { onNavigate("settings"); onToggleUserMenu(); }}
-                                >Settings</button>
                                 <button
                                     className="avatar-dropdown-item"
                                     onClick={lambda -> None { onLogout(); }}

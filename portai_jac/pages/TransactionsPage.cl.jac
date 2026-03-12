@@ -26,7 +26,9 @@ def:pub TransactionsPage(
     crystalBallTexts: any,
     crystalBallLoading: list,
     expandedCrystalBalls: list,
-    onToggleCrystalBall: any
+    onToggleCrystalBall: any,
+    watchedPlayerIds: list,
+    onToggleWatch: any
 ) -> any {
     has teamSearchText: str = "";
     has showSuggestions: bool = False;
@@ -192,6 +194,7 @@ def:pub TransactionsPage(
                                     hasCrystalBall = crystalBallTexts[tId] if crystalBallTexts[tId] else "";
                                     isCrystalBallLoading = crystalBallLoading.includes(t["id"]);
                                     isCrystalBallExpanded = expandedCrystalBalls.includes(t["id"]);
+                                    isWatched = watchedPlayerIds.includes(t["id"]);
                                     return <div key={t["id"]}>
                                         <TransactionCard
                                             transaction={t}
@@ -201,6 +204,14 @@ def:pub TransactionsPage(
                                             aiImpactText={(aiImpactTexts[tId] if aiImpactTexts[tId] else "")}
                                             aiImpactLoading={aiImpactLoading.includes(t["id"])}
                                         />
+                                        <div className="txn-card-actions-row">
+                                            <button
+                                                className={"btn btn-sm txn-watch-btn" + (" watching" if isWatched else "")}
+                                                onClick={lambda -> None { onToggleWatch(tId); }}
+                                            >
+                                                {("Watching" if isWatched else "+ Watch")}
+                                            </button>
+                                        </div>
                                         {(
                                             <div className="crystal-ball-section">
                                                 <button
