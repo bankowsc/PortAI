@@ -116,6 +116,8 @@ def:pub app -> JsxElement {
         teamDetailId: str = "",
         teamTransfers: list = [],
         teamTransfersLoading: bool = False,
+        teamTransfersIncoming: list = [],    
+        teamTransfersOutgoing: list = [],
         teamAnalysis: str = "",
         teamAnalysisLoading: bool = False,
         playerDetailData: any = {},
@@ -331,14 +333,32 @@ def:pub app -> JsxElement {
 
     if page == "players" and players.length == 0 and not playersLoading {
         fetchPlayers();
+    async def handleNavigate(page: str) -> None {
+        if page.startsWith("team-detail:") {
+            teamDetailId = page.split(":")[1];
+            found = mock_teams.filter(lambda t: dict -> bool { return t["id"] == teamDetailId; });
+            if found.length > 0 {
+                await fetchTeamTransfers(found[0]["name"]);
+                await fetchTeamAnalysis(found[0]["name"]);
+            }
+        }
+        currentPage = page;
+        if page == "players" and players.length == 0 and not playersLoading {
+            fetchPlayers();
+        }
+        if page == "transactions" and txnPageData.length == 0 and not txnPageLoading {
+            txnFilterVersion = txnFilterVersion + 1;
+        }
+        if page == "profile" and profileTransactions.length == 0 and not profileTransactionsLoading {
+            fetchProfileTransactions();
+        }
     }
-    if page == "transactions" and txnPageData.length == 0 and not txnPageLoading {
-        txnFilterVersion = txnFilterVersion + 1;
+
+
+    async def loadTeamDetailData(teamName: str) -> None {
+        await fetchTeamTransfers(teamName);
+        await fetchTeamAnalysis(teamName);
     }
-    if page == "profile" and profileTransactions.length == 0 and not profileTransactionsLoading {
-        fetchProfileTransactions();
-    }
-}
 
     def handleSearch -> None {
         if searchQuery.trim() {
@@ -664,10 +684,11 @@ def:pub app -> JsxElement {
                             teamTransfersLoading={teamTransfersLoading}
                             teamAnalysis={teamAnalysis}
                             teamAnalysisLoading={teamAnalysisLoading}
-                            onRegenerateAnalysis={lambda -> None {
-                                window.localStorage.removeItem("portai_team_analysis_" + teamDetailName);
-                                teamAnalysis = "";
-                                fetchTeamAnalysis(teamDetailName);
+                            teamTransfersIncoming={teamTransfersIncoming}
+                            teamTransfersOutgoing={teamTransfersOutgoing}
+                            onRegenerateAnalysis={lambda -> None { 
+                                found = mock_teams.filter(lambda t: dict -> bool { return t["id"] == teamDetailId; });
+                                if found.length > 0 { fetchTeamAnalysis(found[0]["name"]); }
                             }}
                         />
                     ) if currentPage.startsWith("team-detail:") else (

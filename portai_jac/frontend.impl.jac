@@ -531,10 +531,14 @@ impl app.fetchTeamStats -> None {
 impl app.fetchTeamTransfers(teamName: str) -> None {
     teamTransfersLoading = True;
     teamTransfers = [];
+    teamTransfersIncoming = [];
+    teamTransfersOutgoing = [];
     try {
         result = root spawn get_team_transfers(team_name=teamName);
         if result.reports {
-            teamTransfers = result.reports[0]["transfers"];
+            teamTransfersIncoming = result.reports[0]["incoming"];
+            teamTransfersOutgoing = result.reports[0]["outgoing"];
+            teamTransfers = teamTransfersIncoming.concat(teamTransfersOutgoing);
         }
     } except e {
         teamTransfers = [];

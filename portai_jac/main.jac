@@ -326,6 +326,59 @@ def read_all_transfers() -> list {
     return transfers;
 }
 
+def read_all_transfers_raw() -> list {
+    # Read ALL rows from CSV without deduplication - needed for team-specific queries.
+    transfers: list = [];
+    with open(CSV_FILE, "r", encoding="utf-8") as f {
+        reader = csv.DictReader(f);
+        row_id = 1;
+        for row in reader {
+            stars_str = row.get("stars", "0").strip();
+            stars_val = int(stars_str) if stars_str.isdigit() else 0;
+            rating_val = None;
+            raw_rating = row.get("rating", "").strip();
+            if raw_rating and "N/A" not in raw_rating {
+                clean_rating = raw_rating.replace(".", "", 1);
+                if clean_rating.isdigit() {
+                    rating_val = float(raw_rating);
+                }
+            }
+            weight_str = row.get("weight", "0").replace(" lbs", "").replace("lbs", "").strip();
+            weight_val = int(weight_str) if weight_str.isdigit() else 0;
+            status_raw = row.get("status", "N/A");
+            if status_raw == "N/A" {
+                status_raw = "In Portal";
+            }
+            to_school = row.get("to_school", "N/A");
+            if to_school == "N/A" or not to_school {
+                to_school = "Undecided";
+            }
+            transfers.append({
+                "id": str(row_id),
+                "playerId": str(row_id),
+                "playerName": row.get("name", "Unknown"),
+                "playerPhoto": "👤",
+                "position": row.get("position", "N/A"),
+                "fromTeam": row.get("from_school", "Unknown"),
+                "fromTeamLogo": "🏈",
+                "toTeam": to_school,
+                "toTeamLogo": ("🏈" if to_school != "Undecided" else "❓"),
+                "starRating": stars_val,
+                "rating": rating_val,
+                "height": row.get("height", "N/A"),
+                "weight": weight_val,
+                "status": status_raw,
+                "stats": {},
+                "date": "2026",
+                "sport": "Football",
+                "profileUrl": row.get("profile_url", "")
+            });
+            row_id = row_id + 1;
+        }
+    }
+    return transfers;
+}
+
 def get_paginated_transfers(offset: int = 0, limit: int = 100, search_query: str = "", position_filter: str = "all", status_filter: str = "all", team_filter: str = "") -> dict {
     # Get a paginated slice of transfers with optional filters.
     all_transfers = read_all_transfers();
@@ -1105,15 +1158,24 @@ walker:priv get_team_transfers {
     has team_name: str = "";
 
     can with Root entry {
-        csv_name = TEAM_NAME_MAP[team_name] if team_name in TEAM_NAME_MAP else team_name;
-        all_transfers = read_all_transfers();
-        result: list = [];
+        csv_name = TEAM_NAME_MAP[self.team_name] if self.team_name in TEAM_NAME_MAP else self.team_name;
+        csv_name_lower = csv_name.lower();
+        all_transfers = read_all_transfers_raw();
+        incoming: list = [];
+        outgoing: list = [];
         for t in all_transfers {
-            if t["fromTeam"] == csv_name or t["toTeam"] == csv_name {
-                result.append(t);
+            from_lower = t["fromTeam"].lower();
+            to_lower = t["toTeam"].lower();
+            if (from_lower == csv_name_lower or csv_name_lower in from_lower or from_lower in csv_name_lower) {
+                outgoing.append(t);
+            }
+            if (to_lower == csv_name_lower or csv_name_lower in to_lower or to_lower in csv_name_lower) {
+                if t["toTeam"] != "Undecided" {
+                    incoming.append(t);
+                }
             }
         }
-        report {"transfers": result};
+        report {"incoming": incoming, "outgoing": outgoing};
     }
 }
 

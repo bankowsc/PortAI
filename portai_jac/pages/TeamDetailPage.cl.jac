@@ -15,6 +15,8 @@ def:pub TeamDetailPage(
     aiImpactLoading: list,
     teamTransfers: list,
     teamTransfersLoading: bool,
+    teamTransfersIncoming: list,
+    teamTransfersOutgoing: list,
     teamAnalysis: str,
     teamAnalysisLoading: bool,
     onRegenerateAnalysis: any
@@ -35,16 +37,7 @@ def:pub TeamDetailPage(
 
     team_name = team["name"];
     counts = (teamCounts[team_name] if teamCounts and teamCounts[team_name] else {"incoming": 0, "outgoing": 0});
-    incoming_transfers = teamTransfers.filter(
-        lambda t: dict -> bool {
-            return t["toTeam"] != "Undecided" and t["toTeam"] != "N/A";
-        }
-    );
-    outgoing_transfers = teamTransfers.filter(
-        lambda t: dict -> bool {
-            return t["fromTeam"] != "N/A";
-        }
-    );
+    
     net = counts["incoming"] - counts["outgoing"];
     is_favorite = favoriteTeamIds.includes(teamId);
 
@@ -144,9 +137,9 @@ def:pub TeamDetailPage(
                                     <p className="text-muted" style={({"textAlign": "center", "padding": "2rem"})}>
                                         No incoming transfers found.
                                     </p>
-                                ) if incoming_transfers.length == 0 else (
+                                ) if teamTransfersIncoming.length == 0 else (
                                     <div className="space-y-4">
-                                        {incoming_transfers.map(lambda t: dict -> any {
+                                        {teamTransfersIncoming.map(lambda t: dict -> any {
                                             tId = t["id"];
                                             return <TransactionCard
                                                 key={t["id"]}
@@ -167,9 +160,9 @@ def:pub TeamDetailPage(
                                     <p className="text-muted" style={({"textAlign": "center", "padding": "2rem"})}>
                                         No outgoing transfers found.
                                     </p>
-                                ) if outgoing_transfers.length == 0 else (
+                                ) if teamTransfersOutgoing.length == 0 else (
                                     <div className="space-y-4">
-                                        {outgoing_transfers.map(lambda t: dict -> any {
+                                        {teamTransfersOutgoing.map(lambda t: dict -> any {
                                             tId = t["id"];
                                             return <TransactionCard
                                                 key={t["id"]}
