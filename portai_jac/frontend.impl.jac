@@ -571,19 +571,43 @@ impl app.fetchTeamAnalysis(teamName: str) -> None {
     teamAnalysisLoading = False;
 }
 
+# impl app.fetchPlayerDetail(playerId: str) -> None {
+#     playerDetailLoading = True;
+#     # Remove the line: playerDetailData = {};  ← this causes the flash
+#     try {
+#         result = root spawn get_player_detail(player_id=playerId);
+#         if result.reports {
+#             playerDetailData = result.reports[0];
+#         }
+#     } except e {
+#         playerDetailData = {"error": "Failed to load player"};
+#     }
+#     playerDetailLoading = False;
+# }
 impl app.fetchPlayerDetail(playerId: str) -> None {
     playerDetailLoading = True;
-    playerDetailData = {};
+
+    currentRequestId = playerId;   # capture request id
+
     try {
         result = root spawn get_player_detail(player_id=playerId);
         if result.reports {
-            playerDetailData = result.reports[0];
+            # Only update if this is still the active player
+            if playerDetailId == currentRequestId {
+                playerDetailData = result.reports[0];
+            }
         }
     } except e {
-        playerDetailData = {"error": "Failed to load player"};
+        if playerDetailId == currentRequestId {
+            playerDetailData = {"error": "Failed to load player"};
+        }
     }
-    playerDetailLoading = False;
+
+    if playerDetailId == currentRequestId {
+        playerDetailLoading = False;
+    }
 }
+
 
 impl app.fetchWatchlist -> None {
     try {

@@ -46,6 +46,14 @@ def:pub PlayerDetailPage(
     show_impact = expandedAIImpacts.includes(pid);
     show_crystal = expandedCrystalBalls.includes(pid);
 
+    # if pid != playerId {
+    #     return
+    #         <div className="loading-overlay">
+    #             <div className="spinner"></div>
+    #             <p className="text-muted">Loading player...</p>
+    #         </div>;
+    # }
+
     status_color_map: any = {
         "Committed": "var(--accent)",
         "Enrolled": "#8b5cf6",

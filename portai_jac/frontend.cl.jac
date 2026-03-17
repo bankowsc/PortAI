@@ -202,6 +202,14 @@ def:pub app -> JsxElement {
                 playerDetailId = initial_page.split(":")[1];
                 fetchPlayerDetail(playerDetailId);
             }
+      
+            # When handling navigation to player-detail
+            # if currentPage.startsWith("player-detail:") {
+            #     pid = currentPage.split(":")[1];
+            #     if playerDetailLoading == False and (not playerDetailData or playerDetailData.get("id") != pid) {
+            #         await fetchPlayerDetail(pid);
+            #     }
+            # }
             if initial_page == "players" and players.length == 0 and not playersLoading {
                 fetchPlayers();
             }
@@ -295,14 +303,26 @@ def:pub app -> JsxElement {
     }
 
     def handleNavigate(page: str) -> None {
-    currentPage = page;
     # --- URL Sync: push URL to browser history ---
+    if page.startsWith("player-detail:") {
+        playerDetailId = page.split(":")[1];
+        playerDetailData = {};
+        playerDetailLoading = True;
+    }
+
+    if page.startsWith("team-detail:") {
+        teamDetailId = page.split(":")[1];
+    }
+
+    currentPage = page;
+
+    # URL sync
     new_path = pageToPath(page);
     if window.location.pathname != new_path {
         window.history.pushState({}, "", new_path);
     }
+
     if page.startsWith("team-detail:") {
-        teamDetailId = page.split(":")[1];
         team_name = "";
         found = mock_teams.filter(lambda t: dict -> bool { return t["id"] == teamDetailId; });
         if found.length > 0 {
@@ -310,10 +330,12 @@ def:pub app -> JsxElement {
             fetchTeamAnalysis(found[0]["name"]);
         }
     }
+
     if page.startsWith("player-detail:") {
-        playerDetailId = page.split(":")[1];
         fetchPlayerDetail(playerDetailId);
     }
+
+    # old below?
     if page == "players" and players.length == 0 and not playersLoading {
         fetchPlayers();
     }
