@@ -198,10 +198,18 @@ def:pub app -> JsxElement {
                     fetchTeamAnalysis(found[0]["name"]);
                 }
             }
+
+            # if initial_page.startsWith("player-detail:") {
+            #     playerDetailId = initial_page.split(":")[1];
+            #     fetchPlayerDetail(playerDetailId);
+            # }
             if initial_page.startsWith("player-detail:") {
-                playerDetailId = initial_page.split(":")[1];
-                fetchPlayerDetail(playerDetailId);
+                new_player_id = initial_page.split(":")[1];
+                playerDetailId = new_player_id;
+                fetchPlayerDetail(new_player_id);
             }
+
+
             if initial_page == "players" and players.length == 0 and not playersLoading {
                 fetchPlayers();
             }
@@ -310,10 +318,17 @@ def:pub app -> JsxElement {
             fetchTeamAnalysis(found[0]["name"]);
         }
     }
+
+    # if page.startsWith("player-detail:") {
+    #     playerDetailId = page.split(":")[1];
+    #     fetchPlayerDetail(playerDetailId);
+    # }
     if page.startsWith("player-detail:") {
-        playerDetailId = page.split(":")[1];
-        fetchPlayerDetail(playerDetailId);
+        new_player_id = page.split(":")[1];   # local variable, not state
+        playerDetailId = new_player_id;        # update state for rendering
+        fetchPlayerDetail(new_player_id);      # use local variable directly
     }
+
     if page == "players" and players.length == 0 and not playersLoading {
         fetchPlayers();
     }
