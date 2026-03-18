@@ -48,9 +48,9 @@ def:pub ProfilePage(
 
     favTeams = [team for team in mock_teams if favoriteTeamIds.includes(team["id"])];
 
-    totalTransfers = (portalStatsData["totalTransfers"] if portalStatsData["totalTransfers"] else 0);
-    topPositions = (portalStatsData["topPositions"] if portalStatsData["topPositions"] else []);
-    topConferences = (portalStatsData["topConferences"] if portalStatsData["topConferences"] else []);
+    totalTransfers = (portalStatsData["totalTransfers"] if portalStatsData and portalStatsData["totalTransfers"] else 0);
+    topPositions = (portalStatsData["topPositions"] if portalStatsData and portalStatsData["topPositions"] else []);
+    topConferences = (portalStatsData["topConferences"] if portalStatsData and portalStatsData["topConferences"] else []);
 
     allPositions = ["All", "QB", "RB", "WR", "TE", "OL", "DL", "LB", "DB", "K", "P", "LS", "ATH", "S", "CB"];
 

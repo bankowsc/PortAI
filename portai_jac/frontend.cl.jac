@@ -81,7 +81,7 @@ def:pub app -> JsxElement {
         totalPlayers: int = 0,
         playerSearchQuery: str = "",
         playerPositionFilter: str = "all",
-        portalStatsData: any = {},
+        portalStatsData: any = None,
         txnPageData: list = [],
         txnPageLoading: bool = False,
         txnPageOffset: int = 0,
@@ -249,7 +249,7 @@ def:pub app -> JsxElement {
             if transactions.length == 0 {
                 fetchTransactions();
             }
-            if not portalStatsData {
+            if not portalStatsData or Object.keys(portalStatsData).length == 0 {
                 fetchPortalStats();
             }
             if Object.keys(teamCounts).length == 0 {
