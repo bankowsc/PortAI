@@ -725,9 +725,15 @@ textarea {
     border: 1px solid var(--accent);
 }
 
-.btn-outline-accent:hover {
+/* .btn-outline-accent:hover {
     background: var(--accent);
     color: var(--accent-foreground);
+} */
+
+.btn-outline-accent:hover {
+    background: rgba(14, 165, 233, 0.12); /* subtle tint instead of fully solid */
+    color: var(--accent); /* keep accent text color */
+    border-color: var(--accent);
 }
 
 .btn-ghost {
