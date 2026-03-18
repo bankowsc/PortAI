@@ -25,6 +25,14 @@ def:pub TeamDetailPage(
     matched = mock_teams.filter(lambda t: dict -> bool { return t["id"] == teamId; });
     team = (matched[0] if matched.length > 0 else None);
 
+    if teamTransfersLoading {
+        return
+            <div className="loading-overlay">
+                <div className="spinner"></div>
+                <p className="text-muted">Loading team...</p>
+            </div>;
+    }
+
     if not team {
         return
             <div className="placeholder-page">

@@ -22,6 +22,8 @@ def:pub HomePage(
     aiImpactTexts: any,
     aiImpactLoading: list,
     portalStatsData: any,
+    sortByFavorites: bool,
+    onToggleSortByFavorites: callable,
     teamCounts: any
 ) -> any {
     
@@ -42,6 +44,20 @@ def:pub HomePage(
     trending_teams = enriched_teams.slice().sort(
         lambda a: dict, b: dict -> int { return b["portalActivityScore"] - a["portalActivityScore"]; }
     ).slice(0, 5);
+
+    favorite_team_names = mock_teams
+        .filter(lambda t: dict -> bool { return favoriteTeamIds.includes(t["id"]); })
+        .map(lambda t: dict -> str { return t["name"]; });
+
+    sorted_transactions = (
+        transactions.slice().sort(lambda a: dict, b: dict -> int {
+            a_fav = (1 if favorite_team_names.filter(lambda n: str -> bool { return a["fromTeam"].indexOf(n) >= 0 or n.indexOf(a["fromTeam"]) >= 0 or a["toTeam"].indexOf(n) >= 0 or n.indexOf(a["toTeam"]) >= 0; }).length > 0 else 0);
+            b_fav = (1 if favorite_team_names.filter(lambda n: str -> bool { return b["fromTeam"].indexOf(n) >= 0 or n.indexOf(b["fromTeam"]) >= 0 or b["toTeam"].indexOf(n) >= 0 or n.indexOf(b["toTeam"]) >= 0; }).length > 0 else 0);
+            if b_fav != a_fav { return b_fav - a_fav; }
+            return (b["rating"] - a["rating"]);
+        })
+        if sortByFavorites else transactions
+    );
 
     # Use dynamic portal stats if available, fallback to defaults
     total_transfers = (portalStatsData["totalTransfers"] if portalStatsData and portalStatsData["totalTransfers"] else 0);
@@ -80,12 +96,19 @@ def:pub HomePage(
 
                 <div>
                     <div className="section-header">
-                        <h2>Recent Transactions</h2>
-                        <span className="badge badge-secondary text-xs">
-                            {String(totalTransactions) + " total transfers"}
-                        </span>
+                        <h2>Notable Transactions</h2>
+                        <div style={({"display": "flex", "alignItems": "center", "gap": "0.75rem"})}>
+                            <button
+                                className={("btn btn-sm " + ("btn-accent" if sortByFavorites else "btn-outline-accent")) + " rounded-lg"}
+                                onClick={onToggleSortByFavorites}
+                            >
+                                ⭐ Favorites First
+                            </button>
+                            <span className="badge badge-secondary text-xs">
+                                {String(totalTransactions) + " total transfers"}
+                            </span>
+                        </div>
                     </div>
-
                     {(
                         <div className="space-y-4">
                             <div className="loading-placeholder" style={({"padding": "2rem", "textAlign": "center"})}>
@@ -94,7 +117,7 @@ def:pub HomePage(
                         </div>
                     ) if transactionsLoading and transactions.length == 0 else (
                         <div className="space-y-4">
-                            {transactions.map(lambda t: dict -> any {
+                            {sorted_transactions.map(lambda t: dict -> any {
                                 tId = t["id"];
                                 return <TransactionCard
                                     key={t["id"]}

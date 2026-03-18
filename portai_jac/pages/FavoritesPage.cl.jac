@@ -6,11 +6,19 @@ import from ..data.mock_data { mock_teams }
 def:pub FavoritesPage(
     onNavigate: any,
     favoriteTeamIds: list,
-    onToggleFavorite: any
+    onToggleFavorite: any,
+    teamCounts: any
 ) -> any {
-    favorite_teams = mock_teams.filter(
-        lambda t: dict -> bool { return favoriteTeamIds.includes(t["id"]); }
-    );
+    favorite_teams = mock_teams
+    .filter(lambda t: dict -> bool { return favoriteTeamIds.includes(t["id"]); })
+    .map(lambda t: dict -> dict {
+        counts = (teamCounts[t["name"]] if teamCounts and teamCounts[t["name"]] else {"incoming": 0, "outgoing": 0});
+        return Object.assign({}, t, {
+            "incomingCount": counts["incoming"],
+            "outgoingCount": counts["outgoing"],
+            "portalActivityScore": counts["incoming"] + counts["outgoing"]
+        });
+    });
 
     return
         <div className="space-y-6">

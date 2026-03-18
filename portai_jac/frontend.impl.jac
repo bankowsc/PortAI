@@ -4,8 +4,11 @@ impl app.fetchFavorites -> None {
     try {
         result = root spawn get_user_favorites();
         if result.reports {
-            favoriteTeamIds = result.reports[0]["favorites"];
-            window.localStorage.setItem("portai_favorites", JSON.stringify(result.reports[0]["favorites"]));
+            fetched = result.reports[0]["favorites"];
+            if fetched.length > 0 {
+                favoriteTeamIds = fetched;
+                window.localStorage.setItem("portai_favorites", JSON.stringify(fetched));
+            }
         }
     } except e {
         # Keep existing favoriteTeamIds (may have been loaded from localStorage)
@@ -43,11 +46,11 @@ impl app.fetchTransactions -> None {
             status_filter="all"
         );
         if result.reports {
-            transactions = result.reports[0]["transfers"];
+            transactions = result.reports[0]["transfers"].slice().sort(lambda a: dict, b: dict -> int { return (b["rating"] - a["rating"]); });
             totalTransactions = result.reports[0]["total"];
             transactionsOffset = 100;
             window.localStorage.setItem("portai_transactions", JSON.stringify({
-                "data": result.reports[0]["transfers"],
+                "data": transactions,
                 "total": result.reports[0]["total"],
                 "offset": 100
             }));
@@ -72,7 +75,7 @@ impl app.loadMoreTransactions -> None {
             status_filter="all"
         );
         if result.reports {
-            transactions = transactions.concat(result.reports[0]["transfers"]);
+            transactions = transactions.concat(result.reports[0]["transfers"]).slice().sort(lambda a: dict, b: dict -> int { return (b["rating"] - a["rating"]); });
             totalTransactions = result.reports[0]["total"];
             transactionsOffset = transactionsOffset + 100;
         }

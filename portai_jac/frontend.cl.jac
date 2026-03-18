@@ -124,6 +124,7 @@ def:pub app -> JsxElement {
         playerDetailLoading: bool = False,
         playerDetailId: str = "",
         userEmail: str = "",
+        homeSortByFavorites: bool = False,
         watchedPlayerIds: list = [];
 
     can with entry {
@@ -158,7 +159,7 @@ def:pub app -> JsxElement {
             stored_transactions = window.localStorage.getItem("portai_transactions");
             if stored_transactions {
                 parsed_txns = JSON.parse(stored_transactions);
-                transactions = parsed_txns["data"];
+                transactions = parsed_txns["data"].slice().sort(lambda a: dict, b: dict -> int { return (b["rating"] - a["rating"]); });
                 totalTransactions = parsed_txns["total"];
                 transactionsOffset = parsed_txns["offset"];
             }
@@ -305,44 +306,30 @@ def:pub app -> JsxElement {
     }
 
     def handleNavigate(page: str) -> None {
-    currentPage = page;
-    # --- URL Sync: push URL to browser history ---
-    new_path = pageToPath(page);
-    if window.location.pathname != new_path {
-        window.history.pushState({}, "", new_path);
-    }
-    if page.startsWith("team-detail:") {
-        teamDetailId = page.split(":")[1];
-        team_name = "";
-        found = mock_teams.filter(lambda t: dict -> bool { return t["id"] == teamDetailId; });
-        if found.length > 0 {
-            fetchTeamTransfers(found[0]["name"]);
-            fetchTeamAnalysis(found[0]["name"]);
+        currentPage = page;
+        # --- URL Sync: push URL to browser history ---
+        new_path = pageToPath(page);
+        if window.location.pathname != new_path {
+            window.history.pushState({}, "", new_path);
         }
-    }
-
-    # if page.startsWith("player-detail:") {
-    #     playerDetailId = page.split(":")[1];
-    #     fetchPlayerDetail(playerDetailId);
-    # }
-    if page.startsWith("player-detail:") {
-        new_player_id = page.split(":")[1];   # local variable, not state
-        playerDetailId = new_player_id;        # update state for rendering
-        fetchPlayerDetail(new_player_id);      # use local variable directly
-    }
-
-    if page == "players" and players.length == 0 and not playersLoading {
-        fetchPlayers();
-    async def handleNavigate(page: str) -> None {
         if page.startsWith("team-detail:") {
-            teamDetailId = page.split(":")[1];
-            found = mock_teams.filter(lambda t: dict -> bool { return t["id"] == teamDetailId; });
+            new_team_id = page.split(":")[1];
+            teamDetailId = new_team_id;
+            teamTransfersLoading = True;
+            teamTransfersIncoming = [];
+            teamTransfersOutgoing = [];
+            teamAnalysis = "";
+            found = mock_teams.filter(lambda t: dict -> bool { return t["id"] == new_team_id; });
             if found.length > 0 {
-                await fetchTeamTransfers(found[0]["name"]);
-                await fetchTeamAnalysis(found[0]["name"]);
+                fetchTeamTransfers(found[0]["name"]);
+                fetchTeamAnalysis(found[0]["name"]);
             }
         }
-        currentPage = page;
+        if page.startsWith("player-detail:") {
+            new_player_id = page.split(":")[1];
+            playerDetailId = new_player_id;
+            fetchPlayerDetail(new_player_id);
+        }
         if page == "players" and players.length == 0 and not playersLoading {
             fetchPlayers();
         }
@@ -499,6 +486,10 @@ def:pub app -> JsxElement {
         }
     }
 
+    def handleToggleHomeSortByFavorites -> None {
+        homeSortByFavorites = not homeSortByFavorites;
+    }
+
     if checkingAuth {
         return
             <div className="app-layout">
@@ -563,6 +554,8 @@ def:pub app -> JsxElement {
                             aiImpactLoading={aiImpactLoading}
                             portalStatsData={portalStatsData}
                             teamCounts={teamCounts}
+                            sortByFavorites={homeSortByFavorites}
+                            onToggleSortByFavorites={handleToggleHomeSortByFavorites}
                         />
                     ) if currentPage == "home" else (
                         <TeamsPage
@@ -625,6 +618,7 @@ def:pub app -> JsxElement {
                             onNavigate={handleNavigate}
                             favoriteTeamIds={favoriteTeamIds}
                             onToggleFavorite={handleToggleFavorite}
+                            teamCounts={teamCounts}
                         />
                     ) if currentPage == "favorites" else (
                         <ProfilePage

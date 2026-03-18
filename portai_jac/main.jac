@@ -1166,10 +1166,10 @@ walker:priv get_team_transfers {
         for t in all_transfers {
             from_lower = t["fromTeam"].lower();
             to_lower = t["toTeam"].lower();
-            if (from_lower == csv_name_lower or csv_name_lower in from_lower or from_lower in csv_name_lower) {
+            if (from_lower == csv_name_lower) {
                 outgoing.append(t);
             }
-            if (to_lower == csv_name_lower or csv_name_lower in to_lower or to_lower in csv_name_lower) {
+            if (to_lower == csv_name_lower) {
                 if t["toTeam"] != "Undecided" {
                     incoming.append(t);
                 }
