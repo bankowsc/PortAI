@@ -15,6 +15,7 @@ import from .pages.TransactionsPage { TransactionsPage }
 import from .pages.FavoritesPage { FavoritesPage }
 import from .pages.ProfilePage { ProfilePage }
 import from .pages.ChatPage { ChatPage }
+import from .pages.GamePage { GamePage }
 import from .data.mock_data { default_favorite_team_ids, mock_teams }
 import from .pages.TeamDetailPage { TeamDetailPage }
 import from .pages.PlayerDetailPage { PlayerDetailPage }
@@ -621,6 +622,8 @@ def:pub app -> JsxElement {
                             teamCounts={teamCounts}
                         />
                     ) if currentPage == "favorites" else (
+                        <GamePage />
+                    ) if currentPage == "game" else (
                         <ProfilePage
                             onNavigate={handleNavigate}
                             onLogout={handleLogout}
