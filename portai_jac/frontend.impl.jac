@@ -623,3 +623,12 @@ impl app.handleToggleWatch(playerId: str) -> None {
         console.warn("Failed to sync watchlist to server");
     }
 }
+
+impl app.handleRegenerateAnalysis -> None {
+    aiAnalysisSummary = "";
+    fetchAnalysisSummary();
+}
+
+impl app.handleDateRangeChange(value: str) -> None {
+    dateRange = value;
+}

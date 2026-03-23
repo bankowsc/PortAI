@@ -14,6 +14,7 @@ import from .pages.PlayersPage { PlayersPage }
 import from .pages.TransactionsPage { TransactionsPage }
 import from .pages.FavoritesPage { FavoritesPage }
 import from .pages.ProfilePage { ProfilePage }
+import from .pages.AnalyticsPage { AnalyticsPage }
 import from .pages.ChatPage { ChatPage }
 import from .data.mock_data { default_favorite_team_ids, mock_teams }
 import from .pages.TeamDetailPage { TeamDetailPage }
@@ -125,7 +126,10 @@ def:pub app -> JsxElement {
         playerDetailId: str = "",
         userEmail: str = "",
         homeSortByFavorites: bool = False,
-        watchedPlayerIds: list = [];
+        watchedPlayerIds: list = [],
+        aiAnalysisSummary: str = "",
+        aiAnalysisLoading: bool = False,
+        dateRange: str = "all";
 
     can with entry {
         auth_result = jacIsLoggedIn();
@@ -293,6 +297,11 @@ def:pub app -> JsxElement {
     async def fetchPlayerDetail(playerId: str) -> None;
     async def fetchWatchlist -> None;
     async def handleToggleWatch(playerId: str) -> None;
+
+    async def handleRegenerateAnalysis -> None;
+    def handleDateRangeChange(value: str) -> None;
+    async def fetchAnalysisSummary -> None;
+
 
 
     def toggleTheme -> None {
@@ -649,6 +658,21 @@ def:pub app -> JsxElement {
                         />
 
                     ) if currentPage == "chat" else (
+
+                        <AnalyticsPage
+                            onNavigate={handleNavigate}
+                            transactions={transactions}
+                            portalStatsData={portalStatsData}
+                            favoriteTeamIds={favoriteTeamIds}
+                            teamCounts={teamCounts}
+                            aiAnalysisSummary={aiAnalysisSummary}
+                            aiAnalysisLoading={aiAnalysisLoading}
+                            onRegenerateAnalysis={handleRegenerateAnalysis}
+                            dateRange={dateRange}
+                            onDateRangeChange={handleDateRangeChange}
+                        />
+                    ) if currentPage == "analytics" else (
+
                         <PlayerDetailPage
                             playerId={playerDetailId}
                             playerData={playerDetailData}
