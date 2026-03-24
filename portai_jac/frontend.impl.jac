@@ -234,6 +234,7 @@ impl app.handleLogout -> None {
     window.history.pushState({}, "", "/");
     favoriteTeamIds = default_favorite_team_ids;
     watchedPlayerIds = [];
+    userCredits = 0; # TODO this still shows the old users credits until interacted with after
     # Clear all cached data from localStorage
     cache_keys: list = [
         "portai_watchlist", "portai_display_name", "portai_avatar_icon",

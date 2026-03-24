@@ -55,7 +55,7 @@ def:pub ProfilePage(
     topPositions = (portalStatsData["topPositions"] if portalStatsData and portalStatsData["topPositions"] else []);
     topConferences = (portalStatsData["topConferences"] if portalStatsData and portalStatsData["topConferences"] else []);
 
-    allPositions = ["All", "QB", "RB", "WR", "TE", "OL", "DL", "LB", "DB", "K", "P", "LS", "ATH", "S", "CB"];
+    allPositions = ["All", "ATH", "CB", "DL", "Edge", "IOL", "K", "LB", "LS", "OT", "P", "QB", "RB", "S", "TE", "WR"];
 
     filteredTransactions = [t for t in profileTransactions if positionFilter == "All" or t["position"] == positionFilter];
     fourStarPlus = [t for t in filteredTransactions if t["starRating"] >= 4].length;

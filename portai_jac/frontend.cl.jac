@@ -131,7 +131,9 @@ def:pub app -> JsxElement {
         aiAnalysisLoading: bool = False,
         dateRange: str = "all",
         userCredits: int = 0,
-        creditsLoading: bool = False;
+        creditsLoading: bool = False,
+        today: any = {};
+
 
     can with entry {
         auth_result = jacIsLoggedIn();
@@ -239,6 +241,13 @@ def:pub app -> JsxElement {
                 }
             });
         }
+
+        today = Reflect.construct(Date, []).toLocaleDateString("en-US", {
+            "weekday": "long",
+            "year": "numeric",
+            "month": "long",
+            "day": "numeric"
+        });
     }
 
     can with [isLoggedIn] entry {
@@ -543,6 +552,7 @@ def:pub app -> JsxElement {
                 onToggleUserMenu={handleToggleUserMenu}
                 theme={theme}
                 onToggleTheme={toggleTheme}
+                userCredits={userCredits}
             />
             <div className="app-body">
                 <Sidebar
@@ -682,6 +692,7 @@ def:pub app -> JsxElement {
                             onRegenerateAnalysis={handleRegenerateAnalysis}
                             dateRange={dateRange}
                             onDateRangeChange={handleDateRangeChange}
+                            today={today}
                         />
                     ) if currentPage == "analytics" else (
 

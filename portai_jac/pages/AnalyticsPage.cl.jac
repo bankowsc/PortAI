@@ -12,7 +12,8 @@ def:pub AnalyticsPage(
     aiAnalysisLoading: bool,
     onRegenerateAnalysis: any,
     dateRange: str,
-    onDateRangeChange: any
+    onDateRangeChange: any,
+    today: any
 ) -> any {
 
     # ── Derived counts ────────────────────────────────────────────────────────
@@ -153,20 +154,26 @@ def:pub AnalyticsPage(
                         {String(undecided_count)}
                     </div>
                     <div className="text-muted" style={({"fontSize": "0.85rem", "marginTop": "0.25rem"})}>Undecided</div>
+                    <div style={({"fontSize": "0.75rem", "color": "#f59e0b", "marginTop": "0.125rem"})}>
+                        {String(undecided_pct) + "% of portal"}
+                    </div>
                 </div>
 
                 <div className="card-static card-padding" style={({"textAlign": "center"})}>
                     <div style={({"fontSize": "2rem", "fontWeight": "700"})}>
                         {String(avg_rating)}
                     </div>
-                    <div className="text-muted" style={({"fontSize": "0.85rem", "marginTop": "0.25rem"})}>Avg Rating</div>
+                    <div className="text-muted" style={({"fontSize": "0.85rem", "marginTop": "0.25rem"})}>Avg Portal Rating</div>
                 </div>
 
                 <div className="card-static card-padding" style={({"textAlign": "center"})}>
-                    <div style={({"fontSize": "2rem", "fontWeight": "700"})}>
-                        {String(top_conferences.length)}
+                    <div style={({"fontSize": "1rem", "fontWeight": "700", "color": "var(--warning, #f50b0b)"})}>
+                        {String(today.substring(today.indexOf(",") + 2))}
                     </div>
-                    <div className="text-muted" style={({"fontSize": "0.85rem", "marginTop": "0.25rem"})}>Conferences Active</div>
+                    <div className="text-muted" style={({"fontSize": "0.85rem", "marginBottom": "0.25rem"})}>Today</div>
+                    <div style={({"fontSize": "1rem", "color": "#f50b0b", "marginBottom": "0.25rem"})}>
+                        {String(today.substring(0, today.indexOf(",")))}
+                    </div>
                 </div>
 
             </div>
