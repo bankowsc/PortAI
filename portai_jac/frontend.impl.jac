@@ -219,6 +219,7 @@ impl app.handleSignup -> None {
         }
         loginEmail = "";
         loginPassword = "";
+        userSignupDate = String(today);
         loginConfirmPassword = "";
         currentPage = "home";
         window.history.pushState({}, "", "/");

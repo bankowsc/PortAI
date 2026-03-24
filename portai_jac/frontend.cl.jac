@@ -125,6 +125,7 @@ def:pub app -> JsxElement {
         playerDetailLoading: bool = False,
         playerDetailId: str = "",
         userEmail: str = "",
+        userSignupDate: any = {},
         homeSortByFavorites: bool = False,
         watchedPlayerIds: list = [],
         aiAnalysisSummary: str = "",
@@ -248,6 +249,10 @@ def:pub app -> JsxElement {
             "month": "long",
             "day": "numeric"
         });
+    }
+
+    can with [currentPage] entry {
+        window.scrollTo({ top: 0, behavior: "instant" });
     }
 
     can with [isLoggedIn] entry {
@@ -657,6 +662,7 @@ def:pub app -> JsxElement {
                             favoriteTeamIds={favoriteTeamIds}
                             onToggleFavorite={handleToggleFavorite}
                             userEmail={userEmail}
+                            userSignupDate={userSignupDate}
                             profileTransactions={profileTransactions}
                             profileTransactionsLoading={profileTransactionsLoading}
                             portalStatsData={portalStatsData}

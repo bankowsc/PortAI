@@ -10,6 +10,7 @@ def:pub ProfilePage(
     favoriteTeamIds: list,
     onToggleFavorite: any,
     userEmail: str,
+    userSignupDate: any,
     profileTransactions: list,
     profileTransactionsLoading: bool,
     portalStatsData: any,
@@ -509,7 +510,7 @@ def:pub ProfilePage(
                                     </div>
                                     <div className="profile-settings-row">
                                         <div className="profile-settings-label">Member Since</div>
-                                        <div className="profile-settings-value">Winter 2026</div>
+                                        <div className="profile-settings-value">{String(userSignupDate)}</div>
                                     </div>
                                 </div>
 
