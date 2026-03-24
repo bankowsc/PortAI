@@ -130,7 +130,8 @@ def:pub app -> JsxElement {
         aiAnalysisSummary: str = "",
         aiAnalysisLoading: bool = False,
         dateRange: str = "all",
-        userCredits: int = 0;
+        userCredits: int = 0,
+        creditsLoading: bool = False;
 
     can with entry {
         auth_result = jacIsLoggedIn();
@@ -305,6 +306,8 @@ def:pub app -> JsxElement {
     async def fetchAnalysisSummary -> None;
 
     async def claimDailyCredits -> None;
+    async def handleIncrementCredits -> None;
+
 
 
 
@@ -651,6 +654,8 @@ def:pub app -> JsxElement {
                             watchedPlayerIds={watchedPlayerIds}
                             onToggleWatch={handleToggleWatch}
                             userCredits={userCredits}
+                            onIncrementCredits={handleIncrementCredits}
+                            creditsLoading={creditsLoading}
                         />
                     ) if currentPage == "profile" else (
                         <ChatPage

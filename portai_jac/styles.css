@@ -3514,11 +3514,18 @@ body.dark .ai-summary-card,
     transition: color 1s ease;
 }
 
-.profile-credits {
+.credits-section {
     font-size: 0.85rem;
     color: var(--muted-foreground);
     transition: color 1s ease;
 }
+
+.credits-section .btn-sm {
+    padding: 2px 10px;
+    font-size: 0.75rem;
+    border-radius: 4px;
+}
+
 
 .profile-meta-pills {
     display: flex;

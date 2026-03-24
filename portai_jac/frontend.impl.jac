@@ -645,3 +645,19 @@ impl app.claimDailyCredits -> None {
         window.localStorage.setItem("portai_credits", String(data["credits"]));
     }
 }
+
+impl app.handleIncrementCredits -> None {
+    try {
+        result = root spawn claim_daily_credits();
+        if result.reports {
+            data = result.reports[0];
+            userCredits = data["credits"];
+            window.localStorage.setItem("portai_credits", String(data["credits"]));
+        }
+    } except e {
+        # Optimistic local increment as fallback
+        userCredits = userCredits + 1;
+        window.localStorage.setItem("portai_credits", String(userCredits));
+        console.warn("Failed to sync credit increment to server");
+    }
+}

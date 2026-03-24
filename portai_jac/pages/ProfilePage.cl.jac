@@ -19,6 +19,8 @@ def:pub ProfilePage(
     watchedPlayerIds: list,
     onToggleWatch: any,
     userCredits: int,
+    onIncrementCredits: any,
+    creditsLoading: bool,
 ) -> any {
 
     has activeTab: str = "overview",
@@ -285,6 +287,15 @@ def:pub ProfilePage(
                                     <div className="snapshot-card-label">ACCOUNT CREDITS</div>
                                     <div className="snapshot-card-value red">{String(userCredits)}</div>
                                     <div className="snapshot-card-sub">increments every login day</div>
+                                    <div className="credits-section">
+                                    <button
+                                        className="btn btn-primary btn-sm"
+                                        onClick={onIncrementCredits}
+                                        disabled={creditsLoading}
+                                    >
+                                        + Claim Credits
+                                    </button>
+                                    </div>
                                 </div>
                             </div>
 
