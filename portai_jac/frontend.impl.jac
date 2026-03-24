@@ -632,3 +632,16 @@ impl app.handleRegenerateAnalysis -> None {
 impl app.handleDateRangeChange(value: str) -> None {
     dateRange = value;
 }
+
+impl app.claimDailyCredits -> None {
+    stored = window.localStorage.getItem("portai_credits");
+    if stored {
+        userCredits = parseInt(stored);
+    }
+    result = await claim_daily_credits();
+    if result and result[0] {
+        data = result[0];
+        userCredits = data["credits"];
+        window.localStorage.setItem("portai_credits", String(data["credits"]));
+    }
+}

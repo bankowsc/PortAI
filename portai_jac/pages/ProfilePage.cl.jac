@@ -18,6 +18,7 @@ def:pub ProfilePage(
     onSaveProfile: any,
     watchedPlayerIds: list,
     onToggleWatch: any,
+    userCredits: int,
 ) -> any {
 
     has activeTab: str = "overview",
@@ -281,9 +282,9 @@ def:pub ProfilePage(
                                     <div className="snapshot-card-sub">teams followed</div>
                                 </div>
                                 <div className="profile-snapshot-card">
-                                    <div className="snapshot-card-label">4 Star Plus in Portal</div>
-                                    <div className="snapshot-card-value red">{String(fourStarPlus)}</div>
-                                    <div className="snapshot-card-sub">high-value prospects</div>
+                                    <div className="snapshot-card-label">ACCOUNT CREDITS</div>
+                                    <div className="snapshot-card-value red">{String(userCredits)}</div>
+                                    <div className="snapshot-card-sub">increments every login day</div>
                                 </div>
                             </div>
 

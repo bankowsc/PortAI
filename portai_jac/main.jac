@@ -712,10 +712,60 @@ node User {
     has avatar_icon: str = "";
     has watched_player_ids: list = [];
     has email: str = "";
+    has credits: int = 0;
+    has last_login_date: str = "";
 }
 
 
 # --- Server Walkers ---
+
+walker:priv claim_daily_credits {
+    has found: bool = False;
+    has credited: bool = False;
+
+    can search with Root entry {
+        visit [-->];
+    }
+
+    # can check_and_award with User entry {
+    #     self.found = True;
+    #     today = str(__import__("datetime").date.today());
+    #     if here.last_login_date != today {
+    #         here.credits = here.credits + 1;
+    #         here.last_login_date = today;
+    #         self.credited = True;
+    #     }
+    #     report {
+    #         "credits": here.credits,
+    #         "credited": self.credited,
+    #         "last_login_date": here.last_login_date
+    #     };
+    # }
+
+    can check_and_award with User entry {
+        self.found = True;
+        here.credits = here.credits + 1;
+        report {
+            "credits": here.credits,
+            "credited": True,
+            "last_login_date": here.last_login_date
+        };
+    }
+
+    can create_if_needed with Root exit {
+        if not self.found {
+            today = str(__import__("datetime").date.today());
+            new_user = User(
+                username="",
+                credits=1,
+                last_login_date=today
+            );
+            here ++> new_user;
+            report {"credits": 1, "credited": True, "last_login_date": today};
+        }
+    }
+}
+
 
 walker:pub get_ai_summary {
     has context: str;
@@ -1110,6 +1160,7 @@ walker:priv update_profile {
     has display_name: str = "";
     has avatar_icon: str = "";
     has email: str = "";
+    has credits: int = 0;
     has found: bool = False;
     has saved_display_name: str = "";
     has saved_avatar_icon: str = "";

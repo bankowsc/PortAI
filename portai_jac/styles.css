@@ -731,8 +731,10 @@ textarea {
 } */
 
 .btn-outline-accent:hover {
-    background: rgba(14, 165, 233, 0.12); /* subtle tint instead of fully solid */
-    color: var(--accent); /* keep accent text color */
+    background: rgba(14, 165, 233, 0.12);
+    /* subtle tint instead of fully solid */
+    color: var(--accent);
+    /* keep accent text color */
     border-color: var(--accent);
 }
 
@@ -3507,6 +3509,12 @@ body.dark .ai-summary-card,
 }
 
 .profile-email {
+    font-size: 0.85rem;
+    color: var(--muted-foreground);
+    transition: color 1s ease;
+}
+
+.profile-credits {
     font-size: 0.85rem;
     color: var(--muted-foreground);
     transition: color 1s ease;

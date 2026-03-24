@@ -24,7 +24,7 @@ sv import from main {
     update_favorites, get_user_favorites, get_portal_summary, update_profile, get_user_profile, 
     get_transfers, search_players, get_player_by_id, get_ai_impact, get_portal_stats,
     predict_destination, chat, get_team_stats, get_team_analysis, get_team_transfers, get_player_detail,
-    update_watchlist, get_user_watchlist
+    update_watchlist, get_user_watchlist, claim_daily_credits
 }
 
 # --- URL <-> Page Sync Helpers ---
@@ -129,7 +129,8 @@ def:pub app -> JsxElement {
         watchedPlayerIds: list = [],
         aiAnalysisSummary: str = "",
         aiAnalysisLoading: bool = False,
-        dateRange: str = "all";
+        dateRange: str = "all",
+        userCredits: int = 0;
 
     can with entry {
         auth_result = jacIsLoggedIn();
@@ -245,6 +246,7 @@ def:pub app -> JsxElement {
             fetchUserProfile();
             fetchWatchlist();
             fetchFavorites();
+            claimDailyCredits(); # new
 
             # Only fetch heavy data if not already restored from cache
             if not aiSummary {
@@ -301,6 +303,9 @@ def:pub app -> JsxElement {
     async def handleRegenerateAnalysis -> None;
     def handleDateRangeChange(value: str) -> None;
     async def fetchAnalysisSummary -> None;
+
+    async def claimDailyCredits -> None;
+
 
 
 
@@ -565,6 +570,7 @@ def:pub app -> JsxElement {
                             teamCounts={teamCounts}
                             sortByFavorites={homeSortByFavorites}
                             onToggleSortByFavorites={handleToggleHomeSortByFavorites}
+
                         />
                     ) if currentPage == "home" else (
                         <TeamsPage
@@ -644,6 +650,7 @@ def:pub app -> JsxElement {
                             onSaveProfile={saveUserProfile}
                             watchedPlayerIds={watchedPlayerIds}
                             onToggleWatch={handleToggleWatch}
+                            userCredits={userCredits}
                         />
                     ) if currentPage == "profile" else (
                         <ChatPage

@@ -13,7 +13,7 @@ def:pub Navigation(
     showUserMenu: bool,
     onToggleUserMenu: any,
     theme: str,
-    onToggleTheme: any
+    onToggleTheme: any,
 ) -> any {
     return
         <nav className="navbar">
