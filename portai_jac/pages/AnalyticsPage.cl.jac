@@ -167,11 +167,11 @@ def:pub AnalyticsPage(
                 </div>
 
                 <div className="card-static card-padding" style={({"textAlign": "center"})}>
-                    <div style={({"fontSize": "1rem", "fontWeight": "700", "color": "var(--warning, #f50b0b)"})}>
+                    <div style={({"fontSize": "1rem", "fontWeight": "700", "color": "var(--warning, #ef4444)"})}>
                         {String(today.substring(today.indexOf(",") + 2))}
                     </div>
                     <div className="text-muted" style={({"fontSize": "0.85rem", "marginBottom": "0.25rem"})}>Today</div>
-                    <div style={({"fontSize": "1rem", "color": "#f50b0b", "marginBottom": "0.25rem"})}>
+                    <div style={({"fontSize": "1rem", "color": "#ef4444", "marginBottom": "0.25rem"})}>
                         {String(today.substring(0, today.indexOf(",")))}
                     </div>
                 </div>

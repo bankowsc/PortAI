@@ -181,7 +181,16 @@ def:pub HomePage(
                 </div>
 
                 <div className="card-static card-padding">
-                    <h3 className="mb-4">Portal Stats Snapshot</h3>
+                    
+                    <div className="snapshot-card-header">
+                        <h3>Portal Stats Snapshot</h3>
+                        <button key={"analytics"}
+                            className="snapshot-see-more"
+                            onClick={lambda -> None { onNavigate("analytics"); }}>
+                            See more ↗
+                        </button>
+                    </div>
+
                     <div className="space-y-4">
                         <div className="portal-stat-highlight">
                             <div className="portal-stat-label">Total Transfers (2026)</div>
