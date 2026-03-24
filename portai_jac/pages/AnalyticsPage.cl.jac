@@ -21,34 +21,54 @@ def:pub AnalyticsPage(
     top_positions   = (portalStatsData["topPositions"]   if portalStatsData and portalStatsData["topPositions"]   else []);
     top_conferences = (portalStatsData["topConferences"] if portalStatsData and portalStatsData["topConferences"] else []);
 
-    # Committed vs undecided
-    committed_count  = transactions.filter(lambda t: dict -> bool { return t["toTeam"] != "Undecided" and t["toTeam"] != ""; }).length;
-    undecided_count  = total_transfers - committed_count;
-    commit_pct       = (Math.round(committed_count / total_transfers * 100) if total_transfers > 0 else 0);
+    # Committed vs enrolled vs undecided
+    enrolled_count  = transactions.filter(lambda t: dict -> bool { return t["status"] == "Enrolled"; }).length;
+    committed_count = transactions.filter(lambda t: dict -> bool { return t["status"] == "Committed"; }).length;
+    undecided_count = transactions.filter(lambda t: dict -> bool { return t["toTeam"] == "Undecided" or t["toTeam"] == ""; }).length;
+    commit_pct      = (Math.round(committed_count / total_transfers * 100) if total_transfers > 0 else 0);
+    enrolled_pct    = (Math.round(enrolled_count  / total_transfers * 100) if total_transfers > 0 else 0);
+    undecided_pct   = (Math.round(undecided_count / total_transfers * 100) if total_transfers > 0 else 0);
 
     # Average rating
-    rated_txns  = transactions.filter(lambda t: dict -> bool { return t["rating"] and t["rating"] > 0; });
-    avg_rating  = (
+    rated_txns = transactions.filter(lambda t: dict -> bool { return t["rating"] and t["rating"] > 0; });
+    avg_rating = (
         Math.round(rated_txns.reduce(lambda acc: float, t: dict -> float { return acc + t["rating"]; }, 0.0) / rated_txns.length * 10) / 10
         if rated_txns.length > 0 else 0
     );
 
-    # Star rating buckets  (5★ → 4★ → 3★ → 2★ → 1★)
-    star_buckets = {"5": 0, "4": 0, "3": 0, "2": 0, "1": 0};
-    transactions.forEach(lambda t: dict -> None {
-        s = String(t["starRating"]);
-        if star_buckets[s] != None { star_buckets[s] = star_buckets[s] + 1; }
+    # Position vs conference heatmap
+    heatmap_positions   = ["QB", "WR", "RB", "OL", "DB", "LB"];
+    heatmap_conferences = ["SEC", "Big Ten", "Big 12", "ACC", "Pac-12"];
+    heatmap_counts = {};
+    heatmap_positions.forEach(lambda pos: str -> None {
+        heatmap_conferences.forEach(lambda conf: str -> None {
+            heatmap_counts[pos + "|" + conf] = 0;
+        });
     });
-    star_data = [
-        {"label": "5★", "value": star_buckets["5"], "color": "#f59e0b"},
-        {"label": "4★", "value": star_buckets["4"], "color": "#10b981"},
-        {"label": "3★", "value": star_buckets["3"], "color": "#3b82f6"},
-        {"label": "2★", "value": star_buckets["2"], "color": "#8b5cf6"},
-        {"label": "1★", "value": star_buckets["1"], "color": "var(--text-muted)"}
-    ];
-    # max_star = Math.max(...star_data.map(lambda s: any -> int { return s["value"]; }));
+    transactions.forEach(lambda t: dict -> None {
+        pos  = t["position"];
+        conf = t["conference"];
+        if pos and conf {
+            key = pos + "|" + conf;
+            if heatmap_counts[key] != None {
+                heatmap_counts[key] = heatmap_counts[key] + 1;
+            }
+        }
+    });
+    heatmap_max = heatmap_positions.reduce(
+        lambda outer_acc: int, pos: str -> int {
+            row_max = heatmap_conferences.reduce(
+                lambda inner_acc: int, conf: str -> int {
+                    v = heatmap_counts[pos + "|" + conf];
+                    val = (v if v else 0);
+                    return (val if val > inner_acc else inner_acc);
+                }, 0
+            );
+            return (row_max if row_max > outer_acc else outer_acc);
+        }, 1
+    );
 
-    # Top 5 gaining teams (most incoming)
+    # Top 5 gaining / losing teams
     enriched_teams = mock_teams.map(
         lambda team: dict -> dict {
             counts = (teamCounts[team["name"]] if teamCounts and teamCounts[team["name"]] else {"incoming": 0, "outgoing": 0});
@@ -119,6 +139,16 @@ def:pub AnalyticsPage(
                 </div>
 
                 <div className="card-static card-padding" style={({"textAlign": "center"})}>
+                    <div style={({"fontSize": "2rem", "fontWeight": "700", "color": "#8b5cf6"})}>
+                        {String(enrolled_count)}
+                    </div>
+                    <div className="text-muted" style={({"fontSize": "0.85rem", "marginTop": "0.25rem"})}>Enrolled</div>
+                    <div style={({"fontSize": "0.75rem", "color": "#8b5cf6", "marginTop": "0.125rem"})}>
+                        {String(enrolled_pct) + "% of portal"}
+                    </div>
+                </div>
+
+                <div className="card-static card-padding" style={({"textAlign": "center"})}>
                     <div style={({"fontSize": "2rem", "fontWeight": "700", "color": "var(--warning, #f59e0b)"})}>
                         {String(undecided_count)}
                     </div>
@@ -144,43 +174,97 @@ def:pub AnalyticsPage(
             <div style={({"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "1.25rem"})}>
 
                 <div className="card-static card-padding">
-                    <h3 className="mb-4">Star Rating Distribution</h3>
-                    <div className="space-y-3">
-                        {star_data.map(lambda s: any -> any {
-                            # bar_pct = (Math.round(s["value"] / max_star * 100) if max_star > 0 else 0);
-                            return <div key={s["label"]} style={({"display": "flex", "alignItems": "center", "gap": "0.75rem"})}>
-                                <span style={({"minWidth": "2rem", "fontSize": "0.85rem", "fontWeight": "600", "color": s["color"]})}>
-                                    {s["label"]}
-                                </span>
-                                <div style={({"flex": "1", "background": "var(--surface-2, var(--bg-card))", "borderRadius": "4px", "height": "10px", "overflow": "hidden"})}>
-                                </div>
-                            
-                            </div>;
-                        })}
+                    <h3 className="mb-4">Position × Conference Heatmap</h3>
+                    <div style={({"overflowX": "auto"})}>
+                        <table style={({"width": "100%", "borderCollapse": "collapse", "fontSize": "0.78rem"})}>
+                            <thead>
+                                <tr>
+                                    <th style={({"padding": "4px 6px", "textAlign": "left", "color": "var(--text-muted)", "fontWeight": "500", "width": "36px"})}>
+                                    </th>
+                                    {heatmap_conferences.map(lambda conf: str -> any {
+                                        return <th key={conf} style={({"padding": "4px 6px", "textAlign": "center", "color": "var(--text-muted)", "fontWeight": "500", "whiteSpace": "nowrap"})}>
+                                            {conf}
+                                        </th>;
+                                    })}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {heatmap_positions.map(lambda pos: str -> any {
+                                    return <tr key={pos}>
+                                        <td style={({"padding": "4px 6px", "fontWeight": "600", "color": "var(--text-secondary)", "whiteSpace": "nowrap"})}>
+                                            {pos}
+                                        </td>
+                                        {heatmap_conferences.map(lambda conf: str -> any {
+                                            cell_key = pos + "|" + conf;
+                                            raw = heatmap_counts[cell_key];
+                                            val = (raw if raw else 0);
+                                            intensity = (Math.round(val / heatmap_max * 100) if heatmap_max > 0 else 0);
+                                            bg = (
+                                                "rgba(16,185,129,0.7)"  if intensity > 75 else (
+                                                "rgba(16,185,129,0.45)" if intensity > 50 else (
+                                                "rgba(16,185,129,0.2)"  if intensity > 25 else (
+                                                "rgba(16,185,129,0.07)" if intensity > 0  else
+                                                "var(--surface-2, var(--bg-card))"
+                                                )))
+                                            );
+                                            text_color = ("var(--color-text-primary)" if intensity > 50 else "var(--text-muted)");
+                                            return <td key={conf} style={({"padding": "5px 6px", "textAlign": "center", "background": bg, "borderRadius": "4px", "color": text_color, "fontWeight": ("600" if intensity > 50 else "400")})}>
+                                                {(String(val) if val > 0 else "–")}
+                                            </td>;
+                                        })}
+                                    </tr>;
+                                })}
+                            </tbody>
+                        </table>
+                        <div style={({"display": "flex", "alignItems": "center", "gap": "0.5rem", "marginTop": "0.75rem"})}>
+                            <span className="text-muted" style={({"fontSize": "0.75rem"})}>Low</span>
+                            <div style={({"display": "flex", "gap": "3px"})}>
+                                <div style={({"width": "16px", "height": "10px", "borderRadius": "2px", "background": "rgba(16,185,129,0.07)"})}></div>
+                                <div style={({"width": "16px", "height": "10px", "borderRadius": "2px", "background": "rgba(16,185,129,0.2)"})}></div>
+                                <div style={({"width": "16px", "height": "10px", "borderRadius": "2px", "background": "rgba(16,185,129,0.45)"})}></div>
+                                <div style={({"width": "16px", "height": "10px", "borderRadius": "2px", "background": "rgba(16,185,129,0.7)"})}></div>
+                            </div>
+                            <span className="text-muted" style={({"fontSize": "0.75rem"})}>High</span>
+                        </div>
                     </div>
                 </div>
 
                 <div className="card-static card-padding">
                     <h3 className="mb-4">Commitment Status</h3>
                     <div style={({"display": "flex", "flexDirection": "column", "gap": "1rem"})}>
-                        <div style={({"display": "flex", "alignItems": "center", "justifyContent": "center", "gap": "2rem", "padding": "1rem 0"})}>
+                        <div style={({"display": "flex", "alignItems": "center", "justifyContent": "center", "gap": "1.5rem", "padding": "1rem 0"})}>
                             <div style={({"textAlign": "center"})}>
-                                <div style={({"fontSize": "2.5rem", "fontWeight": "700", "color": "#10b981"})}>
+                                <div style={({"fontSize": "2rem", "fontWeight": "700", "color": "#10b981"})}>
                                     {String(commit_pct) + "%"}
                                 </div>
                                 <div className="text-muted" style={({"fontSize": "0.8rem"})}>Committed</div>
+                                <div style={({"fontSize": "0.75rem", "color": "#10b981"})}>{String(committed_count)}</div>
                             </div>
                             <div style={({"width": "1px", "height": "60px", "background": "var(--border)"})}>
                             </div>
                             <div style={({"textAlign": "center"})}>
-                                <div style={({"fontSize": "2.5rem", "fontWeight": "700", "color": "var(--warning, #f59e0b)"})}>
-                                    {String(100 - commit_pct) + "%"}
+                                <div style={({"fontSize": "2rem", "fontWeight": "700", "color": "#8b5cf6"})}>
+                                    {String(enrolled_pct) + "%"}
+                                </div>
+                                <div className="text-muted" style={({"fontSize": "0.8rem"})}>Enrolled</div>
+                                <div style={({"fontSize": "0.75rem", "color": "#8b5cf6"})}>{String(enrolled_count)}</div>
+                            </div>
+                            <div style={({"width": "1px", "height": "60px", "background": "var(--border)"})}>
+                            </div>
+                            <div style={({"textAlign": "center"})}>
+                                <div style={({"fontSize": "2rem", "fontWeight": "700", "color": "var(--warning, #f59e0b)"})}>
+                                    {String(undecided_pct) + "%"}
                                 </div>
                                 <div className="text-muted" style={({"fontSize": "0.8rem"})}>Undecided</div>
+                                <div style={({"fontSize": "0.75rem", "color": "var(--warning, #f59e0b)"})}>{String(undecided_count)}</div>
                             </div>
                         </div>
-                        <div style={({"background": "var(--surface-2, var(--bg-card))", "borderRadius": "6px", "height": "12px", "overflow": "hidden"})}>
-                            <div style={({"width": String(commit_pct) + "%", "height": "100%", "background": "linear-gradient(90deg, #10b981, var(--accent))", "transition": "width 0.6s ease"})}>
+                        <div style={({"background": "var(--surface-2, var(--bg-card))", "borderRadius": "6px", "height": "12px", "overflow": "hidden", "display": "flex"})}>
+                            <div style={({"width": String(commit_pct) + "%", "height": "100%", "background": "#10b981", "transition": "width 0.6s ease"})}>
+                            </div>
+                            <div style={({"width": String(enrolled_pct) + "%", "height": "100%", "background": "#8b5cf6", "transition": "width 0.6s ease"})}>
+                            </div>
+                            <div style={({"width": String(undecided_pct) + "%", "height": "100%", "background": "var(--warning, #f59e0b)", "transition": "width 0.6s ease"})}>
                             </div>
                         </div>
                         <div style={({"display": "flex", "justifyContent": "space-between"})}>
@@ -188,7 +272,10 @@ def:pub AnalyticsPage(
                                 {String(committed_count) + " committed"}
                             </span>
                             <span className="text-muted" style={({"fontSize": "0.8rem"})}>
-                                {String(undecided_count) + " still deciding"}
+                                {String(enrolled_count) + " enrolled"}
+                            </span>
+                            <span className="text-muted" style={({"fontSize": "0.8rem"})}>
+                                {String(undecided_count) + " deciding"}
                             </span>
                         </div>
                     </div>

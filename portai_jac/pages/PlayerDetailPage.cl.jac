@@ -85,9 +85,7 @@ def:pub PlayerDetailPage(
                             <h1 className="mb-1">{playerData["name"]}</h1>
                             <div style={({"display": "flex", "alignItems": "center", "gap": "0.75rem", "flexWrap": "wrap"})}>
                                 <span className="badge badge-position">{playerData["position"]}</span>
-                                <span style={({"color": "var(--warning, #f59e0b)", "fontSize": "1.1rem"})}>
-                                    {star_str}
-                                </span>
+            
                                 <span className="text-muted">{"Rating: " + rating_str}</span>
                                 <span style={({"color": status_color, "fontWeight": "600"})}>
                                     {playerData["status"]}
