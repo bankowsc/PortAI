@@ -1337,6 +1337,7 @@ body.dark .ai-summary-card,
     padding: 1.5rem;
 }
 
+/* Layout */
 .transaction-card-content {
     display: flex;
     align-items: flex-start;
@@ -1352,13 +1353,38 @@ body.dark .ai-summary-card,
     flex: 1;
 }
 
+/* Header */
 .transaction-card-header {
     display: flex;
-    align-items: flex-start;
     justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
     margin-bottom: 0.5rem;
 }
 
+/* RIGHT SIDE (watch + stars) */
+.txn-card-actions-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+
+}
+
+/* Optional: tighten watch button */
+.txn-watch-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+
+}
+
+/* Stars */
+.player-card-stars {
+    display: flex;
+    gap: 2px;
+}
+
+/* Transfer row */
 .transaction-card-transfer {
     display: flex;
     align-items: center;
@@ -1390,18 +1416,16 @@ body.dark .ai-summary-card,
     font-size: 1.25rem;
 }
 
-.transaction-card-stats {
+/* Meta */
+.transaction-card-meta {
     display: flex;
     gap: 1rem;
     margin-bottom: 0.75rem;
-    font-size: 0.875rem;
+    font-size: 0.85rem;
+    color: var(--color-muted);
 }
 
-.transaction-card-stat-label {
-    color: var(--muted-foreground);
-    text-transform: capitalize;
-}
-
+/* Footer */
 .transaction-card-footer {
     display: flex;
     align-items: center;
@@ -1419,6 +1443,7 @@ body.dark .ai-summary-card,
     gap: 0.5rem;
 }
 
+/* AI Section */
 .ai-impact-section {
     margin-top: 1rem;
     padding: 1rem;
@@ -2850,7 +2875,13 @@ body.dark .ai-summary-card,
 
 .favorites-toggle-btn:hover:not(:disabled) {
     border-color: var(--accent);
-    color: var(--accent);
+    color: white;
+    background: var(--accent);
+}
+
+.favorites-toggle-btn.active:hover {
+    background: var(--accent);
+    color: white;
 }
 
 .favorites-toggle-btn.active {

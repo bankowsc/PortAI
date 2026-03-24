@@ -215,7 +215,7 @@ def:pub PlayerDetailPage(
                             ("Predicting..." if crystal_loading else "🔮 Predict Destination")
                         )}
                     </button>
-                </div>) if playerData["toTeam"] != "Undecided" else <div />}
+                </div>) if playerData["toTeam"] == "Undecided" else <div />}
                 {(
                     <div>
                         {(

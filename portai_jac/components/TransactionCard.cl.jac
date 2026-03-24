@@ -6,7 +6,10 @@ def:pub TransactionCard(
     onToggleAIImpact: any,
     onNavigate: any,
     aiImpactText: str,
-    aiImpactLoading: bool
+    aiImpactLoading: bool,
+    isWatched: bool,
+    onToggleWatch: any,
+    
 ) -> any {
     return
         <div className="card transaction-card">
@@ -23,6 +26,16 @@ def:pub TransactionCard(
                                 </span>
                             ) if transaction["status"] else None}
                         </div>
+
+                        <div className="txn-card-actions-row">
+                            <button
+                                className={"btn btn-sm txn-watch-btn" + (" watching" if isWatched else "")}
+                                onClick={lambda -> None { onToggleWatch(transaction["id"]); }}
+                            >
+                                {("Watching" if isWatched else "+ Watch")}
+                            </button>
+                        </div>
+
                         <div className="player-card-stars">
                             {[
                                 <span key={i} className="star">⭐</span>

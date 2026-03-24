@@ -203,15 +203,11 @@ def:pub TransactionsPage(
                                             onNavigate={onNavigate}
                                             aiImpactText={(aiImpactTexts[tId] if aiImpactTexts[tId] else "")}
                                             aiImpactLoading={aiImpactLoading.includes(t["id"])}
+
+                                            isWatched={isWatched}
+                                            onToggleWatch={onToggleWatch}
                                         />
-                                        <div className="txn-card-actions-row">
-                                            <button
-                                                className={"btn btn-sm txn-watch-btn" + (" watching" if isWatched else "")}
-                                                onClick={lambda -> None { onToggleWatch(tId); }}
-                                            >
-                                                {("Watching" if isWatched else "+ Watch")}
-                                            </button>
-                                        </div>
+                                        
                                         {(
                                             <div className="crystal-ball-section">
                                                 <button
