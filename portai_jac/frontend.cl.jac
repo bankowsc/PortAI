@@ -583,6 +583,8 @@ def:pub app -> JsxElement {
                             teamCounts={teamCounts}
                             sortByFavorites={homeSortByFavorites}
                             onToggleSortByFavorites={handleToggleHomeSortByFavorites}
+                            onToggleWatch={handleToggleWatch}
+                            watchedPlayerIds={watchedPlayerIds}
 
                         />
                     ) if currentPage == "home" else (

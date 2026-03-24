@@ -24,7 +24,10 @@ def:pub HomePage(
     portalStatsData: any,
     sortByFavorites: bool,
     onToggleSortByFavorites: callable,
-    teamCounts: any
+    teamCounts: any,
+    onToggleWatch: any,
+    watchedPlayerIds: any,
+
 ) -> any {
     
     enriched_teams = mock_teams.map(
@@ -119,6 +122,8 @@ def:pub HomePage(
                         <div className="space-y-4">
                             {sorted_transactions.map(lambda t: dict -> any {
                                 tId = t["id"];
+                                isWatched = watchedPlayerIds.includes(t["id"]);
+
                                 return <TransactionCard
                                     key={t["id"]}
                                     transaction={t}
@@ -127,6 +132,11 @@ def:pub HomePage(
                                     onNavigate={onNavigate}
                                     aiImpactText={(aiImpactTexts[tId] if aiImpactTexts[tId] else "")}
                                     aiImpactLoading={aiImpactLoading.includes(t["id"])}
+
+                                    isWatched={isWatched}
+                                    onToggleWatch={onToggleWatch}
+
+
                                 />;
                             })}
 
