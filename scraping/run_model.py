@@ -1,4 +1,5 @@
 import pandas as pd
+import sys
 import joblib
 import re
 
@@ -13,14 +14,29 @@ model_columns = joblib.load("model_columns.pkl")
 # CREATE TEST PLAYER
 # ------------------------
 
+SEASON = str(sys.argv[1])
+
+POSITION = str(sys.argv[2])
+
+TEMP = str(sys.argv[3])
+HEIGHT = TEMP[0] + "'" + TEMP[2] + "\""
+
+WEIGHT = str(sys.argv[4]) + "lbs"
+
+STARS = str(sys.argv[5])
+
+RATING = str(sys.argv[6])
+
+FROM_SCHOOL = " ".join(sys.argv[7:])
+
 new_player = {
-    "season": 2024,
-    "position": "QB",
-    "height": "6'4\"",
-    "weight": "235 lbs",
-    "stars": 3,
-    "rating": 0.92,
-    "from_school": "Kansas State"
+    "season": SEASON,
+    "position": POSITION,
+    "height": HEIGHT,
+    "weight": WEIGHT,
+    "stars": STARS,
+    "rating": RATING,
+    "from_school": FROM_SCHOOL
 }
 
 df = pd.DataFrame([new_player])
@@ -68,7 +84,7 @@ print("Predicted School:", prediction[0])
 # Top 3 schools
 import numpy as np
 
-top3_idx = np.argsort(probabilities[0])[-5:][::-1]
+top3_idx = np.argsort(probabilities[0])[-3:][::-1]
 top3_schools = model.classes_[top3_idx]
 top3_probs = probabilities[0][top3_idx]
 

@@ -986,7 +986,8 @@ sem CrystalBallPrediction.reasoning = "A 2-3 sentence explanation of why this pl
 You are PortAI's Crystal Ball predictor.
 Given a player's profile (name, position, star rating, height, weight, previous school),
 predict which school they will most likely transfer to and explain your reasoning.
-Consider factors like team needs, conference proximity, coaching connections, and player profile."""
+Consider factors like team needs, conference proximity, coaching connections, and player profile.
+Factor in the random tree model context to consider if it lists teams and percentages as well."""
 def generate_crystal_ball(player_context: str) -> CrystalBallPrediction by llm();
 
 walker:priv predict_destination {
@@ -1004,6 +1005,35 @@ walker:priv predict_destination {
                     "Previous school: " + t["fromTeam"] + ". " +
                     "Current status: " + t["status"] + "."
                 );
+                
+                # model_output = "";
+                # try {
+                #     script_result = subprocess.run(
+                #         [
+                #             "python3", 
+                #             "../scraping/run_model.py",
+                #             "2026",
+                #             t["position"],
+                #             t["height"],
+                #             str(t["weight"]),
+                #             str(t["starRating"]),
+                #             str(t["rating"]),
+                #             t["fromTeam"]
+                #         ],
+                #         capture_output=True,
+                #         text=True
+                #     );
+                #     model_output = script_result.stdout.strip();
+                # } except e {
+                #     model_output = "";
+                # }
+
+                # if model_output {
+                #     context = context + " RANDOM FOREST MODEL PREDICTION CONTEXT TO CONSIDER: " + model_output;
+                # }
+
+
+
                 result = generate_crystal_ball(player_context=context);
                 report {
                     "prediction": result.prediction,
@@ -1306,3 +1336,25 @@ walker:priv get_player_detail {
         report {"error": "Player not found"};
     }
 }
+
+
+# import:py subprocess;
+
+# walker:priv run_python_script {
+#     has season: str = "2024"
+#     has position: str = "QB"
+#     has height: str = "6-2"
+#     has weight: str = "210"
+#     has stars: str = "4"
+#     has rating: str = "0.95"
+#     has from_school: str = "Ohio State"
+
+#     can run with Root entry {
+#         result = subprocess.run(
+#             ["python3", "../scraping/run_model.py", season, position, height, weight, stars, rating, from_school ],
+#             capture_output=True,
+#             text=True
+#         );
+#         report result.stdout;
+#     }
+# }

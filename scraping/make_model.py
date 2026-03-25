@@ -11,7 +11,7 @@ from sklearn.metrics import accuracy_score
 # LOAD MULTIPLE CSV FILES
 # ------------------------
 
-files = glob.glob("transfer_247_data/transfer_portal_247_20*.csv")
+files = glob.glob("transfer_247_data/transfer_portal_247_2018.csv")
 df_list = [pd.read_csv(file) for file in files]
 data = pd.concat(df_list, ignore_index=True)
 
