@@ -14,7 +14,8 @@ import from '@fortawesome/free-solid-svg-icons' {
     faRightLeft, 
     faNewspaper, 
     faChartBar, 
-    faMessage 
+    faMessage,
+    faBullseye
 }
 
 def:pub Sidebar(
@@ -42,7 +43,8 @@ def:pub Sidebar(
         {"icon": faRightLeft, "label": "Transactions",  "page": "transactions"},
         {"icon": faNewspaper, "label": "News",          "page": "news"},
         {"icon": faChartBar,  "label": "Analytics",     "page": "analytics"},
-        {"icon": faMessage,   "label": "Chat",          "page": "chat"}
+        {"icon": faMessage,   "label": "Chat",          "page": "chat"},
+        {"icon": faBullseye,  "label": "Game",          "page": "game"}
     ];
 
     favorite_teams = [t for t in mock_teams if favoriteTeamIds.includes(t["id"])];
