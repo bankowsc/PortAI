@@ -1005,34 +1005,6 @@ walker:priv predict_destination {
                     "Previous school: " + t["fromTeam"] + ". " +
                     "Current status: " + t["status"] + "."
                 );
-                
-                # model_output = "";
-                # try {
-                #     script_result = subprocess.run(
-                #         [
-                #             "python3", 
-                #             "../scraping/run_model.py",
-                #             "2026",
-                #             t["position"],
-                #             t["height"],
-                #             str(t["weight"]),
-                #             str(t["starRating"]),
-                #             str(t["rating"]),
-                #             t["fromTeam"]
-                #         ],
-                #         capture_output=True,
-                #         text=True
-                #     );
-                #     model_output = script_result.stdout.strip();
-                # } except e {
-                #     model_output = "";
-                # }
-
-                # if model_output {
-                #     context = context + " RANDOM FOREST MODEL PREDICTION CONTEXT TO CONSIDER: " + model_output;
-                # }
-
-
 
                 result = generate_crystal_ball(player_context=context);
                 report {
