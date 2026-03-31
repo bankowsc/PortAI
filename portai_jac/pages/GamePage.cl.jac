@@ -12,10 +12,9 @@ def:pub GamePage(
         {"key": "height",     "label": "Height"},
         {"key": "weight",     "label": "Weight"},
         {"key": "playerPhoto","label": "Player Photo"},
-        {"key": "playerName", "label": "Initals"},
-        
+        {"key": "playerName", "label": "Initials"},
     ];
-    max_guesses: int = 6;
+    max_guesses: int = 8;
 
     mock_players: list = [
         {
@@ -127,6 +126,12 @@ def:pub GamePage(
     def roundLabel -> str {
         if guessCount == 0 { return "Round 1"; }
         return "Guess " + String(guessCount + 1);
+    }
+
+    def getInitials(fullName: str) -> str {
+        return fullName.trim().split(" ").map(
+            lambda word: str -> str { return word[0].toUpperCase(); }
+        ).join(". ") + ".";
     }
 
     def handleInputChange(e: any) -> None {
@@ -242,10 +247,13 @@ def:pub GamePage(
                     card_class = ("game-clue-card revealed" if is_revealed else "game-clue-card hidden");
                     raw_val = targetPlayer[clue["key"]];
                     clue_val = (
-                        "★".repeat(raw_val) 
-                        # + "☆".repeat(5 - raw_val)
+                        "★".repeat(raw_val)
                         if clue["key"] == "starRating"
-                        else String(raw_val)
+                        else (
+                            getInitials(raw_val)
+                            if clue["key"] == "playerName"
+                            else String(raw_val)
+                        )
                     );
                     locked_text = ("First clue" if idx == 0 else "Unlocks after guess " + String(idx));
                     return
