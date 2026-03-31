@@ -2,7 +2,6 @@
 
 def:pub GamePage(
     onNavigate: any,
-    onNewGame: any,
 ) -> any {
 
     clue_order: list = [
@@ -108,7 +107,6 @@ def:pub GamePage(
         wrongGuesses = [];
         inputValue = "";
         showSuggestions = False;
-        onNewGame();
     }
 
     return

@@ -404,13 +404,11 @@ textarea {
     inset: 0;
     background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.03) 40%, transparent 75%),
-        repeating-linear-gradient(
-            90deg,
+        repeating-linear-gradient(90deg,
             rgba(20, 39, 70, 0.08) 0,
             rgba(20, 39, 70, 0.08) 16px,
             rgba(20, 39, 70, 0.02) 16px,
-            rgba(20, 39, 70, 0.02) 32px
-        );
+            rgba(20, 39, 70, 0.02) 32px);
     opacity: 0.55;
     pointer-events: none;
 }
@@ -421,13 +419,11 @@ textarea {
     right: 0;
     top: 58%;
     bottom: 0;
-    background: repeating-linear-gradient(
-        90deg,
-        rgba(255, 255, 255, 0.22) 0,
-        rgba(255, 255, 255, 0.22) 4px,
-        transparent 4px,
-        transparent 72px
-    );
+    background: repeating-linear-gradient(90deg,
+            rgba(255, 255, 255, 0.22) 0,
+            rgba(255, 255, 255, 0.22) 4px,
+            transparent 4px,
+            transparent 72px);
     pointer-events: none;
 }
 
@@ -560,9 +556,11 @@ textarea {
     from {
         transform: rotate(-24deg);
     }
+
     45% {
         transform: rotate(-70deg);
     }
+
     to {
         transform: rotate(-45deg);
     }
@@ -634,6 +632,7 @@ textarea {
     from {
         box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25) inset;
     }
+
     to {
         box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25) inset,
             -4px 0 0 rgba(255, 255, 255, 0.12);
@@ -1158,8 +1157,10 @@ textarea {
 } */
 
 .btn-outline-accent:hover {
-    background: rgba(14, 165, 233, 0.12); /* subtle tint instead of fully solid */
-    color: var(--accent); /* keep accent text color */
+    background: rgba(14, 165, 233, 0.12);
+    /* subtle tint instead of fully solid */
+    color: var(--accent);
+    /* keep accent text color */
     border-color: var(--accent);
 }
 
@@ -5397,4 +5398,363 @@ body.dark .ai-summary-card,
     .chat-page-input-bar {
         padding: 12px 16px 16px;
     }
+}
+
+
+
+
+
+/* WORDLE GAME SECTION */
+/* ========================================
+   GAME PAGE - Portal Player Guesser
+   ======================================== */
+
+.game-page {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 28px 24px;
+}
+
+/* ── Header ──────────────────────────────────────────────── */
+
+.game-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.game-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--foreground);
+    margin: 0 0 4px;
+    letter-spacing: -0.02em;
+    transition: color 1s ease;
+}
+
+.game-subtitle {
+    font-size: 0.85rem;
+    color: var(--muted-foreground);
+    margin: 0;
+    line-height: 1.5;
+    transition: color 1s ease;
+}
+
+.game-status-badge {
+    flex-shrink: 0;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    background: rgba(14, 165, 233, 0.1);
+    color: var(--accent);
+    border: 1px solid rgba(14, 165, 233, 0.25);
+    white-space: nowrap;
+    transition: background-color 1s ease, color 1s ease, border-color 1s ease;
+}
+
+/* ── Attempt Dots ────────────────────────────────────────── */
+
+.game-attempts-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.attempt-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.attempt-dot.remaining {
+    background: var(--muted);
+    border: 1px solid var(--border);
+}
+
+.attempt-dot.used {
+    background: var(--destructive);
+    border: 1px solid var(--destructive);
+}
+
+.attempts-label {
+    font-size: 0.8rem;
+    color: var(--muted-foreground);
+    margin-left: 4px;
+    transition: color 1s ease;
+}
+
+/* ── Result Banners ──────────────────────────────────────── */
+
+.game-result-banner {
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+    animation: profileTabIn 0.25s ease;
+}
+
+.game-result-banner.win {
+    background: rgba(34, 197, 94, 0.07);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.game-result-banner.loss {
+    background: rgba(220, 38, 38, 0.07);
+    border: 1px solid rgba(220, 38, 38, 0.25);
+}
+
+.game-result-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+}
+
+.game-result-banner.win .game-result-title {
+    color: #22c55e;
+}
+
+.game-result-banner.loss .game-result-title {
+    color: var(--destructive);
+}
+
+.game-result-sub {
+    font-size: 0.85rem;
+    color: var(--muted-foreground);
+    transition: color 1s ease;
+}
+
+.game-new-btn {
+    margin-top: 8px;
+    padding: 9px 24px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--foreground);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 1s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.game-new-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(14, 165, 233, 0.05);
+}
+
+/* ── Clue Grid ───────────────────────────────────────────── */
+
+.game-clue-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+@media (max-width: 600px) {
+    .game-clue-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.game-clue-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    transition: background-color 1s ease, border-color 0.3s ease, opacity 0.3s ease;
+}
+
+.game-clue-card.hidden {
+    opacity: 0.35;
+    border-style: dashed;
+}
+
+.game-clue-card.revealed {
+    border-color: rgba(14, 165, 233, 0.3);
+    background: rgba(14, 165, 233, 0.03);
+}
+
+.clue-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+    transition: color 1s ease;
+}
+
+.clue-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--foreground);
+    transition: color 1s ease;
+}
+
+.clue-value.stars {
+    color: #f59e0b;
+    letter-spacing: 1px;
+}
+
+.clue-locked {
+    font-size: 0.78rem;
+    color: var(--muted-foreground);
+    font-style: italic;
+    transition: color 1s ease;
+}
+
+/* ── Guess Section ───────────────────────────────────────── */
+
+.game-guess-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: background-color 1s ease, border-color 1s ease;
+}
+
+.guess-section-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--muted-foreground);
+    transition: color 1s ease;
+}
+
+.guess-input-wrap {
+    position: relative;
+    display: flex;
+    gap: 10px;
+}
+
+.guess-input {
+    flex: 1;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+    font-size: 0.9rem;
+    color: var(--foreground);
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 1s ease, color 1s ease;
+}
+
+.guess-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
+}
+
+.guess-input::placeholder {
+    color: var(--muted-foreground);
+}
+
+.guess-submit-btn {
+    padding: 10px 22px;
+    border-radius: 8px;
+    border: none;
+    background: var(--primary);
+    color: var(--primary-foreground);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: opacity 0.15s ease, background-color 1s ease;
+}
+
+.guess-submit-btn:hover:not(:disabled) {
+    opacity: 0.88;
+}
+
+.guess-submit-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* ── Autocomplete Dropdown ───────────────────────────────── */
+
+.game-suggestions {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 60px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow-lg);
+    z-index: 50;
+    max-height: 200px;
+    overflow-y: auto;
+    transition: background-color 1s ease, border-color 1s ease;
+}
+
+.game-suggestion-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 14px;
+    font-size: 0.875rem;
+    color: var(--foreground);
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.game-suggestion-item:hover {
+    background: var(--muted);
+}
+
+.suggestion-pos-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: var(--muted);
+    border: 1px solid var(--border);
+    color: var(--muted-foreground);
+    text-transform: uppercase;
+    flex-shrink: 0;
+    transition: background-color 1s ease, border-color 1s ease, color 1s ease;
+}
+
+/* ── Guess History ───────────────────────────────────────── */
+
+.game-guess-history {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.game-guess-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    background: rgba(220, 38, 38, 0.07);
+    border: 1px solid rgba(220, 38, 38, 0.2);
+    color: var(--destructive);
+    width: fit-content;
+    animation: profileTabIn 0.2s ease;
+}
+
+.guess-chip-x {
+    font-size: 0.7rem;
+    font-weight: 700;
+    opacity: 0.8;
 }

@@ -623,3 +623,4 @@ impl app.handleToggleWatch(playerId: str) -> None {
         console.warn("Failed to sync watchlist to server");
     }
 }
+

@@ -295,7 +295,7 @@ def:pub app -> JsxElement {
     async def fetchWatchlist -> None;
     async def handleToggleWatch(playerId: str) -> None;
 
-
+    
     def toggleTheme -> None {
         if theme == "dark" {
             theme = "light";
@@ -574,6 +574,10 @@ def:pub app -> JsxElement {
                             teamCounts={teamCounts}
                         />
                     ) if currentPage == "teams" else (
+                        <GamePage
+                            onNavigate={handleNavigate}
+                        />
+                    ) if currentPage == "game" else (
                         <PlayersPage
                             onNavigate={handleNavigate}
                             players={players}
@@ -622,11 +626,6 @@ def:pub app -> JsxElement {
                             teamCounts={teamCounts}
                         />
                     ) if currentPage == "favorites" else (
-                        <GamePage
-                            onNavigate={handleNavigate}
-                            onNewGame={handleNewGame}
-                        />
-                    ) if currentPage == "game" else (
                         <ProfilePage
                             onNavigate={handleNavigate}
                             onLogout={handleLogout}
