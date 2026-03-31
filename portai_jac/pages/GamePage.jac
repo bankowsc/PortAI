@@ -1,24 +1,22 @@
 """PortAI - Portal Player Guesser Game Page."""
 
-# Clue order: each wrong guess reveals the next clue in sequence.
-# Player name is NEVER shown as a clue.
-CLUE_ORDER = [
-    {"key": "position",   "label": "Position"},
-    {"key": "conference", "label": "From Conference"},
-    {"key": "class",      "label": "Class Year"},
-    {"key": "height",     "label": "Height"},
-    {"key": "weight",     "label": "Weight"},
-    {"key": "stars",      "label": "Star Rating"},
-];
-
-MAX_GUESSES = 6;
-
 def:pub GamePage(
     onNavigate: any,
     players: list,          # Full player list used for autocomplete
     targetPlayer: any,      # The randomly-selected player object for this round
     onNewGame: any,         # Callback: parent picks a new random player and resets state
 ) -> any {
+
+    # Moved inside the function — module-level constants not supported
+    clue_order: list = [
+        {"key": "position",   "label": "Position"},
+        {"key": "conference", "label": "From Conference"},
+        {"key": "class",      "label": "Class Year"},
+        {"key": "height",     "label": "Height"},
+        {"key": "weight",     "label": "Weight"},
+        {"key": "stars",      "label": "Star Rating"},
+    ];
+    max_guesses: int = 6;
 
     has guessCount: int = 0,
         gameOver: bool = False,
@@ -28,7 +26,8 @@ def:pub GamePage(
         showSuggestions: bool = False;
 
     # Derived: how many clues are currently visible (1 is always shown; +1 per wrong guess)
-    revealedClueCount: int = (1 + wrongGuesses.length if not gameOver else CLUE_ORDER.length);
+    revealedClueCount: int = (1 + wrongGuesses.length if not gameOver else clue_order.length);
+
 
     filteredSuggestions: list = [
         p for p in players
@@ -48,7 +47,7 @@ def:pub GamePage(
     }
 
     def attemptsLabel -> str {
-        remaining = MAX_GUESSES - guessCount;
+        remaining = max_guesses - guessCount;
         if remaining == 1 { return "1 guess remaining"; }
         return String(remaining) + " guesses remaining";
     }
@@ -99,7 +98,7 @@ def:pub GamePage(
             gameResult = "win";
         } else {
             wrongGuesses = wrongGuesses.concat([guess["name"]]);
-            if guessCount >= MAX_GUESSES {
+            if guessCount >= max_guesses {
                 gameOver = True;
                 gameResult = "loss";
             }
@@ -145,7 +144,7 @@ def:pub GamePage(
             {(
                 <div className="game-result-banner win">
                     <div className="game-result-title">
-                        {"Correct in " + String(guessCount) + (if guessCount == 1 then " guess!" else " guesses!")}
+                        {"Correct in " + String(guessCount) + (" guess!" if guessCount == 1 else " guesses!")}
                     </div>
                     <div className="game-result-sub">
                         {targetPlayer["name"] + " · " + targetPlayer["position"] + " · " + targetPlayer["fromTeam"] + " → " + targetPlayer["toTeam"]}
@@ -171,24 +170,24 @@ def:pub GamePage(
             if gameResult == "loss" else <span></span>)}
 
             <div className="game-clue-grid">
-                {[
-                    <div
-                        key={clue["key"]}
-                        className={("game-clue-card revealed" if idx < revealedClueCount else "game-clue-card hidden")}
-                    >
-                        <span className="clue-label">{clue["label"]}</span>
-                        {(
-                            <span className={("clue-value stars" if clue["key"] == "stars" else "clue-value")}>
-                                {clueValue(clue)}
-                            </span>
-                        if idx < revealedClueCount else
-                            <span className="clue-locked">
-                                {("First clue" if idx == 0 else "Unlocks after guess " + String(idx))}
-                            </span>
-                        )}
-                    </div>
-                    for idx, clue in enumerate(CLUE_ORDER)
-                ]}
+                {clue_order.map(lambda clue: any, idx: int -> any {
+                    return
+                        <div
+                            key={clue["key"]}
+                            className={("game-clue-card revealed" if idx < revealedClueCount else "game-clue-card hidden")}
+                        >
+                            <span className="clue-label">{clue["label"]}</span>
+                            {(
+                                <span className={("clue-value stars" if clue["key"] == "stars" else "clue-value")}>
+                                    {clueValue(clue)}
+                                </span>
+                            if idx < revealedClueCount else
+                                <span className="clue-locked">
+                                    {("First clue" if idx == 0 else "Unlocks after guess " + String(idx))}
+                                </span>
+                            )}
+                        </div>;
+                })}
             </div>
 
             {(

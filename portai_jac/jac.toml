@@ -20,5 +20,6 @@ watchdog = ">=3.0.0"
 base_route_app = "app"
 
 [plugins.client]
+debug = true
 
 [plugins.byllm]

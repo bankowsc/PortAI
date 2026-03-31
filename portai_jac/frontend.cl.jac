@@ -134,7 +134,9 @@ def:pub app -> JsxElement {
         dateRange: str = "all",
         userCredits: int = 0,
         creditsLoading: bool = False,
-        today: any = {};
+        today: any = {},
+
+        gameTargetPlayer: any = {};
 
 
     can with entry {
@@ -262,7 +264,9 @@ def:pub app -> JsxElement {
             fetchUserProfile();
             fetchWatchlist();
             fetchFavorites();
-            claimDailyCredits(); # new
+            claimDailyCredits();
+            handleNewGame();
+
 
             # Only fetch heavy data if not already restored from cache
             if not aiSummary {
@@ -319,9 +323,11 @@ def:pub app -> JsxElement {
     async def handleRegenerateAnalysis -> None;
     def handleDateRangeChange(value: str) -> None;
     async def fetchAnalysisSummary -> None;
-
     async def claimDailyCredits -> None;
     async def handleIncrementCredits -> None;
+
+    def handleNewGame -> None;
+
 
 
 
@@ -370,6 +376,9 @@ def:pub app -> JsxElement {
         }
         if page == "profile" and profileTransactions.length == 0 and not profileTransactionsLoading {
             fetchProfileTransactions();
+        }
+        if page == "game" and Object.keys(gameTargetPlayer).length == 0 {
+            handleNewGame();
         }
     }
 
@@ -689,6 +698,15 @@ def:pub app -> JsxElement {
                         />
 
                     ) if currentPage == "chat" else (
+                    
+                    <GamePage 
+                        onNavigate={handleNavigate}
+                        players={players}
+                        targetPlayer={gameTargetPlayer}
+                        onNewGame={handleNewGame}
+                    />
+
+                    ) if currentPage == "game" else(
 
                         <AnalyticsPage
                             onNavigate={handleNavigate}

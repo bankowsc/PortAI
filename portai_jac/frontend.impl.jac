@@ -663,3 +663,32 @@ impl app.handleIncrementCredits -> None {
         console.warn("Failed to sync credit increment to server");
     }
 }
+
+
+impl app.handleNewGame -> None {
+    if players.length > 0 {
+        idx = Math.floor(Math.random() * players.length);
+        gameTargetPlayer = players[idx];
+    } else {
+        # Players not loaded yet — fetch them first, then pick
+        try {
+            result = root spawn search_players(
+                query="",
+                offset=0,
+                limit=50,
+                position_filter="all"
+            );
+            if result.reports {
+                players = result.reports[0]["players"];
+                totalPlayers = result.reports[0]["total"];
+                playersOffset = 50;
+                if players.length > 0 {
+                    idx = Math.floor(Math.random() * players.length);
+                    gameTargetPlayer = players[idx];
+                }
+            }
+        } except e {
+            console.warn("Failed to load players for game");
+        }
+    }
+}
