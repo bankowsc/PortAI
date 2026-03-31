@@ -701,7 +701,6 @@ def:pub app -> JsxElement {
                     
                     <GamePage 
                         onNavigate={handleNavigate}
-                        players={players}
                         targetPlayer={gameTargetPlayer}
                         onNewGame={handleNewGame}
                     />
