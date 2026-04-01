@@ -19,9 +19,14 @@ def:pub GamePage() -> any {
         hitText: any = {},
         pageMissingFrames: int = 0;
 
-    def difficulty -> float {
+    # def difficulty -> float {
+    #     s = (window._portaiScore if window._portaiScore else 0);
+    #     return Math.min(4.0, 1.0 + (s / 42.0));
+    # }
+
+    def difficulty -> int {
         s = (window._portaiScore if window._portaiScore else 0);
-        return Math.min(4.0, 1.0 + (s / 42.0));
+        return Math.min(10, Math.floor(1 + 9 * Math.pow(s / 5000.0, 0.5)));
     }
 
     def ballStart -> any {
@@ -208,7 +213,7 @@ def:pub GamePage() -> any {
 
         # Update ball physics.
         if cBall["active"] {
-            GRAVITY = 0.35;
+            GRAVITY = 0.32;
             nx = cBall["x"] + cBall["vx"];
             ny = cBall["y"] + cBall["vy"];
             nvx = cBall["vx"] * 0.998;
@@ -236,7 +241,7 @@ def:pub GamePage() -> any {
                 hitText = {"x": hitX, "y": hitY - 20, "points": hitPoints, "key": Date.now()};
                 setTimeout(lambda -> None { hitFlash = False; }, 200);
                 setTimeout(lambda -> None { hitText = {}; }, 700);
-                if remainingTargets.length < 4 {
+                while remainingTargets.length < 4 {
                     tType = randomTargetType();
                     remainingTargets.push(createTarget(tType, cNextId));
                     cNextId = cNextId + 1;
@@ -450,19 +455,19 @@ def:pub GamePage() -> any {
                         <rect x="0" y="0" width={String(worldWidth)} height={String(groundY)} fill="url(#skyGrad)" />
                         <rect x="0" y={String(groundY)} width={String(worldWidth)} height={String(worldHeight - groundY)} fill="url(#fieldGrad)" />
 
-                        <line x1="0" y1={String(groundY)} x2={String(worldWidth)} y2={String(groundY)} stroke="#4a7a4b" strokeWidth="2" />
-                        <line x1="200" y1={String(groundY)} x2="200" y2={String(worldHeight)} stroke="#4a7a4b" strokeWidth="1" opacity="0.4" />
-                        <line x1="400" y1={String(groundY)} x2="400" y2={String(worldHeight)} stroke="#4a7a4b" strokeWidth="1" opacity="0.4" />
-                        <line x1="600" y1={String(groundY)} x2="600" y2={String(worldHeight)} stroke="#4a7a4b" strokeWidth="1" opacity="0.4" />
-                        <line x1="800" y1={String(groundY)} x2="800" y2={String(worldHeight)} stroke="#4a7a4b" strokeWidth="1" opacity="0.4" />
+                        <line x1="0" y1={String(groundY)} x2={String(worldWidth)} y2={String(groundY)} stroke="#ffffff" strokeWidth="2" />
+                        <line x1="200" y1={String(groundY)} x2="200" y2={String(worldHeight)} stroke="#ffffff" strokeWidth="1" opacity="0.4" />
+                        <line x1="400" y1={String(groundY)} x2="400" y2={String(worldHeight)} stroke="#ffffff" strokeWidth="1" opacity="0.4" />
+                        <line x1="600" y1={String(groundY)} x2="600" y2={String(worldHeight)} stroke="#ffffff" strokeWidth="1" opacity="0.4" />
+                        <line x1="800" y1={String(groundY)} x2="800" y2={String(worldHeight)} stroke="#ffffff" strokeWidth="1" opacity="0.4" />
 
                         <rect x="870" y={String(groundY)} width="130" height={String(worldHeight - groundY)} fill="#8b2020" opacity="0.25" />
                         <text x="935" y={String(groundY + 40)} textAnchor="middle" fill="#ffffff" fontSize="14" opacity="0.5" fontFamily="sans-serif">END ZONE</text>
 
-                        <rect x="910" y={String(groundY - 130)} width="6" height="130" fill="#cccccc" opacity="0.6" />
-                        <rect x="880" y={String(groundY - 132)} width="66" height="5" fill="#cccccc" opacity="0.6" rx="2" />
-                        <rect x="880" y={String(groundY - 132)} width="3" height="22" fill="#cccccc" opacity="0.6" />
-                        <rect x="943" y={String(groundY - 132)} width="3" height="22" fill="#cccccc" opacity="0.6" />
+                        <rect x="910" y={String(groundY - 130)} width="6" height="130" fill="#FFFF00" opacity="0.6" />
+                        <rect x="880" y={String(groundY - 132)} width="66" height="5" fill="#FFFF00" opacity="0.6" rx="2" />
+                        <rect x="880" y={String(groundY - 162)} width="3" height="35" fill="#FFFF00" opacity="0.6" />
+                        <rect x="943" y={String(groundY - 162)} width="3" height="35" fill="#FFFF00" opacity="0.6" />
 
                         {(
                             <polyline
@@ -481,10 +486,10 @@ def:pub GamePage() -> any {
 
                             return <g key={t["id"]}>
                                 {(
-                                    <line x1={String(t["x"])} y1={String(t["anchorY"])} x2={String(t["x"])} y2={String(t["y"] - r)} stroke="#aaaaaa" strokeWidth="1.5" />
+                                    # <line x1={String(t["x"])} y1={String(t["anchorY"])} x2={String(t["x"])} y2={String(t["y"] - r)} stroke="#aaaaaa" strokeWidth="1.5" />
                                 ) if t["kind"] == "swing" else None}
                                 {(
-                                    <line x1={String(t["x"])} y1={String(t["y"] + r)} x2={String(t["x"])} y2={String(Math.min(groundY, t["y"] + r + 30))} stroke="#aaaaaa" strokeWidth="1" />
+                                    # <line x1={String(t["x"])} y1={String(t["y"] + r)} x2={String(t["x"])} y2={String(Math.min(groundY, t["y"] + r + 30))} stroke="#aaaaaa" strokeWidth="1" />
                                 ) if t["kind"] == "balloon" else None}
                                 <circle cx={String(t["x"])} cy={String(t["y"])} r={String(r)} fill={fillColor} stroke="#ffffff" strokeWidth="2" opacity="0.9" />
                                 <circle cx={String(t["x"])} cy={String(t["y"])} r={String(Math.max(3, r * 0.3))} fill="#ffffff" opacity="0.7" />
@@ -532,7 +537,8 @@ def:pub GamePage() -> any {
 
             <div className="game-footer-hint">
                 <span>Difficulty scales as you score: targets get smaller and faster.</span>
-                <span className="game-difficulty-pill">{"Level " + String(Math.round(difficulty() * 10) / 10)}</span>
+                <span className="game-difficulty-pill">{"Level " + String(difficulty())}</span>
             </div>
+
         </div>;
 }
