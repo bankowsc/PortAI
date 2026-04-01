@@ -49,20 +49,24 @@ def:pub GamePage() -> any {
 
     def randomTargetType -> str {
         roll = Math.random();
-        if roll < 0.42 {
+        if roll < 0.40 {
             return "wheel";
         }
-        if roll < 0.84 {
+        if roll < 0.80 {
             return "swing";
         }
-        return "balloon";
+        if roll < 0.95 {
+            return "balloon";
+        }
+        return "plane";
     }
 
     def createTarget(kind: str, targetId: int) -> any {
         scale = difficulty();
-        baseSize = (38 if kind == "wheel" else (33 if kind == "swing" else 30));
+        baseSize = (38 if kind == "wheel" else (33 if kind == "swing" else (30 if kind == "balloon" else 28)));
         tSize = Math.max(16, Math.round(baseSize - (scale * 2.5)));
         baseSpeed = 0.25 + randomBetween(0.0, 0.15) + (scale * 0.06);
+        speedMultiplier = (2.0 if kind == "plane" else 1.0);
         tX = randomBetween(550.0, 920.0);
         tY = groundY - randomBetween(48.0, 82.0);
         tDy = 0.0;
@@ -74,9 +78,12 @@ def:pub GamePage() -> any {
             tY = randomBetween(160.0, 350.0);
             tDy = (0.12 + randomBetween(0.0, 0.08)) * (1 if Math.random() > 0.5 else -1);
         }
+        if kind == "plane" {
+            tY = randomBetween(100.0, 260.0);
+        }
 
         horizDir = (1 if Math.random() > 0.5 else -1);
-        tDx = baseSpeed * horizDir;
+        tDx = baseSpeed * horizDir * speedMultiplier;
 
         return {
             "id": "target_" + String(targetId),
@@ -87,10 +94,10 @@ def:pub GamePage() -> any {
             "baseX": tX,
             "phase": randomBetween(0.0, 6.283),
             "size": tSize,
-            "speed": baseSpeed,
+            "speed": baseSpeed * speedMultiplier,
             "dx": tDx,
             "dy": tDy,
-            "points": Math.max(8, Math.round((10 + scale * 3.5) + (38 - tSize))),
+            "points": Math.max(8, Math.round((10 + scale * 3.5) + (38 - tSize) + (20 if kind == "plane" else 0))),
             "anchorY": 60.0 + randomBetween(-12.0, 26.0)
         };
     }
@@ -482,17 +489,22 @@ def:pub GamePage() -> any {
 
                         {targets.map(lambda t: dict -> any {
                             r = t["size"] / 2;
-                            fillColor = ("#e8a520" if t["kind"] == "wheel" else ("#20a8e8" if t["kind"] == "swing" else "#e84040"));
-
+                            fillColor = ("#e8a520" if t["kind"] == "wheel" else ("#20a8e8" if t["kind"] == "swing" else ("#e84040" if t["kind"] == "balloon" else "#9333ea")));
+                            
                             return <g key={t["id"]}>
                                 {(
-                                    # <line x1={String(t["x"])} y1={String(t["anchorY"])} x2={String(t["x"])} y2={String(t["y"] - r)} stroke="#aaaaaa" strokeWidth="1.5" />
-                                ) if t["kind"] == "swing" else None}
-                                {(
-                                    # <line x1={String(t["x"])} y1={String(t["y"] + r)} x2={String(t["x"])} y2={String(Math.min(groundY, t["y"] + r + 30))} stroke="#aaaaaa" strokeWidth="1" />
-                                ) if t["kind"] == "balloon" else None}
-                                <circle cx={String(t["x"])} cy={String(t["y"])} r={String(r)} fill={fillColor} stroke="#ffffff" strokeWidth="2" opacity="0.9" />
-                                <circle cx={String(t["x"])} cy={String(t["y"])} r={String(Math.max(3, r * 0.3))} fill="#ffffff" opacity="0.7" />
+                                    <g transform={"translate(" + String(t["x"]) + "," + String(t["y"]) + ")"}>
+                                        <ellipse cx="0" cy="0" rx={String(r * 1.8)} ry={String(r * 0.5)} fill="#9333ea" stroke="#ffffff" strokeWidth="2" opacity="0.9" />
+                                        <ellipse cx={String(r * 0.4)} cy={String(-r * 0.3)} rx={String(r * 0.7)} ry={String(r * 0.35)} fill="#a855f7" stroke="#ffffff" strokeWidth="1.5" opacity="0.9" />
+                                        <ellipse cx={String(-r * 1.2)} cy="0" rx={String(r * 0.4)} ry={String(r * 0.2)} fill="#7e22ce" stroke="#ffffff" strokeWidth="1" opacity="0.9" />
+                                        <circle cx={String(r * 0.3)} cy={String(-r * 0.2)} r={String(Math.max(2, r * 0.15))} fill="#ffffff" opacity="0.7" />
+                                    </g>
+                                ) if t["kind"] == "plane" else (
+                                    <g>
+                                        <circle cx={String(t["x"])} cy={String(t["y"])} r={String(r)} fill={fillColor} stroke="#ffffff" strokeWidth="2" opacity="0.9" />
+                                        <circle cx={String(t["x"])} cy={String(t["y"])} r={String(Math.max(3, r * 0.3))} fill="#ffffff" opacity="0.7" />
+                                    </g>
+                                )}
                                 <text x={String(t["x"])} y={String(t["y"] - r - 6)} textAnchor="middle" fill="#ffffff" fontSize="11" opacity="0.7" fontFamily="sans-serif">
                                     {("+" + String(t["points"]))}
                                 </text>
