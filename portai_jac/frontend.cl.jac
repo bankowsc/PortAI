@@ -146,7 +146,7 @@ def:pub app -> JsxElement {
 
         link = document.createElement("link");
         link.rel = "icon";
-        link.href = "./assets/logo.png";  # whatever your logo file is named
+        link.href = "./assets/mockLogo.png";  # whatever your logo file is named
         document.head.appendChild(link);
 
         # --- Restore persisted data from localStorage ---
