@@ -17,12 +17,9 @@ def:pub GamePage() -> any {
         targets: list = [],
         hitFlash: bool = False,
         hitText: any = {},
-        pageMissingFrames: int = 0;
-
-    # def difficulty -> float {
-    #     s = (window._portaiScore if window._portaiScore else 0);
-    #     return Math.min(4.0, 1.0 + (s / 42.0));
-    # }
+        pageMissingFrames: int = 0,
+        numMisses: int = 0,
+        gameOver: bool = False;
 
     def difficulty -> int {
         s = (window._portaiScore if window._portaiScore else 0);
@@ -188,6 +185,11 @@ def:pub GamePage() -> any {
     }
 
     def runTick -> None {
+        # Don't run physics if game is over.
+        if (window._portaiGameOver if window._portaiGameOver else False) {
+            return;
+        }
+
         nowMs = Date.now();
         if window._portaiLastTickMs and (nowMs - window._portaiLastTickMs) < 15 {
             return;
@@ -211,6 +213,9 @@ def:pub GamePage() -> any {
         cTick = ((window._portaiTick if window._portaiTick else 0) + 1);
         cScore = (window._portaiScore if window._portaiScore else 0);
         cNextId = (window._portaiNextTargetId if window._portaiNextTargetId else 1);
+
+        cMisses = (window._portaiNumMisses if window._portaiNumMisses else 0);
+        # cMisses = 0; # (window._portaiNumMisses if window._portaiNumMisses is not None else 0);
 
         # Update targets.
         moved: list = [];
@@ -243,7 +248,11 @@ def:pub GamePage() -> any {
             }
 
             if hitPoints > 0 {
+                console.log("HIT TRIGGERED", cMisses);
+
+                # Hit! Reset consecutive miss counter.
                 cScore = cScore + hitPoints;
+                cMisses = 0;
                 hitFlash = True;
                 hitText = {"x": hitX, "y": hitY - 20, "points": hitPoints, "key": Date.now()};
                 setTimeout(lambda -> None { hitFlash = False; }, 200);
@@ -254,16 +263,54 @@ def:pub GamePage() -> any {
                     cNextId = cNextId + 1;
                 }
                 moved = remainingTargets;
-                start = ballStart();
-                cBall = {"x": start["x"], "y": start["y"], "vx": 0, "vy": 0, "active": False};
+                cBall = {
+                    "x": ballStart()["x"],
+                    "y": ballStart()["y"],
+                    "vx": 0,
+                    "vy": 0,
+                    "active": False
+                };
+
             } else {
+
                 if ny > (worldHeight + 220) or nx > (worldWidth + 320) or nx < -140 or ny < -240 {
-                    start = ballStart();
-                    cBall = {"x": start["x"], "y": start["y"], "vx": 0, "vy": 0, "active": False};
+                    console.log("MISS TRIGGERED", cMisses);
+
+                    # Ball went out of bounds — count as a miss.
+                    cMisses = cMisses + 1;
+
+                    cBall = {
+                        "x": ballStart()["x"],
+                        "y": ballStart()["y"],
+                        "vx": 0,
+                        "vy": 0,
+                        "active": False
+                    };
+
+                    if cMisses >= 4 {
+                        # Game over.
+                        window._portaiGameOver = True;
+                        window._portaiNumMisses = cMisses;
+                        window._portaiBallState = cBall;
+                        window._portaiTargets = moved;
+                        window._portaiTick = cTick;
+                        window._portaiScore = cScore;
+                        window._portaiNextTargetId = cNextId;
+                        ball = cBall;
+                        targets = moved;
+                        tick = cTick;
+                        score = cScore;
+                        nextTargetId = cNextId;
+                        numMisses = cMisses;
+                        gameOver = True;
+                        return;
+                    }
                 } else {
                     cBall = {"x": nx, "y": ny, "vx": nvx, "vy": nvy, "active": True};
                 }
             }
+
+            console.log("Shot fired ", cMisses);
         }
 
         # Write to window globals.
@@ -272,6 +319,8 @@ def:pub GamePage() -> any {
         window._portaiTick = cTick;
         window._portaiScore = cScore;
         window._portaiNextTargetId = cNextId;
+        window._portaiNumMisses = cMisses;
+        console.log("Updated cMisses");
 
         # Push to React state for re-render.
         ball = cBall;
@@ -279,9 +328,13 @@ def:pub GamePage() -> any {
         tick = cTick;
         score = cScore;
         nextTargetId = cNextId;
+        numMisses = cMisses;
     }
 
     def handlePress(e: any) -> None {
+        if gameOver {
+            return;
+        }
         e.preventDefault();
         if ball["active"] {
             resetBall();
@@ -309,7 +362,6 @@ def:pub GamePage() -> any {
             releasePoint = dragCurrent;
         }
 
-        # Aim vector: direction from drag start to drag end (direct throw).
         dx = releasePoint["x"] - dragStart["x"];
         dy = releasePoint["y"] - dragStart["y"];
         power = Math.sqrt((dx * dx) + (dy * dy));
@@ -358,10 +410,14 @@ def:pub GamePage() -> any {
         nextTargetId = 1;
         hitFlash = False;
         hitText = {};
+        numMisses = 0;
+        gameOver = False;
         window._portaiScore = 0;
         window._portaiTick = 0;
         window._portaiNextTargetId = 1;
         window._portaiTargets = [];
+        window._portaiNumMisses = 0;
+        window._portaiGameOver = False;
         resetBall();
         repopulateTargets();
     }
@@ -372,6 +428,8 @@ def:pub GamePage() -> any {
         window._portaiScore = 0;
         window._portaiTick = 0;
         window._portaiNextTargetId = 1;
+        window._portaiNumMisses = 0;
+        window._portaiGameOver = False;
         if window._portaiGameLoopId {
             clearInterval(window._portaiGameLoopId);
         }
@@ -411,6 +469,10 @@ def:pub GamePage() -> any {
         return String(Math.round(p["x"])) + "," + String(Math.round(p["y"]));
     }).join(" ");
 
+    # Miss indicators: 4 footballs, filled = remaining life, dim = used miss.
+    MAX_MISSES = 4;
+    missesLeft = MAX_MISSES - numMisses;
+
     return
         <div className="game-page">
             <div className="game-header-row">
@@ -430,6 +492,19 @@ def:pub GamePage() -> any {
                     <div className="game-stat-card">
                         <span className="game-stat-label">Avg Pts</span>
                         <span className="game-stat-value">{String(accuracy)}</span>
+                    </div>
+                    <div className={"game-stat-card game-miss-card" + (" game-miss-danger" if numMisses >= 3 else "")}>
+                        <span className="game-stat-label">Streak Left</span>
+                        <div className="game-miss-indicators">
+                            {[0, 1, 2, 3].map(lambda i: int -> any {
+                                isAlive = i < missesLeft;
+                                return <span
+                                    key={String(i)}
+                                    className={"game-miss-dot" + (" game-miss-dot-alive" if isAlive else " game-miss-dot-dead")}
+                                    title={(("Miss " + String(i + 1)) if not isAlive else "Active")}
+                                >🏈</span>;
+                            })}
+                        </div>
                     </div>
                     <button className="btn btn-outline game-reset-btn" onClick={handleReset}>Reset</button>
                 </div>
@@ -490,7 +565,7 @@ def:pub GamePage() -> any {
                         {targets.map(lambda t: dict -> any {
                             r = t["size"] / 2;
                             fillColor = ("#e8a520" if t["kind"] == "wheel" else ("#20a8e8" if t["kind"] == "swing" else ("#e84040" if t["kind"] == "balloon" else "#9333ea")));
-                            
+
                             return <g key={t["id"]}>
                                 {(
                                     <g transform={"translate(" + String(t["x"]) + "," + String(t["y"]) + ")"}>
@@ -543,12 +618,43 @@ def:pub GamePage() -> any {
                                 {"+" + String(hitText["points"])}
                             </text>
                         ) if hitText and hitText["points"] else None}
+
+                        # Game-over overlay rendered inside SVG.
+                        {(
+                            <g>
+                                <rect x="0" y="0" width={String(worldWidth)} height={String(worldHeight)} fill="#000000" opacity="0.72" />
+                                <text x={String(worldWidth / 2)} y={String(worldHeight / 2 - 60)} textAnchor="middle" fill="#ef4444" fontSize="52" fontWeight="bold" fontFamily="sans-serif">GAME OVER</text>
+                                <text x={String(worldWidth / 2)} y={String(worldHeight / 2 - 10)} textAnchor="middle" fill="#ffffff" fontSize="22" fontFamily="sans-serif">{"4 misses in a row — final score: " + String(score)}</text>
+                                <text x={String(worldWidth / 2)} y={String(worldHeight / 2 + 30)} textAnchor="middle" fill="#facc15" fontSize="16" fontFamily="sans-serif">{"Total throws: " + String(throws) + "   |   Avg pts: " + String(accuracy)}</text>
+                                <rect
+                                    x={String((worldWidth / 2) - 80)}
+                                    y={String(worldHeight / 2 + 60)}
+                                    width="160"
+                                    height="44"
+                                    rx="8"
+                                    fill="#22c55e"
+                                    style="cursor:pointer;"
+                                    onClick={handleReset}
+                                />
+                                <text
+                                    x={String(worldWidth / 2)}
+                                    y={String(worldHeight / 2 + 88)}
+                                    textAnchor="middle"
+                                    fill="#ffffff"
+                                    fontSize="18"
+                                    fontWeight="bold"
+                                    fontFamily="sans-serif"
+                                    style="cursor:pointer;"
+                                    onClick={handleReset}
+                                >Play Again</text>
+                            </g>
+                        ) if gameOver else None}
                     </svg>
                 </div>
             </div>
 
             <div className="game-footer-hint">
-                <span>Difficulty scales as you score: targets get smaller and faster.</span>
+                <span>Miss 4 throws in a row and it's game over. Hit a target to reset your streak.</span>
                 <span className="game-difficulty-pill">{"Level " + String(difficulty())}</span>
             </div>
 
