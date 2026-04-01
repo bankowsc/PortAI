@@ -142,6 +142,13 @@ def:pub app -> JsxElement {
         isLoggedIn = auth_result;
         checkingAuth = False;
         document.documentElement.className = theme;
+        document.title = "PortAI";
+
+        link = document.createElement("link");
+        link.rel = "icon";
+        link.href = "./assets/logo.png";  # whatever your logo file is named
+        document.head.appendChild(link);
+
         # --- Restore persisted data from localStorage ---
         if auth_result {
             stored_watchlist = window.localStorage.getItem("portai_watchlist");
