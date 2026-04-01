@@ -1198,6 +1198,58 @@ jac check main.jac
 
 ---
 
+### v1.2 — March 30, 2026
+
+**Fixed Game page — football throw, targets, and drag mechanic.**
+
+#### Issues
+
+1. **Football did not animate when thrown** — The `setInterval` game loop captured a stale closure from the initial React render. `runTick` always read the initial `ball` state (inactive) and never saw updates from event handlers.
+2. **No targets visible** — Same stale closure issue: `repopulateTargets()` populated targets via React state, but the interval callback captured the initial empty `[]`. Additionally, `updateTarget` read `tick` from the stale closure (always 0), so targets never moved.
+3. **Drag aiming restricted to left of QB** — `constrainAimPoint` limited drag to 250px left of the quarterback (x: −250 to −8 relative to QB position), but the QB sits at x=120 in the 1000-wide SVG world — only 120px of usable drag space.
+
+#### Changes Made
+
+1. **Rewrote `runTick` to use window globals instead of stale closure variables**
+   - All mutable game state (`ball`, `targets`, `tick`, `score`, `nextTargetId`) is now read from `window._portai*` globals at the start of each tick and written back at the end.
+   - React state is set at the end of each tick to trigger re-renders.
+   - Eliminates the stale closure problem entirely for the game loop.
+
+2. **Fixed `updateTarget` to accept `currentTick` parameter**
+   - Changed function signature from `updateTarget(t)` to `updateTarget(t, currentTick)`.
+   - All sine-based oscillation calculations now use the passed-in tick value instead of the closure variable.
+
+3. **Added `window._portaiTargets` sync in `repopulateTargets`**
+   - After setting React state (`targets = targetPool`), the window global is also set so the game loop can read the initial targets.
+
+4. **Fixed `resetBall` window global sync order**
+   - Window global is now set BEFORE React state (`window._portaiBallState = newBall` then `ball = newBall`), preventing the stale closure from writing the old ball value to the global.
+
+5. **Fixed `difficulty()` to read score from window global**
+   - Reads `window._portaiScore` instead of the closure `score`, so difficulty scales correctly when `createTarget` is called from within the stale `runTick` closure.
+
+6. **Switched from slingshot to direct-throw drag mechanic**
+   - Removed `constrainAimPoint` entirely.
+   - Click anywhere on the game world and drag in the direction you want to throw.
+   - Aim vector = `dragEnd − dragStart` (direct, not inverted).
+   - Ball always launches from the QB's hand position regardless of where the drag started.
+   - No proximity restriction — full game world is usable for aiming.
+
+7. **Updated trajectory preview**
+   - Preview dots now originate from `ballStart()` (QB's hand) and follow the direct-throw direction.
+   - Minimum power threshold raised to 2 to avoid jittery preview on tiny drags.
+
+8. **Synced window globals in `handleReset` and `can with entry`**
+   - `window._portaiScore`, `window._portaiTick`, `window._portaiNextTargetId`, and `window._portaiTargets` are initialized on mount and reset.
+
+9. **Updated hint text**
+   - Changed from "Click anywhere and drag backward to aim" to "Click and drag in the direction you want to throw."
+
+#### Files Changed
+- `portai_jac/pages/GamePage.cl.jac`
+
+---
+
 ### v1.1 — February 17, 2026
 
 **Added Jaseci & Jac backend documentation.**
