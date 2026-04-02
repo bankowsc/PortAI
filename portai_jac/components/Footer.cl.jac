@@ -18,9 +18,7 @@ def:pub Footer() -> any {
                         <a href="#" title="LinkedIn">💼</a>
                     </div>
                 </div>
-                <div className="footer-copyright">
-                    © 2026 PortAI. All rights reserved.
-                </div>
+
             </div>
         </footer>;
 }

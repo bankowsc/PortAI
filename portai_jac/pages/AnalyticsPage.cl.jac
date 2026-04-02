@@ -13,25 +13,30 @@ def:pub AnalyticsPage(
     onRegenerateAnalysis: any,
     dateRange: str,
     onDateRangeChange: any,
-    today: any
+    today: any,
+    analyticsTransactions: list,
+    analyticsDataLoaded: bool
 ) -> any {
+
+    # Use the full background-loaded dataset when available, otherwise fall back to partial data
+    effective_transactions = (analyticsTransactions if analyticsDataLoaded and analyticsTransactions.length > 0 else transactions);
 
     # ── Derived counts ────────────────────────────────────────────────────────
 
-    total_transfers = (portalStatsData["totalTransfers"] if portalStatsData and portalStatsData["totalTransfers"] else transactions.length);
+    total_transfers = (portalStatsData["totalTransfers"] if portalStatsData and portalStatsData["totalTransfers"] else effective_transactions.length);
     top_positions   = (portalStatsData["topPositions"]   if portalStatsData and portalStatsData["topPositions"]   else []);
     top_conferences = (portalStatsData["topConferences"] if portalStatsData and portalStatsData["topConferences"] else []);
 
     # Committed vs enrolled vs undecided
-    enrolled_count  = transactions.filter(lambda t: dict -> bool { return t["status"] == "Enrolled"; }).length;
-    committed_count = transactions.filter(lambda t: dict -> bool { return t["status"] == "Committed"; }).length;
-    undecided_count = transactions.filter(lambda t: dict -> bool { return t["toTeam"] == "Undecided" or t["toTeam"] == ""; }).length;
+    enrolled_count  = effective_transactions.filter(lambda t: dict -> bool { return t["status"] == "Enrolled"; }).length;
+    committed_count = effective_transactions.filter(lambda t: dict -> bool { return t["status"] == "Committed"; }).length;
+    undecided_count = effective_transactions.filter(lambda t: dict -> bool { return t["toTeam"] == "Undecided" or t["toTeam"] == ""; }).length;
     commit_pct      = (Math.round(committed_count / total_transfers * 100) if total_transfers > 0 else 0);
     enrolled_pct    = (Math.round(enrolled_count  / total_transfers * 100) if total_transfers > 0 else 0);
     undecided_pct   = (Math.round(undecided_count / total_transfers * 100) if total_transfers > 0 else 0);
 
     # Average rating
-    rated_txns = transactions.filter(lambda t: dict -> bool { return t["rating"] and t["rating"] > 0; });
+    rated_txns = effective_transactions.filter(lambda t: dict -> bool { return t["rating"] and t["rating"] > 0; });
     avg_rating = (
         Math.round(rated_txns.reduce(lambda acc: float, t: dict -> float { return acc + t["rating"]; }, 0.0) / rated_txns.length * 10) / 10
         if rated_txns.length > 0 else 0
@@ -46,7 +51,7 @@ def:pub AnalyticsPage(
             heatmap_counts[pos + "|" + conf] = 0;
         });
     });
-    transactions.forEach(lambda t: dict -> None {
+    effective_transactions.forEach(lambda t: dict -> None {
         pos  = t["position"];
         conf = t["conference"];
         if pos and conf {
@@ -100,11 +105,25 @@ def:pub AnalyticsPage(
     return
         <div className="space-y-6">
 
+            {(
+                <div className="card-static" style={({"padding": "0.75rem 1rem", "display": "flex", "alignItems": "center", "gap": "0.75rem", "background": "var(--surface-2, var(--bg-card))", "borderLeft": "3px solid var(--accent)"})}>
+                    <div className="spinner" style={({"width": "16px", "height": "16px", "borderWidth": "2px"})}>
+                    </div>
+                    <span className="text-muted" style={({"fontSize": "0.85rem"})}>
+                        Loading complete transfer portal data in the background... Statistics will update automatically.
+                    </span>
+                </div>
+            ) if not analyticsDataLoaded else ""}
+
             <div className="section-header">
                 <div>
                     <h1>Transfer Portal Analytics</h1>
                     <p className="text-muted" style={({"marginTop": "0.25rem"})}>
-                        Live trends, position breakdowns, and team movement data
+                        {(
+                            "Live trends, position breakdowns, and team movement data"
+                            if analyticsDataLoaded
+                            else "Loading full dataset... showing partial data (" + String(effective_transactions.length) + " of " + String(total_transfers) + " transfers)"
+                        )}
                     </p>
                 </div>
                 <div style={({"display": "flex", "alignItems": "center", "gap": "0.75rem"})}>
