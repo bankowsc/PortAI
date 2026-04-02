@@ -44,7 +44,6 @@ def:pub Navigation(
                     </button>
                     <button className="icon-btn" title="Notifications">
                         🔔
-                        <span className="notification-dot"></span>
                     </button>
                     <div className="avatar-dropdown">
                         <button className="avatar-btn"

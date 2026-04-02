@@ -236,13 +236,15 @@ impl app.handleLogout -> None {
     favoriteTeamIds = default_favorite_team_ids;
     watchedPlayerIds = [];
     userCredits = 0; # TODO this still shows the old users credits until interacted with after
+    analyticsTransactions = [];
+    analyticsDataLoaded = False;
     # Clear all cached data from localStorage
     cache_keys: list = [
         "portai_watchlist", "portai_display_name", "portai_avatar_icon",
         "portai_email", "portai_ai_summary_title", "portai_ai_summary",
         "portai_transactions", "portai_portal_stats", "portai_team_counts",
         "portai_favorites", "portai_profile_transactions",
-        "portai_ai_impacts", "portai_crystal_ball"
+        "portai_ai_impacts", "portai_crystal_ball", "portai_analytics_transactions"
     ];
     for key in cache_keys {
         window.localStorage.removeItem(key);
@@ -662,4 +664,39 @@ impl app.handleIncrementCredits -> None {
         window.localStorage.setItem("portai_credits", String(userCredits));
         console.warn("Failed to sync credit increment to server");
     }
+}
+
+impl app.fetchAllTransactionsBackground -> None {
+    # Background load ALL transfers for the Analytics page.
+    # This runs asynchronously after login and doesn't block the UI.
+    try {
+        result = root spawn get_all_analytics_transfers();
+        if result.reports {
+            all_data = result.reports[0]["transfers"];
+            analyticsTransactions = all_data;
+            analyticsDataLoaded = True;
+            window.localStorage.setItem("portai_analytics_transactions", JSON.stringify(all_data));
+        }
+    } except e {
+        console.warn("Background analytics data load failed — Analytics will use partial data");
+    }
+}
+
+impl app.fetchAnalysisSummary -> None {
+    aiAnalysisLoading = True;
+    try {
+        # Build a context string from available analytics data
+        total = (analyticsTransactions.length if analyticsDataLoaded else transactions.length);
+        context = "Transfer portal analytics summary request. Total transfers tracked: " + String(total) + ".";
+        if portalStatsData {
+            context = context + " Total unique transfers: " + String(portalStatsData["totalTransfers"]) + ".";
+        }
+        result = root spawn get_portal_summary(favorite_team_ids=favoriteTeamIds);
+        if result.reports {
+            aiAnalysisSummary = result.reports[0]["content"];
+        }
+    } except e {
+        aiAnalysisSummary = "Unable to generate analysis at this time. Please try again.";
+    }
+    aiAnalysisLoading = False;
 }

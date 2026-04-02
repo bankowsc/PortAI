@@ -25,7 +25,7 @@ sv import from main {
     update_favorites, get_user_favorites, get_portal_summary, update_profile, get_user_profile, 
     get_transfers, search_players, get_player_by_id, get_ai_impact, get_portal_stats,
     predict_destination, chat, get_team_stats, get_team_analysis, get_team_transfers, get_player_detail,
-    update_watchlist, get_user_watchlist, claim_daily_credits
+    update_watchlist, get_user_watchlist, claim_daily_credits, get_all_analytics_transfers
 }
 
 # --- URL <-> Page Sync Helpers ---
@@ -134,7 +134,9 @@ def:pub app -> JsxElement {
         dateRange: str = "all",
         userCredits: int = 0,
         creditsLoading: bool = False,
-        today: any = {};
+        today: any = {},
+        analyticsTransactions: list = [],
+        analyticsDataLoaded: bool = False;
 
 
     can with entry {
@@ -203,6 +205,12 @@ def:pub app -> JsxElement {
             stored_crystal = window.localStorage.getItem("portai_crystal_ball");
             if stored_crystal {
                 crystalBallTexts = JSON.parse(stored_crystal);
+            }
+            stored_analytics = window.localStorage.getItem("portai_analytics_transactions");
+            if stored_analytics {
+                parsed_analytics = JSON.parse(stored_analytics);
+                analyticsTransactions = parsed_analytics;
+                analyticsDataLoaded = True;
             }
         }
         # --- URL Sync: read URL on mount ---
@@ -284,6 +292,10 @@ def:pub app -> JsxElement {
             if Object.keys(teamCounts).length == 0 {
                 fetchTeamStats();
             }
+            # Background load ALL transfers for analytics (non-blocking)
+            if not analyticsDataLoaded {
+                fetchAllTransactionsBackground();
+            }
         }
     }
 
@@ -326,6 +338,7 @@ def:pub app -> JsxElement {
     async def handleRegenerateAnalysis -> None;
     def handleDateRangeChange(value: str) -> None;
     async def fetchAnalysisSummary -> None;
+    async def fetchAllTransactionsBackground -> None;
 
     async def claimDailyCredits -> None;
     async def handleIncrementCredits -> None;
@@ -711,6 +724,8 @@ def:pub app -> JsxElement {
                             dateRange={dateRange}
                             onDateRangeChange={handleDateRangeChange}
                             today={today}
+                            analyticsTransactions={analyticsTransactions}
+                            analyticsDataLoaded={analyticsDataLoaded}
                         />
                     ) if currentPage == "analytics" else (
 

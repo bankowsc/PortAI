@@ -591,6 +591,40 @@ def get_team_transfer_counts() -> dict {
     return counts;
 }
 
+def get_all_transfers_enriched() -> list {
+    # Returns ALL transfers with a conference field added for analytics.
+    # Maps fromTeam to conference using mock_teams_data.
+    all_transfers = read_all_transfers();
+    # Build a lookup from team short name (lowercase) -> conference
+    team_conf_map: dict = {};
+    for team in mock_teams_data {
+        team_conf_map[team["name"].lower()] = team["conference"];
+        # Also map the short name from TEAM_NAME_MAP
+        if team["name"] in TEAM_NAME_MAP {
+            team_conf_map[TEAM_NAME_MAP[team["name"]].lower()] = team["conference"];
+        }
+    }
+    enriched: list = [];
+    for t in all_transfers {
+        conf = "";
+        from_lower = t["fromTeam"].lower();
+        # Try exact match first
+        if from_lower in team_conf_map {
+            conf = team_conf_map[from_lower];
+        } else {
+            # Try substring matching
+            for team_key in team_conf_map {
+                if team_key in from_lower or from_lower in team_key {
+                    conf = team_conf_map[team_key];
+                    break;
+                }
+            }
+        }
+        t["conference"] = conf;
+        enriched.append(t);
+    }
+    return enriched;
+}
 
 
 glob portal_stats_context: str = "";
@@ -952,6 +986,15 @@ walker:priv get_portal_stats {
     can with Root entry {
         stats = get_portal_stats_from_csv();
         report stats;
+    }
+}
+
+walker:priv get_all_analytics_transfers {
+    """Get ALL transfers enriched with conference field for analytics page."""
+
+    can with Root entry {
+        transfers = get_all_transfers_enriched();
+        report {"transfers": transfers, "total": len(transfers)};
     }
 }
 

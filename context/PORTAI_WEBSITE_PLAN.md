@@ -363,6 +363,35 @@ This project is being developed for **EECS 449** at the University of Michigan (
 
 ## Version Log
 
+### v2.0 — July 2, 2026
+
+**Background async loading for Analytics page, notification dot removal, and copyright removal.**
+
+#### Changes Made
+
+1. **Analytics page background data loading**
+   - **Problem:** The Analytics page only had access to partially-loaded transactions (fetched 100 at a time from other pages), causing inaccurate statistics, percentages, and heatmap data.
+   - **Solution:** Added a background async loading system that fetches all ~4,065 transfers after login without blocking the UI. Users can use the site immediately while the full dataset loads.
+   - **Server-side:** Added `get_all_transfers_enriched()` function that reads all transfers and enriches each record with a `conference` field by mapping `fromTeam` to conference via `mock_teams_data`. Added `get_all_analytics_transfers` walker as an authenticated endpoint.
+   - **Client-side:** Added `analyticsTransactions` and `analyticsDataLoaded` state variables, localStorage caching (`portai_analytics_transactions`), and `fetchAllTransactionsBackground` async method triggered on login. Analytics page seamlessly falls back to partial data while background load is in progress.
+   - **Analytics page:** Uses full dataset (`effective_transactions`) when available, shows loading indicator banner during background fetch, and dynamically updates subtitle with loading progress.
+   - **Also implemented** the previously-declared but missing `fetchAnalysisSummary` method.
+   - **Files changed:** `main.jac`, `frontend.cl.jac`, `frontend.impl.jac`, `pages/AnalyticsPage.cl.jac`
+
+2. **Removed notification blue dot**
+   - Removed the hard-coded `<span className="notification-dot">` from the bell icon button in the Navigation component, since there is no notification system.
+   - **Files changed:** `components/Navigation.cl.jac`
+
+3. **Removed copyright statement**
+   - Removed the `© 2026 PortAI. All rights reserved.` text and its container `div` from the Footer component.
+   - **Files changed:** `components/Footer.cl.jac`
+
+#### Status
+- `jac check main.jac` passes with 0 errors, 0 warnings
+- All 6 files changed across this version (125+ insertions for analytics, minor deletions for dot/copyright)
+
+---
+
 ### v1.9 — February 26, 2026
 
 **Removed overhead search bar, implemented persistent Watchlist, added Watchlist to Transactions page, removed Settings from profile dropdown, persisted user profile data, fixed React stale-closure bugs, and added comprehensive localStorage caching for AI responses and all data.**
