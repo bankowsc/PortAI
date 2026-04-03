@@ -506,6 +506,10 @@ def:pub GamePage() -> any {
                         <span className="game-stat-label">Best</span>
                         <span className="game-stat-value">{String(highScore)}</span>
                     </div>
+                    <div className="game-stat-card">
+                        <span className="game-stat-label">Misses Left</span>
+                        <span className="game-stat-value">{4 - String(numMisses)}</span>
+                    </div>
                     <button className="btn btn-outline game-reset-btn" onClick={handleReset}>Reset</button>
                 </div>
             </div>
@@ -634,13 +638,6 @@ def:pub GamePage() -> any {
                             </div>
                         </div>
                     ) if gameOver else None}
-                </div>
-
-                <div className="game-misses-bar">
-                    <span className="game-misses-label">Misses left:</span>
-                    {[0, 1, 2, 3].map(lambda i: int -> any {
-                        return <span key={String(i)} className={"game-miss-dot" + (" game-miss-dot--used" if i < numMisses else "")}></span>;
-                    })}
                 </div>
 
             </div>
