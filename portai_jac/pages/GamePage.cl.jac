@@ -365,7 +365,51 @@ def:pub GamePage() -> any {
         throws = throws + 1;
     }
 
+    # def handleReset -> None {
+    #     score = 0;
+    #     throws = 0;
+    #     tick = 0;
+    #     targets = [];
+    #     nextTargetId = 1;
+    #     hitFlash = False;
+    #     hitText = {};
+    #     numMisses = 0;
+    #     gameOver = False;
+    #     highScore = (window._portaiHighScore if window._portaiHighScore else 0);
+    #     window._portaiScore = 0;
+    #     window._portaiTick = 0;
+    #     window._portaiNextTargetId = 1;
+    #     window._portaiTargets = [];
+    #     window._portaiNumMisses = 0;
+    #     resetBall();
+    #     repopulateTargets();
+    #     if window._portaiGameLoopId {
+    #         clearInterval(window._portaiGameLoopId);
+    #     }
+    #     window._portaiGameLoopId = setInterval(lambda -> None { runTick(); }, 16);
+
+    #     window._portaiBalls = [];
+    #     window._portaiLastThrowMs = 0;
+    #     balls = [];
+    # }
+
     def handleReset -> None {
+        # 1. Stop the loop first
+        if window._portaiGameLoopId {
+            clearInterval(window._portaiGameLoopId);
+            window._portaiGameLoopId = None;
+        }
+
+        # 2. Clear ALL window globals before anything reads them
+        window._portaiScore = 0;
+        window._portaiTick = 0;
+        window._portaiNextTargetId = 1;
+        window._portaiTargets = [];
+        window._portaiNumMisses = 0;
+        window._portaiBalls = [];
+        window._portaiLastThrowMs = 0;
+
+        # 3. Reset React state
         score = 0;
         throws = 0;
         tick = 0;
@@ -376,21 +420,13 @@ def:pub GamePage() -> any {
         numMisses = 0;
         gameOver = False;
         highScore = (window._portaiHighScore if window._portaiHighScore else 0);
-        window._portaiScore = 0;
-        window._portaiTick = 0;
-        window._portaiNextTargetId = 1;
-        window._portaiTargets = [];
-        window._portaiNumMisses = 0;
-        resetBall();
-        repopulateTargets();
-        if window._portaiGameLoopId {
-            clearInterval(window._portaiGameLoopId);
-        }
-        window._portaiGameLoopId = setInterval(lambda -> None { runTick(); }, 16);
-
-        window._portaiBalls = [];
-        window._portaiLastThrowMs = 0;
         balls = [];
+
+        # 4. Now repopulate from the clean empty global
+        repopulateTargets();
+
+        # 5. Restart the loop last
+        window._portaiGameLoopId = setInterval(lambda -> None { runTick(); }, 16);
     }
 
     can with entry {
