@@ -43,7 +43,9 @@ def:pub AnalyticsPage(
     );
 
     # Position vs conference heatmap
-    heatmap_positions   = ["QB", "WR", "RB", "OL", "DB", "LB"];
+    # heatmap_positions   = ["QB", "WR", "RB", "IOL", "CB", "LB"];
+    heatmap_positions = ["QB", "RB", "WR", "TE", "OT", "IOL", "Edge", "DL", "LB", "CB", "S", "K", "P", "LS"];
+
     heatmap_conferences = ["SEC", "Big Ten", "Big 12", "ACC", "Pac-12"];
     heatmap_counts = {};
     heatmap_positions.forEach(lambda pos: str -> None {
