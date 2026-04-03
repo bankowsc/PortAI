@@ -677,7 +677,8 @@ def:pub app -> JsxElement {
                             teamCounts={teamCounts}
                         />
                     ) if currentPage == "favorites" else (
-                        <GamePage />
+                        <GamePage 
+                        />
                     ) if currentPage == "game" else (
                         <ProfilePage
                             onNavigate={handleNavigate}

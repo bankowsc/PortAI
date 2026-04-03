@@ -428,9 +428,20 @@ textarea {
 }
 
 @keyframes hitTextPop {
-    0% { opacity: 1; transform: translateY(0) scale(1); }
-    50% { opacity: 1; transform: translateY(-10px) scale(1.15); }
-    100% { opacity: 0; transform: translateY(-30px) scale(0.9); }
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+    50% {
+        opacity: 1;
+        transform: translateY(-10px) scale(1.15);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.9);
+    }
 }
 
 .game-footer-hint {
@@ -451,6 +462,81 @@ textarea {
     font-weight: 600;
     color: var(--foreground);
 }
+
+.game-misses-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    position: absolute;
+    top: 10px;
+    right: 12px;
+}
+
+.game-misses-label {
+    color: #fff;
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.game-miss-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #22c55e;
+    border: 2px solid #fff;
+    opacity: 0.85;
+    transition: background 0.2s;
+}
+
+.game-miss-dot--used {
+    background: #ef4444;
+    opacity: 1;
+}
+
+.game-over-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.72);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    border-radius: inherit;
+}
+
+.game-over-card {
+    background: #1a2a4a;
+    border: 2px solid #ffffff33;
+    border-radius: 16px;
+    padding: 36px 48px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+}
+
+.game-over-title {
+    color: #ef4444;
+    font-size: 32px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.game-over-score {
+    color: #fff;
+    font-size: 20px;
+    margin: 0;
+}
+
+.game-over-highscore {
+    color: #f59e0b;
+    font-size: 16px;
+    margin: 0;
+}
+
+/* end game */
 
 @media (max-width: 900px) {
     .game-world {

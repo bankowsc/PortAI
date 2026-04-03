@@ -13,16 +13,16 @@ def:pub GamePage() -> any {
         isDragging: bool = False,
         dragStart: any = {},
         dragCurrent: any = {},
-        ball: any = {"x": 137, "y": 348, "vx": 0, "vy": 0, "active": False},
+        # ball: any = {"x": 137, "y": 348, "vx": 0, "vy": 0, "active": False},
         targets: list = [],
         hitFlash: bool = False,
         hitText: any = {},
-        pageMissingFrames: int = 0;
-
-    # def difficulty -> float {
-    #     s = (window._portaiScore if window._portaiScore else 0);
-    #     return Math.min(4.0, 1.0 + (s / 42.0));
-    # }
+        pageMissingFrames: int = 0,
+        numMisses: int = 0,
+        highScore: int = 0,
+        gameOver: bool = False,
+        balls: list = [],
+        lastThrowMs: int = 0;
 
     def difficulty -> int {
         s = (window._portaiScore if window._portaiScore else 0);
@@ -34,13 +34,22 @@ def:pub GamePage() -> any {
     }
 
     def resetBall -> None {
-        start = ballStart();
-        newBall = {"x": start["x"], "y": start["y"], "vx": 0, "vy": 0, "active": False};
-        window._portaiBallState = newBall;
-        ball = newBall;
+        newBall = {
+            "x": ballStart()["x"],
+            "y": ballStart()["y"],
+            "vx": 0,
+            "vy": 0,
+            "active": False
+        };
+        # window._portaiBallState = newBall;
+        # ball = newBall;
+        window._portaiBalls = [];
+        balls = [];
+
         isDragging = False;
         dragStart = {};
         dragCurrent = {};
+
     }
 
     def randomBetween(minVal: float, maxVal: float) -> float {
@@ -103,13 +112,11 @@ def:pub GamePage() -> any {
     }
 
     def repopulateTargets -> None {
-        targetPool = targets.slice();
+        targetPool = (window._portaiTargets if window._portaiTargets else []).slice();
         missing = 4 - targetPool.length;
-
         if missing <= 0 {
             return;
         }
-
         slots = [1, 2, 3, 4];
         for slot in slots {
             if slot <= missing {
@@ -118,7 +125,6 @@ def:pub GamePage() -> any {
                 nextTargetId = nextTargetId + 1;
             }
         }
-
         targets = targetPool;
         window._portaiTargets = targetPool;
     }
@@ -206,11 +212,12 @@ def:pub GamePage() -> any {
         pageMissingFrames = 0;
 
         # Read mutable state from window globals to avoid stale closures.
-        cBall = (window._portaiBallState if window._portaiBallState else {"x": 137, "y": 348, "vx": 0, "vy": 0, "active": False});
+        cBalls = (window._portaiBalls if window._portaiBalls else []);
         cTargets = (window._portaiTargets if window._portaiTargets else []);
         cTick = ((window._portaiTick if window._portaiTick else 0) + 1);
         cScore = (window._portaiScore if window._portaiScore else 0);
         cNextId = (window._portaiNextTargetId if window._portaiNextTargetId else 1);
+        cNumMisses = (window._portaiNumMisses if window._portaiNumMisses != None else 0);
 
         # Update targets.
         moved: list = [];
@@ -218,18 +225,19 @@ def:pub GamePage() -> any {
             moved.push(updateTarget(t, cTick));
         }
 
-        # Update ball physics.
-        if cBall["active"] {
+        # Update all balls.
+        survivingBalls: list = [];
+        for b in cBalls {
             GRAVITY = 0.32;
-            nx = cBall["x"] + cBall["vx"];
-            ny = cBall["y"] + cBall["vy"];
-            nvx = cBall["vx"] * 0.998;
-            nvy = cBall["vy"] + GRAVITY;
+            nx = b["x"] + b["vx"];
+            ny = b["y"] + b["vy"];
+            nvx = b["vx"] * 0.998;
+            nvy = b["vy"] + GRAVITY;
 
-            remainingTargets: list = [];
             hitPoints = 0;
             hitX = 0;
             hitY = 0;
+            remainingTargets: list = [];
             for t in moved {
                 catchRadius = (t["size"] * 0.6) + 12;
                 isHit = hitDistanceSq(nx, ny, t["x"], t["y"]) <= (catchRadius * catchRadius);
@@ -243,6 +251,7 @@ def:pub GamePage() -> any {
             }
 
             if hitPoints > 0 {
+                cNumMisses = 0;
                 cScore = cScore + hitPoints;
                 hitFlash = True;
                 hitText = {"x": hitX, "y": hitY - 20, "points": hitPoints, "key": Date.now()};
@@ -254,38 +263,47 @@ def:pub GamePage() -> any {
                     cNextId = cNextId + 1;
                 }
                 moved = remainingTargets;
-                start = ballStart();
-                cBall = {"x": start["x"], "y": start["y"], "vx": 0, "vy": 0, "active": False};
+                # Ball consumed on hit — not added to survivingBalls
             } else {
                 if ny > (worldHeight + 220) or nx > (worldWidth + 320) or nx < -140 or ny < -240 {
-                    start = ballStart();
-                    cBall = {"x": start["x"], "y": start["y"], "vx": 0, "vy": 0, "active": False};
+                    cNumMisses = cNumMisses + 1;
+                    if cNumMisses >= 4 {
+                        clearInterval(window._portaiGameLoopId);
+                        window._portaiGameLoopId = None;
+                        highScore = Math.max(highScore, cScore);
+                        window._portaiHighScore = Math.max((window._portaiHighScore if window._portaiHighScore else 0), cScore);
+                        gameOver = True;
+                    }
+                    # Ball OOB — not added to survivingBalls
                 } else {
-                    cBall = {"x": nx, "y": ny, "vx": nvx, "vy": nvy, "active": True};
+                    survivingBalls.push({"x": nx, "y": ny, "vx": nvx, "vy": nvy, "active": True, "id": b["id"]});
                 }
             }
         }
 
         # Write to window globals.
-        window._portaiBallState = cBall;
+        window._portaiBalls = survivingBalls;
         window._portaiTargets = moved;
         window._portaiTick = cTick;
         window._portaiScore = cScore;
         window._portaiNextTargetId = cNextId;
+        window._portaiNumMisses = cNumMisses;
 
         # Push to React state for re-render.
-        ball = cBall;
+        balls = survivingBalls;
         targets = moved;
         tick = cTick;
         score = cScore;
         nextTargetId = cNextId;
+        numMisses = cNumMisses;
+
     }
 
     def handlePress(e: any) -> None {
         e.preventDefault();
-        if ball["active"] {
-            resetBall();
-        }
+        # if ball["active"] {
+        #     resetBall();
+        # }
         isDragging = True;
         dragStart = toWorldPoint(e);
         dragCurrent = toWorldPoint(e);
@@ -309,7 +327,6 @@ def:pub GamePage() -> any {
             releasePoint = dragCurrent;
         }
 
-        # Aim vector: direction from drag start to drag end (direct throw).
         dx = releasePoint["x"] - dragStart["x"];
         dy = releasePoint["y"] - dragStart["y"];
         power = Math.sqrt((dx * dx) + (dy * dy));
@@ -318,20 +335,15 @@ def:pub GamePage() -> any {
         dragStart = {};
         dragCurrent = {};
 
-        start = ballStart();
         if power < 5 {
-            newBall = {
-                "x": start["x"],
-                "y": start["y"],
-                "vx": 3.5,
-                "vy": -2.5,
-                "active": True
-            };
-            window._portaiBallState = newBall;
-            ball = newBall;
-            throws = throws + 1;
             return;
         }
+
+        nowMs = Date.now();
+        if (nowMs - (window._portaiLastThrowMs if window._portaiLastThrowMs else 0)) < 100 {
+            return;
+        }
+        window._portaiLastThrowMs = nowMs;
 
         VELOCITY_SCALE = 0.065;
         maxPower = Math.min(250.0, power);
@@ -339,18 +351,65 @@ def:pub GamePage() -> any {
         unitY = dy / power;
 
         newBall = {
-            "x": start["x"],
-            "y": start["y"],
+            "x": ballStart()["x"],
+            "y": ballStart()["y"],
             "vx": unitX * maxPower * VELOCITY_SCALE,
             "vy": unitY * maxPower * VELOCITY_SCALE,
-            "active": True
+            "active": True,
+            "id": String(nowMs)
         };
-        window._portaiBallState = newBall;
-        ball = newBall;
+        cBalls = (window._portaiBalls if window._portaiBalls else []).slice();
+        cBalls.push(newBall);
+        window._portaiBalls = cBalls;
+        balls = cBalls;
         throws = throws + 1;
     }
 
+    # def handleReset -> None {
+    #     score = 0;
+    #     throws = 0;
+    #     tick = 0;
+    #     targets = [];
+    #     nextTargetId = 1;
+    #     hitFlash = False;
+    #     hitText = {};
+    #     numMisses = 0;
+    #     gameOver = False;
+    #     highScore = (window._portaiHighScore if window._portaiHighScore else 0);
+    #     window._portaiScore = 0;
+    #     window._portaiTick = 0;
+    #     window._portaiNextTargetId = 1;
+    #     window._portaiTargets = [];
+    #     window._portaiNumMisses = 0;
+    #     resetBall();
+    #     repopulateTargets();
+    #     if window._portaiGameLoopId {
+    #         clearInterval(window._portaiGameLoopId);
+    #     }
+    #     window._portaiGameLoopId = setInterval(lambda -> None { runTick(); }, 16);
+
+    #     window._portaiBalls = [];
+    #     window._portaiLastThrowMs = 0;
+    #     balls = [];
+    # }
+
     def handleReset -> None {
+        # 1. Stop the loop first
+        if window._portaiGameLoopId {
+            clearInterval(window._portaiGameLoopId);
+            window._portaiGameLoopId = None;
+        }
+
+        # 2. Clear ALL window globals before anything reads them
+        window._portaiScore = 0;
+        window._portaiTick = 0;
+        window._portaiNextTargetId = 1;
+        window._portaiTargets = [];
+        window._portaiNumMisses = 0;
+        window._portaiBalls = [];
+        window._portaiLastThrowMs = 0;
+
+        # 3. Reset React state
         score = 0;
         throws = 0;
         tick = 0;
@@ -358,12 +417,16 @@ def:pub GamePage() -> any {
         nextTargetId = 1;
         hitFlash = False;
         hitText = {};
-        window._portaiScore = 0;
-        window._portaiTick = 0;
-        window._portaiNextTargetId = 1;
-        window._portaiTargets = [];
-        resetBall();
+        numMisses = 0;
+        gameOver = False;
+        highScore = (window._portaiHighScore if window._portaiHighScore else 0);
+        balls = [];
+
+        # 4. Now repopulate from the clean empty global
         repopulateTargets();
+
+        # 5. Restart the loop last
+        window._portaiGameLoopId = setInterval(lambda -> None { runTick(); }, 16);
     }
 
     can with entry {
@@ -372,6 +435,14 @@ def:pub GamePage() -> any {
         window._portaiScore = 0;
         window._portaiTick = 0;
         window._portaiNextTargetId = 1;
+        window._portaiNumMisses = 0;
+
+        # Don't reset high score on mount, only initialize if absent
+        if not window._portaiHighScore {
+            window._portaiHighScore = 0;
+        }
+        highScore = (window._portaiHighScore if window._portaiHighScore else 0);
+
         if window._portaiGameLoopId {
             clearInterval(window._portaiGameLoopId);
         }
@@ -403,7 +474,7 @@ def:pub GamePage() -> any {
         }
     }
 
-    throwAngle = (Math.atan2(ball["vy"], ball["vx"]) * 57.2958 if ball["active"] else -18);
+    # throwAngle = (Math.atan2(ball["vy"], ball["vx"]) * 57.2958 if ball["active"] else -18);
     accuracy = (Math.round((score / throws) * 10) / 10 if throws > 0 else 0);
 
     # SVG helper strings.
@@ -430,6 +501,14 @@ def:pub GamePage() -> any {
                     <div className="game-stat-card">
                         <span className="game-stat-label">Avg Pts</span>
                         <span className="game-stat-value">{String(accuracy)}</span>
+                    </div>
+                    <div className="game-stat-card">
+                        <span className="game-stat-label">Best</span>
+                        <span className="game-stat-value">{String(highScore)}</span>
+                    </div>
+                    <div className="game-stat-card">
+                        <span className="game-stat-label">Misses Left</span>
+                        <span className="game-stat-value">{4 - String(numMisses)}</span>
                     </div>
                     <button className="btn btn-outline game-reset-btn" onClick={handleReset}>Reset</button>
                 </div>
@@ -514,20 +593,23 @@ def:pub GamePage() -> any {
                         <g transform={"translate(" + String(qbX) + "," + String(qbY - 60) + ")"}>
                             <circle cx="0" cy="0" r="10" fill="#1a3a6a" />
                             <rect x="-6" y="10" width="12" height="28" rx="3" fill="#1a3a6a" />
-                            <line x1="6" y1="16" x2="18" y2={"8" if not ball["active"] else "2"} stroke="#1a3a6a" strokeWidth="4" strokeLinecap="round" />
+                            <line x1="6" y1="16" x2="18" y2={"2" if balls.length > 0 else "8"} stroke="#1a3a6a" strokeWidth="4" strokeLinecap="round" />
                             <line x1="-6" y1="16" x2="-14" y2="28" stroke="#1a3a6a" strokeWidth="4" strokeLinecap="round" />
                             <line x1="-3" y1="38" x2="-8" y2="56" stroke="#1a3a6a" strokeWidth="4" strokeLinecap="round" />
                             <line x1="3" y1="38" x2="8" y2="56" stroke="#1a3a6a" strokeWidth="4" strokeLinecap="round" />
                             <text x="0" y="-16" textAnchor="middle" fill="#ffffff" fontSize="10" opacity="0.7" fontFamily="sans-serif">QB</text>
                         </g>
 
-                        <g transform={"translate(" + String(Math.round(ball["x"])) + "," + String(Math.round(ball["y"])) + ") rotate(" + String(Math.round(throwAngle)) + ")"}>
-                            <ellipse cx="0" cy="0" rx="11" ry="6" fill="#8B4513" stroke="#5a2d0c" strokeWidth="1" />
-                            <line x1="-4" y1="0" x2="4" y2="0" stroke="#ffffff" strokeWidth="1.5" />
-                            <line x1="-2" y1="-2" x2="-2" y2="2" stroke="#ffffff" strokeWidth="0.8" />
-                            <line x1="0" y1="-2" x2="0" y2="2" stroke="#ffffff" strokeWidth="0.8" />
-                            <line x1="2" y1="-2" x2="2" y2="2" stroke="#ffffff" strokeWidth="0.8" />
-                        </g>
+                        {balls.map(lambda b: dict -> any {
+                            bAngle = (Math.atan2(b["vy"], b["vx"]) * 57.2958 if b["active"] else -18);
+                            return <g key={b["id"]} transform={"translate(" + String(Math.round(b["x"])) + "," + String(Math.round(b["y"])) + ") rotate(" + String(Math.round(bAngle)) + ")"}>
+                                <ellipse cx="0" cy="0" rx="11" ry="6" fill="#8B4513" stroke="#5a2d0c" strokeWidth="1" />
+                                <line x1="-4" y1="0" x2="4" y2="0" stroke="#ffffff" strokeWidth="1.5" />
+                                <line x1="-2" y1="-2" x2="-2" y2="2" stroke="#ffffff" strokeWidth="0.8" />
+                                <line x1="0" y1="-2" x2="0" y2="2" stroke="#ffffff" strokeWidth="0.8" />
+                                <line x1="2" y1="-2" x2="2" y2="2" stroke="#ffffff" strokeWidth="0.8" />
+                            </g>;
+                        })}
 
                         {(
                             <text
@@ -544,7 +626,20 @@ def:pub GamePage() -> any {
                             </text>
                         ) if hitText and hitText["points"] else None}
                     </svg>
+
+
+                    {(
+                        <div className="game-over-overlay">
+                            <div className="game-over-card">
+                                <h2 className="game-over-title">Game Over</h2>
+                                <p className="game-over-score">{"Final Score: " + String(score)}</p>
+                                <p className="game-over-highscore">{"Best Ever: " + String(highScore)}</p>
+                                <button className="btn btn-primary" onClick={handleReset}>Play Again</button>
+                            </div>
+                        </div>
+                    ) if gameOver else None}
                 </div>
+
             </div>
 
             <div className="game-footer-hint">
