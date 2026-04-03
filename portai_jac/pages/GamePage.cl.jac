@@ -17,12 +17,10 @@ def:pub GamePage() -> any {
         targets: list = [],
         hitFlash: bool = False,
         hitText: any = {},
-        pageMissingFrames: int = 0;
-
-    # def difficulty -> float {
-    #     s = (window._portaiScore if window._portaiScore else 0);
-    #     return Math.min(4.0, 1.0 + (s / 42.0));
-    # }
+        pageMissingFrames: int = 0,
+        numMisses: int = 0,
+        highScore: int = 0,
+        gameOver: bool = False;
 
     def difficulty -> int {
         s = (window._portaiScore if window._portaiScore else 0);
@@ -216,6 +214,9 @@ def:pub GamePage() -> any {
         cTick = ((window._portaiTick if window._portaiTick else 0) + 1);
         cScore = (window._portaiScore if window._portaiScore else 0);
         cNextId = (window._portaiNextTargetId if window._portaiNextTargetId else 1);
+        cNumMisses = (window._portaiNumMisses if window._portaiNumMisses != None else 0);
+
+
 
         # Update targets.
         moved: list = [];
@@ -248,6 +249,11 @@ def:pub GamePage() -> any {
             }
 
             if hitPoints > 0 {
+                console.log("HIT ", cNumMisses);
+                cNumMisses = 0;
+                window._portaiNumMisses = 0;
+                numMisses = 0;
+
                 cScore = cScore + hitPoints;
                 hitFlash = True;
                 hitText = {"x": hitX, "y": hitY - 20, "points": hitPoints, "key": Date.now()};
@@ -270,6 +276,19 @@ def:pub GamePage() -> any {
 
             } else {
                 if ny > (worldHeight + 220) or nx > (worldWidth + 320) or nx < -140 or ny < -240 {
+                    cNumMisses = cNumMisses + 1;
+                    console.log("MISS ", cNumMisses);
+                    window._portaiNumMisses = cNumMisses;
+                    numMisses = cNumMisses;
+
+                    if cNumMisses >= 4 {
+                        clearInterval(window._portaiGameLoopId);
+                        window._portaiGameLoopId = None;
+                        highScore = Math.max(highScore, cScore);
+                        window._portaiHighScore = Math.max((window._portaiHighScore if window._portaiHighScore else 0), cScore);
+                        gameOver = True;
+                    }
+
                     cBall = {
                         "x": ballStart()["x"],
                         "y": ballStart()["y"],
@@ -289,6 +308,8 @@ def:pub GamePage() -> any {
         window._portaiTick = cTick;
         window._portaiScore = cScore;
         window._portaiNextTargetId = cNextId;
+        window._portaiNumMisses = cNumMisses;
+        
 
         # Push to React state for re-render.
         ball = cBall;
@@ -296,6 +317,7 @@ def:pub GamePage() -> any {
         tick = cTick;
         score = cScore;
         nextTargetId = cNextId;
+        numMisses = cNumMisses;
     }
 
     def handlePress(e: any) -> None {
@@ -376,12 +398,20 @@ def:pub GamePage() -> any {
         nextTargetId = 1;
         hitFlash = False;
         hitText = {};
+        numMisses = 0;
+        gameOver = False;
+        highScore = (window._portaiHighScore if window._portaiHighScore else 0);
         window._portaiScore = 0;
         window._portaiTick = 0;
         window._portaiNextTargetId = 1;
         window._portaiTargets = [];
+        window._portaiNumMisses = 0;
         resetBall();
         repopulateTargets();
+        if window._portaiGameLoopId {
+            clearInterval(window._portaiGameLoopId);
+        }
+        window._portaiGameLoopId = setInterval(lambda -> None { runTick(); }, 16);
     }
 
     can with entry {
@@ -390,6 +420,14 @@ def:pub GamePage() -> any {
         window._portaiScore = 0;
         window._portaiTick = 0;
         window._portaiNextTargetId = 1;
+        window._portaiNumMisses = 0;
+
+        # Don't reset high score on mount, only initialize if absent
+        if not window._portaiHighScore {
+            window._portaiHighScore = 0;
+        }
+        highScore = (window._portaiHighScore if window._portaiHighScore else 0);
+
         if window._portaiGameLoopId {
             clearInterval(window._portaiGameLoopId);
         }
@@ -448,6 +486,10 @@ def:pub GamePage() -> any {
                     <div className="game-stat-card">
                         <span className="game-stat-label">Avg Pts</span>
                         <span className="game-stat-value">{String(accuracy)}</span>
+                    </div>
+                    <div className="game-stat-card">
+                        <span className="game-stat-label">Best</span>
+                        <span className="game-stat-value">{String(highScore)}</span>
                     </div>
                     <button className="btn btn-outline game-reset-btn" onClick={handleReset}>Reset</button>
                 </div>
@@ -562,7 +604,27 @@ def:pub GamePage() -> any {
                             </text>
                         ) if hitText and hitText["points"] else None}
                     </svg>
+
+
+                    {(
+                        <div className="game-over-overlay">
+                            <div className="game-over-card">
+                                <h2 className="game-over-title">Game Over</h2>
+                                <p className="game-over-score">{"Final Score: " + String(score)}</p>
+                                <p className="game-over-highscore">{"Best Ever: " + String(highScore)}</p>
+                                <button className="btn btn-primary" onClick={handleReset}>Play Again</button>
+                            </div>
+                        </div>
+                    ) if gameOver else None}
                 </div>
+
+                <div className="game-misses-bar">
+                    <span className="game-misses-label">Misses left:</span>
+                    {[0, 1, 2, 3].map(lambda i: int -> any {
+                        return <span key={String(i)} className={"game-miss-dot" + (" game-miss-dot--used" if i < numMisses else "")}></span>;
+                    })}
+                </div>
+
             </div>
 
             <div className="game-footer-hint">
