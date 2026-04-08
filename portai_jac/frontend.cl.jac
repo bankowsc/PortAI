@@ -132,6 +132,7 @@ def:pub app -> JsxElement {
         aiAnalysisSummary: str = "",
         aiAnalysisLoading: bool = False,
         dateRange: str = "all",
+        teamAnalysisTitle: str = "",
         userCredits: int = 0,
         creditsLoading: bool = False,
         today: any = {},
@@ -371,6 +372,7 @@ def:pub app -> JsxElement {
             teamTransfersIncoming = [];
             teamTransfersOutgoing = [];
             teamAnalysis = "";
+            teamAnalysisTitle = "";
             found = mock_teams.filter(lambda t: dict -> bool { return t["id"] == new_team_id; });
             if found.length > 0 {
                 fetchTeamTransfers(found[0]["name"]);
@@ -758,12 +760,17 @@ def:pub app -> JsxElement {
                             teamTransfers={teamTransfers}
                             teamTransfersLoading={teamTransfersLoading}
                             teamAnalysis={teamAnalysis}
+                            teamAnalysisTitle={teamAnalysisTitle}
                             teamAnalysisLoading={teamAnalysisLoading}
                             teamTransfersIncoming={teamTransfersIncoming}
                             teamTransfersOutgoing={teamTransfersOutgoing}
-                            onRegenerateAnalysis={lambda -> None { 
+                            onRegenerateAnalysis={lambda -> None {
                                 found = mock_teams.filter(lambda t: dict -> bool { return t["id"] == teamDetailId; });
-                                if found.length > 0 { fetchTeamAnalysis(found[0]["name"]); }
+                                if found.length > 0 {
+                                    teamAnalysis = "";
+                                    teamAnalysisTitle = "";
+                                    fetchTeamAnalysis(found[0]["name"]);
+                                }
                             }}
                         />
                     ) if currentPage.startsWith("team-detail:") else (

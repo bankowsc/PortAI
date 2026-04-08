@@ -19,6 +19,7 @@ def:pub TeamDetailPage(
     teamTransfersOutgoing: list,
     teamAnalysis: str,
     teamAnalysisLoading: bool,
+    teamAnalysisTitle: str,
     onRegenerateAnalysis: any
 ) -> any {
 
@@ -114,7 +115,29 @@ def:pub TeamDetailPage(
                 {(
                     <p className="text-muted" style={({"fontStyle": "italic"})}>Generating AI analysis...</p>
                 ) if teamAnalysisLoading else (
-                    <p>{(teamAnalysis if teamAnalysis else "Click Regenerate to generate an AI analysis of this team's portal activity.")}</p>
+                    <div>
+    {["Strategy:", "Key Additions:", "Key Losses:", "Outlook:", "Risk Level:"].reduce(
+        lambda acc: any, label: str -> any {
+            idx = teamAnalysis.indexOf(label);
+            if idx >= 0 {
+                next_labels = ["Strategy:", "Key Additions:", "Key Losses:", "Outlook:", "Risk Level:"].filter(lambda l: str -> bool { return l != label; });
+                end_idx = teamAnalysis.length;
+                next_labels.forEach(lambda l: str -> None {
+                    li = teamAnalysis.indexOf(l);
+                    if li > idx and li < end_idx { end_idx = li; }
+                });
+                section_text = teamAnalysis.substring(idx + label.length, end_idx).trim();
+                acc.push(
+                    <p key={label} style={({"marginBottom": "0.75rem"})}>
+                        <strong>{label}</strong>{" " + section_text}
+                    </p>
+                );
+            }
+            return acc;
+        },
+        []
+    )}
+</div>
                 )}
             </div>
 
