@@ -34,17 +34,17 @@ jac start
 - Browse players, teams, transactions, and games
 - Crystal Ball: predicts where a given player is likely to transfer
 - AI analysis of player fits and team needs
-- Per-team news digests scraped and summarized automatically
+- Per-team news digests scraped and summarized 
 - Favorites, chat panel, and analytics dashboard
 - Full-stack in Jac. frontend (`.cl.jac`) and backend in one language
 
 ## Tech stack
 
-- **Jac / Jaseci** — app framework (frontend + backend)
-- **byllm + Gemini 2.5 Flash** — LLM layer
-- **Python** — scrapers for 247Sports, On3, ESPN, Twitter
-- **Playwright / Selenium / BeautifulSoup** — scraping
-- **scikit-learn, pandas** — data processing and modeling
+- **Jac / Jaseci**: app framework (frontend + backend)
+- **byllm + Gemini 2.5 Flash**: LLM layer
+- **Python**: scrapers for 247Sports, On3, ESPN, Twitter
+- **Playwright / Selenium / BeautifulSoup**; scraping
+- **scikit-learn, pandas**: data processing and modeling
 
 ## Project structure
 
