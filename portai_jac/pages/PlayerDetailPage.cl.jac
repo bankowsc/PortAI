@@ -56,13 +56,24 @@ def:pub PlayerDetailPage(
     status_color = (status_color_map[playerData["status"]] if status_color_map[playerData["status"]] else "var(--text-muted)");
 
     from_team_match = mock_teams.filter(lambda t: dict -> bool {
-        return t["name"].toLowerCase() == playerData["fromTeam"].toLowerCase();
+        tName = t["name"].toLowerCase();
+        pTeam = playerData["fromTeam"].toLowerCase();
+        return tName == pTeam or
+            tName.includes(pTeam) or
+            pTeam.includes(tName);
+    }).sort(lambda a: dict, b: dict -> int {
+        return b["name"].length - a["name"].length;
     });
 
     to_team_id = "";
-
     to_team_match = mock_teams.filter(lambda t: dict -> bool {
-        return t["name"].toLowerCase() == playerData["toTeam"].toLowerCase();
+        tName = t["name"].toLowerCase();
+        pTeam = playerData["toTeam"].toLowerCase();
+        return tName == pTeam or
+            tName.includes(pTeam) or
+            pTeam.includes(tName);
+    }).sort(lambda a: dict, b: dict -> int {
+        return b["name"].length - a["name"].length;
     });
 
     if to_team_match.length > 0 {
