@@ -567,25 +567,40 @@ def get_portal_stats_from_csv() -> dict {
 }
 
 def get_team_transfer_counts() -> dict {
-    # Returns a dict mapping team name -> {incoming, outgoing}
-    all_transfers = read_all_transfers();
+    all_transfers = read_all_transfers_raw();
+    # Deduplicate by profile_url
+    seen_urls: dict = {};
+    deduped: list = [];
+    for t in all_transfers {
+        url = t["profileUrl"];
+        if url and url in seen_urls {
+            continue;
+        }
+        if url {
+            seen_urls[url] = True;
+        }
+        deduped.append(t);
+    }
+    all_transfers = deduped;
     counts: dict = {};
+    # Build reverse map: "Michigan" -> "Michigan Wolverines"
+    reverse_map: dict = {};
+    for full_name in TEAM_NAME_MAP {
+        short_name = TEAM_NAME_MAP[full_name];
+        reverse_map[short_name] = full_name;
+    }
     for t in all_transfers {
         from_team = t["fromTeam"];
         to_team = t["toTeam"];
-        # Count outgoing
+        from_key = reverse_map[from_team] if from_team in reverse_map else from_team;
+        to_key = reverse_map[to_team] if to_team in reverse_map else to_team;
         if from_team and from_team != "Unknown" {
-            if from_team not in counts {
-                counts[from_team] = {"incoming": 0, "outgoing": 0};
-            }
-            counts[from_team]["outgoing"] = counts[from_team]["outgoing"] + 1;
+            if from_key not in counts { counts[from_key] = {"incoming": 0, "outgoing": 0}; }
+            counts[from_key]["outgoing"] = counts[from_key]["outgoing"] + 1;
         }
-        # Count incoming (only if committed/enrolled somewhere)
         if to_team and to_team != "Undecided" and to_team != "Unknown" {
-            if to_team not in counts {
-                counts[to_team] = {"incoming": 0, "outgoing": 0};
-            }
-            counts[to_team]["incoming"] = counts[to_team]["incoming"] + 1;
+            if to_key not in counts { counts[to_key] = {"incoming": 0, "outgoing": 0}; }
+            counts[to_key]["incoming"] = counts[to_key]["incoming"] + 1;
         }
     }
     return counts;
@@ -1002,16 +1017,7 @@ walker:priv get_team_stats {
     """Get incoming/outgoing transfer counts keyed by mock team full name."""
     can with Root entry {
         counts = get_team_transfer_counts();
-        matched: dict = {};
-        for mock_name in TEAM_NAME_MAP {
-            csv_name = TEAM_NAME_MAP[mock_name];
-            if csv_name in counts {
-                matched[mock_name] = counts[csv_name];
-            } else {
-                matched[mock_name] = {"incoming": 0, "outgoing": 0};
-            }
-        }
-        report {"teamCounts": matched};
+        report {"teamCounts": counts};
     }
 }
 

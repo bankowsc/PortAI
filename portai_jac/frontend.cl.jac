@@ -187,10 +187,10 @@ def:pub app -> JsxElement {
             if stored_portal_stats {
                 portalStatsData = JSON.parse(stored_portal_stats);
             }
-            stored_team_counts = window.localStorage.getItem("portai_team_counts");
-            if stored_team_counts {
-                teamCounts = JSON.parse(stored_team_counts);
-            }
+            #stored_team_counts = window.localStorage.getItem("portai_team_counts");
+            #if stored_team_counts {
+                #teamCounts = JSON.parse(stored_team_counts);
+            #}
             stored_favorites = window.localStorage.getItem("portai_favorites");
             if stored_favorites {
                 favoriteTeamIds = JSON.parse(stored_favorites);
