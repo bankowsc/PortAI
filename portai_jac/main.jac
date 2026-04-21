@@ -1363,6 +1363,11 @@ walker:priv get_player_detail {
     has player_id: str;
 
     can with Root entry {
+        reverse_map: dict = {};
+        for full_name in TEAM_NAME_MAP {
+            short_name = TEAM_NAME_MAP[full_name];
+            reverse_map[short_name] = full_name;
+        }
         all_transfers = read_all_transfers();
         for t in all_transfers {
             if t["id"] == self.player_id {
@@ -1374,8 +1379,8 @@ walker:priv get_player_detail {
                     "weight": str(t["weight"]) + " lbs" if t["weight"] else "N/A",
                     "starRating": t["starRating"],
                     "rating": t["rating"],
-                    "fromTeam": t["fromTeam"],
-                    "toTeam": t["toTeam"],
+                    "fromTeam": reverse_map[t["fromTeam"]] if t["fromTeam"] in reverse_map else t["fromTeam"],
+                    "toTeam": reverse_map[t["toTeam"]] if t["toTeam"] in reverse_map else t["toTeam"],
                     "status": t["status"],
                     "profileUrl": t["profileUrl"]
                 };
