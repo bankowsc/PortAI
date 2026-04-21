@@ -17,6 +17,8 @@ PortAI aggregates transfer portal activity across college football and surfaces 
 ```bash
 git clone https://github.com/bankowsc/PortAI.git
 cd PortAI
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 pip install jaclang byllm
 export GEMINI_API_KEY=your_key_here
