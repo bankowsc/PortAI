@@ -32,8 +32,8 @@ jac start
 ## Features
 
 - Browse players, teams, transactions, and games
-- **Crystal Ball**: predicts where a given player is likely to transfer
-- AI summaries of player fits and team needs (Gemini via `byllm`)
+- Crystal Ball: predicts where a given player is likely to transfer
+- AI analysis of player fits and team needs
 - Per-team news digests scraped and summarized automatically
 - Favorites, chat panel, and analytics dashboard
 - Full-stack in Jac. frontend (`.cl.jac`) and backend in one language
