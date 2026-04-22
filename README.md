@@ -4,7 +4,7 @@ PortAI aggregates transfer portal activity across college football and surfaces 
 
 ## Demo
 
-[![PortAI Demo](https://youtu.be/ppkHVHOR12w)](https://youtu.be/ppkHVHOR12w)
+[![PortAI Demo](/assets/Screenshot%202026-04-21%20200231.png)](https://youtu.be/ppkHVHOR12w)
 
 ## Getting started
 
